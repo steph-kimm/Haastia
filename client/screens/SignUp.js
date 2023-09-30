@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image } from 'react-native';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage'; //uninstall this later 
 import { AuthContext } from '../context/auth';
@@ -133,4 +133,5 @@ const styles = StyleSheet.create({
     marginVertical: 5
   },
 });
+
 export default SignUp;

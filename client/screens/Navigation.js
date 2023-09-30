@@ -9,8 +9,8 @@ const Navigation = () => {
         <NavigationContainer>
             <AuthProvider>
                 <NavigationScreen />
-            </AuthProvider>
-        </NavigationContainer>
+             </AuthProvider>
+         </NavigationContainer>
     )
 }
 

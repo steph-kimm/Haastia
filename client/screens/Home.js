@@ -1,6 +1,6 @@
 import {StyleSheet, Text, SafeAreaView} from 'react-native'
 import React from 'react'
-import FooterList from '../components/FooterList'
+import FooterList from '../components/footer/FooterList'
 
 const Home = () => {
     return (
