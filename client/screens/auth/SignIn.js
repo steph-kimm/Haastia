@@ -1,7 +1,7 @@
 import {StyleSheet, Text, View, TextInput, TouchableOpacity, Image} from 'react-native';
 import React, { useContext, useState } from 'react';
 import axios from 'axios';
-import { AuthContext } from '../context/auth';
+import { AuthContext } from '../../context/auth';
 
 // keyBoardAwareScrollView
 const SignIn = ({navigation}) => {
@@ -19,15 +19,13 @@ const SignIn = ({navigation}) => {
       // .then((response) => response.json())
       .then((data) => {
         // Use the data from the server here
-        setData(JSON.stringify(data));
+        // setData(JSON.stringify(data));
         setState(data);
         MMKV.set('user', data); //untested
-        setStatus("SUCCESS")
         navigation.navigate('Home');
       })
       .catch((error) => {
         // Handle any errors that occur
-        setStatus("FAIL")
         console.error(error);
       });
     // const resp = await axios.post('http://localhost:8000/api/signin', {email, password});
@@ -44,7 +42,7 @@ const SignIn = ({navigation}) => {
 
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-      <Image source={require('../assets/logo.png')} style={styles.imageStyles}/>
+      {/* <Image source={require('../../assets/logo.png')} style={styles.imageStyles}/> */}
       </View>
 
       <Text style={styles.signupText}>Sign In</Text>

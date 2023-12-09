@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image } from 'reac
 import React, { useContext, useState } from 'react';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage'; //uninstall this later 
-import { AuthContext } from '../context/auth';
+import { AuthContext } from '../../context/auth';
 import { MMKV } from 'react-native-mmkv'
 
 // keyBoardAwareScrollView
@@ -52,7 +52,7 @@ const SignUp = ({ navigation }) => {
 
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-        <Image source={require('../assets/logo.png')} style={styles.imageStyles} />
+        {/* <Image source={require('../assets/logo.png')} style={styles.imageStyles} /> */}
       </View>
 
       <Text style={styles.signupText}>Sign Up</Text>
