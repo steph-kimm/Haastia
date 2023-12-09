@@ -2,6 +2,7 @@ import {StyleSheet, Text, View, TextInput, TouchableOpacity, Image} from 'react-
 import React, { useContext, useState } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../../context/auth';
+import { MMKV } from 'react-native-mmkv'
 
 // keyBoardAwareScrollView
 const SignIn = ({navigation}) => {

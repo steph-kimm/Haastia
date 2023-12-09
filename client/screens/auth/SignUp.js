@@ -40,12 +40,12 @@ const SignUp = ({ navigation }) => {
           navigation.navigate('Home');
         }
       })
-      // .catch((error) => {
-      //   // Handle any errors that occur
-      //   setStatus("FAIL")
-      //   alert(error)
-      //   console.error(error);
-      // });
+      .catch((error) => {
+        // Handle any errors that occur
+        setStatus("FAIL")
+        alert(error, error.response)
+        console.error(error);
+      });
 
   };
   return (
