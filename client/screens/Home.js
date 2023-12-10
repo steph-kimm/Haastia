@@ -4,7 +4,7 @@ import FooterList from '../components/footer/FooterList'
 
 const Home = () => {
     return (
-        <SafeAreaView>
+        <SafeAreaView style={styles.container}>
             <Text style={StyleSheet.mainText}>Home Component</Text>
             <FooterList />
         </SafeAreaView>

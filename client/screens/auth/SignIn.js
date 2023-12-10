@@ -23,6 +23,7 @@ const SignIn = ({navigation}) => {
         // setData(JSON.stringify(data));
         setState(data);
         MMKV.set('user', data); //untested
+        // MMKV.setMapAsync('user', data); //untested
         navigation.navigate('Home');
       })
       .catch((error) => {
@@ -43,7 +44,7 @@ const SignIn = ({navigation}) => {
 
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-      {/* <Image source={require('../../assets/logo.png')} style={styles.imageStyles}/> */}
+      <Image source={require('../../assets/logo.png')} style={styles.imageStyles}/>
       </View>
 
       <Text style={styles.signupText}>Sign In</Text>
