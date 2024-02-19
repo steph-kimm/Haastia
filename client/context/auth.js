@@ -1,5 +1,6 @@
 import React , {useState, useEffect, createContext} from 'react';
 import { MMKV } from 'react-native-mmkv';
+import { storage } from './storage';
 
 const AuthContext = createContext();
 
@@ -10,7 +11,10 @@ const AuthProvider = ({children}) => {
 
     useEffect(() => {
         const loadFromFromAynchStorage = async () => {
-            const data = MMKV.get('user'); 
+            // const data = MMKV.get('user'); 
+            // setState({...state, data  })
+            
+            const data = storage.getString('user'); 
             setState({...state, data  })
         }
         loadFromFromAynchStorage();

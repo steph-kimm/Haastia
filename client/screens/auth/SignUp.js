@@ -3,7 +3,8 @@ import React, { useContext, useState } from 'react';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage'; //uninstall this later 
 import { AuthContext } from '../../context/auth';
-import { MMKV } from 'react-native-mmkv'
+// import { MMKV } from 'react-native-mmkv'
+import { storage } from '../../context/storage';
 
 // keyBoardAwareScrollView
 const SignUp = ({ navigation }) => {
@@ -20,34 +21,45 @@ const SignUp = ({ navigation }) => {
       return;
     }
     setStatus("PENDING")
-    const res = await axios.post('http://localhost:8000/api/signup', { name, email, password })
-      .then((response) => 
-        response.data
-      )
-      .then((data) => {
-        // Use the data from the server here
-        setData(JSON.stringify(data));
-        
-        if(data.error){
-          alert(data.error);
-          setStatus("FAIL");
-        }else if(data){
-          console.log(data);
-          setState(data);
-          MMKV.set('user', data); //untested
-          // use const value = MMKV.get('user');  to retrive value later 
-          setStatus("SUCCESS");
-          navigation.navigate('Home');
-        }
-      })
-      .catch((error) => {
-        // Handle any errors that occur
-        setStatus("FAIL")
-        alert(error, error.response)
-        console.error(error);
-      });
+    const resp = await axios.post("http://localhost:8000/api/signup", { name, email, password });
+        if (resp.data.error)
+            alert(resp.data.error)
+        else {
+            setState(resp.data);
+            storage.set('user', JSON.stringify(resp.data)); //untested
 
+            // await AsyncStorage.setItem("auth-rn", JSON.stringify(resp.data));
+            alert("Sign Up Successful")
+            navigation.naviage("Home")
+        }
+    // const res = await axios.post('http://localhost:8000/api/signup', { name, email, password })
+    //   .then((response) => 
+    //     response.data
+    //   )
+    //   .then((data) => {
+    //     // Use the data from the server here
+    //     setData(JSON.stringify(data));
+        
+    //     if(data.error){
+    //       alert(data.error);
+    //       setStatus("FAIL");
+    //     }else if(data){
+    //       console.log(data);
+    //       setState(data);
+    //       MMKV.set('user', data); //untested
+    //       // use const value = MMKV.get('user');  to retrive value later 
+    //       setStatus("SUCCESS");
+    //       navigation.navigate('Home');
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     // Handle any errors that occur
+    //     setStatus("FAIL")
+    //     alert(error, error.response)
+    //     console.error(error);
+    //   });
   };
+
   return (
 
     <View style={styles.container}>
@@ -100,12 +112,14 @@ const styles = StyleSheet.create({
   },
   signupInput: {
     height: 44,
-    // borderWidth: 3,
+    // borderBottomWidth: 0.5,
+    // borderBottomColor: '#8ec93a1',
     // padding: 10,
   },
   inputWrapper: {
     borderBottomWidth: 2,
-    width: 200,
+    paddingRight: 40,
+    // width: 200,
     borderBottomColor: '#8e93a1',
   },
   buttonStyle: {

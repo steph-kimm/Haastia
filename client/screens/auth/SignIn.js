@@ -2,34 +2,51 @@ import {StyleSheet, Text, View, TextInput, TouchableOpacity, Image} from 'react-
 import React, { useContext, useState } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../../context/auth';
-import { MMKV } from 'react-native-mmkv'
+import { MMKV } from 'react-native-mmkv';
+import { storage } from '../../context/storage';
 
 // keyBoardAwareScrollView
+
+
 const SignIn = ({navigation}) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [state, setState] = useContext(AuthContext);
 
+  
   const handleSubmit = async () => {
     if (name=== '' || email=== ''|| password=== ''){
       alert ("All fields are required");
       return;
     }
-    await axios.post('http://localhost:8000/api/signin', { name, email, password })
-      // .then((response) => response.json())
-      .then((data) => {
-        // Use the data from the server here
-        // setData(JSON.stringify(data));
-        setState(data);
-        MMKV.set('user', data); //untested
-        // MMKV.setMapAsync('user', data); //untested
-        navigation.navigate('Home');
-      })
-      .catch((error) => {
-        // Handle any errors that occur
-        console.error(error);
-      });
+    // await axios.post('http://localhost:8000/api/signin', { name, email, password })
+      // // .then((response) => response.json())
+      // .then((data) => {
+      //   // Use the data from the server here
+      //   // setData(JSON.stringify(data));
+      //   setState(data);
+      //   MMKV.set('user', data); //untested
+      //   console.log('data', data)
+      //   // MMKV.setMapAsync('user', data); //untested
+      //   navigation.navigate('Home');
+      // })
+      // .catch((error) => {
+      //   // Handle any errors that occur
+      //   alert("Wrong email or password!");
+      //   console.error(error);
+      // });
+      const resp = await axios.post("http://localhost:8000/api/signin", { email, password });
+        if (resp.data.error)
+            alert(resp.data.error)
+        else {
+            setState(resp.data);
+            storage.set('user', JSON.stringify(resp.data)); //untested
+
+            await AsyncStorage.setItem("auth-rn", JSON.stringify(resp.data));
+            alert("Sign In Successful")
+            navigation.naviage("Home")
+        }
     // const resp = await axios.post('http://localhost:8000/api/signin', {email, password});
     // if(resp.data.error)
     //   alert(resp.data.error)
@@ -98,17 +115,18 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     borderBottomWidth: 2,
-    width: 200,
+    // width: 200,
     borderBottomColor: '#8e93a1',
+    paddingRight: 40,
   },
   buttonStyle: {
-  backgroundColor: "darkmagenta",
-  height: 50, 
-  marginBottom: 20, 
-  marginTop: 20, 
-  justifyContent: "center",
-  marginHorizontal: 15,
-  borderRadius: 15,
+    backgroundColor: "darkmagenta",
+    height: 50, 
+    marginBottom: 20, 
+    marginTop: 20, 
+    justifyContent: "center",
+    marginHorizontal: 15,
+    borderRadius: 15,
   }, 
   buttonText: {
   fontSize: 20, 
