@@ -26,9 +26,9 @@ const SignUp = ({ navigation }) => {
             alert(resp.data.error)
         else {
             setState(resp.data);
-            storage.set('user', JSON.stringify(resp.data)); //untested
-
+            storage.set('user', JSON.stringify(resp.data)); //tested. Alt for bottom
             // await AsyncStorage.setItem("auth-rn", JSON.stringify(resp.data));
+            
             alert("Sign Up Successful")
             navigation.naviage("Home")
         }

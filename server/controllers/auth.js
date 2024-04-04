@@ -1,17 +1,26 @@
 import User from "../models/user.js";
-import { hashPassword, comparePassword } from "../helpers/auth.js";
 import jwt from "jsonwebtoken";
-import {nanoid} from "nanoid";
+import { hashPassword, comparePassword } from "../helpers/auth.js";
+import { nanoid } from "nanoid";
+import cloudinary from "cloudinary";
+
 // sendgrid
 // require("dotenv").config();
-import {} from 'dotenv/config'
+import { } from 'dotenv/config'
 // import dotenv from "dotenv";
 
 // const sgMail = require("@sendgrid/mail");
+
+// Adding to DB: FIRST add a controller here
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_NAME,
+    api_key: process.env.CLOUDINARY_KEY,
+    api_secret: process.env.CLOUDINARY_SECRET,
+})
+
 import sgMail from "@sendgrid/mail";
 sgMail.setApiKey(process.env.SENDGRID_KEY);
 export const signup = async (req, res) => {
-    // console.log("Signup Hit");
     try {
         // validation
         const { name, email, password } = req.body;
@@ -148,6 +157,36 @@ export const resetPassword = async (req, res) => {
         user.resetCode = "";
         user.save();
         return res.json({ ok: true });
+    } catch (err) {
+        console.log(err);
+    }
+};
+
+export const uploadImage = async (req, res) => {
+    try {
+        const result = await cloudinary.uploader.upload(req.body.image, {
+            public_id: nanoid(),
+            resource_type: 'jpg',
+        });// this takes the base64 image given and passes an id and safe url for the database
+        console.log('result', result);
+        console.log(req.body.user);
+        const user = await User.findByIdAndUpdate(
+            req.body.user._id,
+            {
+                image: {
+                    public_id: result.public_id,
+                    url: result.secure_url,
+                },
+            },
+            { new: true }
+        );
+        console.log("user,", user);
+        return res.json({
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            image: user.image,
+        });
     } catch (err) {
         console.log(err);
     }

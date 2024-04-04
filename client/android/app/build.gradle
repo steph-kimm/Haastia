@@ -81,7 +81,7 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace "com.neighborlyapp"
+    namespace 'io.expo.client'
     defaultConfig {
         applicationId 'io.expo.client'
         minSdkVersion rootProject.ext.minSdkVersion

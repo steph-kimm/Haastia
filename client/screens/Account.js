@@ -7,6 +7,7 @@ import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5"
 import * as ImagePicker from "expo-image-picker"
+import { storage } from '../context/storage' 
 
 const Account = () => {
     const [email, setEmail] = useState("");
@@ -17,7 +18,7 @@ const Account = () => {
     const [image, setImage] = useState({
         url: "https://www.shutterstock.com/image-vector/vector-flat-illustration-grayscale-avatar-600nw-2281862025.jpg",
         public_id: ""
-    }) //put a filler photo
+    }) //TODO: this should be set in the UseEffect based on if the user has it!
     const [uploadImage, setUploadImage] = useState('');
 
     useEffect(() => {
@@ -40,15 +41,17 @@ const Account = () => {
             alert(resp.data.error)
         else {
             setState(resp.data);
-            await AsyncStorage.setItem("auth-rn", JSON.stringify(resp.data));
+            storage.set('user', JSON.stringify(resp.data)); // better alt to bottom
+            // await AsyncStorage.setItem("auth-rn", JSON.stringify(resp.data));
+
             alert("Sign In Successful")
             navigation.naviage("Home")
         }
     }
 
 
-    const handleUpload = async () => {
-        console.log('handling upload');
+    const handleImageUpload = async () => {
+        console.log('handling photo upload');
         let permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (permissionResult.granted === false) {
             alert("Camera access is required");
@@ -59,37 +62,63 @@ const Account = () => {
             aspect: [4, 3],
             base64: true,
         });
-        if (pickerResult.cancelled === true) {
+        if (pickerResult.canceled === true) {
             return;
         }
-        let base64Image = `data:image/jpg;base64,${pickerResult.base64}`;
+        console.log("USERFIRST, ", state);
+        console.log('pickerResult' ,  pickerResult.assets[0].uri);
+        
+        
+
+        const base64Image = `data:image/jpg;base64,${pickerResult.assets[0].base64}`;
+        // const base64Image = `data:image/jpg;base64,${pickerResult.base64}`;
+        console.log('photo', base64Image);
+
+
+        // setUploadImage(photo.uri);
         setUploadImage(base64Image);
-        const { data } = await axios.post("http://localhost:8000/api/upload-image", {
-            image: base64Image,
+        // storage.set('user', JSON.stringify(resp.data)); // better alt to bottom
+        // let storedData = await AsyncStorage.getItem("auth-rn");
+
+        // const parsed = JSON.parse(state);
+        console.log("state, ", state.user);
+        // console.log("storage user, ", storage.get('user'));
+
+
+        //pass in base64 image 
+        const { data } = await axios.post("http://localhost:8000/api/upload-image", { //this goes to Cloudinary
+            image:  base64Image, // photo,
+            user: state.user //parsed.user
         });
+
         console.log("UPLOADED RESPONSE => ", data); 
     };
 
     return (
         <>
             <View style={{ marginVertical: 100 }}>
-                {/* <View style={styles.imageContainer}>
-                    <Image source={require("../assets/logo.png")} style={styles.imageStyles} />
-                </View> */}
 
                 <View style={styles.imageContainer}>
+                {/* 
+                    first image comes from the user state.
+                    If that is empty then it will go to the image someone JUST uploaded
+
+                */}
+                {/* {console.log( 'image', image)} */}
+
                     {image && image.url ? <Image source={{ uri: image.url }} style={styles.imageStyles} /> : (
                         uploadImage ? <Image source={{uri: uploadImage}} style={styles.imageStyles} /> : (
                         
-                        <TouchableOpacity onPress={() => handleUpload()}>
+                        <TouchableOpacity onPress={() => handleImageUpload()}>
                             <FontAwesome5 name="camera" size={25} color="darkmagenta" style={styles.iconStyle} />
                         </TouchableOpacity>
                         )
                     )}
+                    <Image source={{uri: uploadImage}} style={styles.imageStyles} /> 
                 </View>
 
                 {image && image.url ? (
-                    <TouchableOpacity onPress={() => handleUpload()}>
+                    <TouchableOpacity onPress={() => handleImageUpload()}>
                         <FontAwesome5 name="camera" size={25} color="darkmagenta" style={styles.iconStyle} />
                     </TouchableOpacity>
                 ) : (

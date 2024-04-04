@@ -19,14 +19,18 @@ const userSchema = new Schema(
             min: 6,
             max: 64,
         },
-        // role: {
-        //     type: String,
-        //     default: "Customer",
-        // },
-        // image: {
-        //     public_id: "",
-        //     url: "",
-        // },
+        role: {
+            type: String,
+            default: "Customer",
+        },
+        image: {
+            public_id: {
+                type: String,
+            },
+            url: {
+                type: String,
+            },
+        },
         // resetCode: "",
     },
     { timestamps: true }

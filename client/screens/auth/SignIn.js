@@ -41,9 +41,9 @@ const SignIn = ({navigation}) => {
             alert(resp.data.error)
         else {
             setState(resp.data);
-            storage.set('user', JSON.stringify(resp.data)); //untested
+            storage.set('user', JSON.stringify(resp.data)); //tested
 
-            await AsyncStorage.setItem("auth-rn", JSON.stringify(resp.data));
+            // await AsyncStorage.setItem("auth-rn", JSON.stringify(resp.data));
             alert("Sign In Successful")
             navigation.naviage("Home")
         }
