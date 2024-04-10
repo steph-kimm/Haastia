@@ -28,24 +28,28 @@ const Account = () => {
             setName(name);
             setEmail(email);
             setRole(role);
+            setImage(image)
         }
     }, [state])
 
     const handleSubmit = async () => {
-        if (email === '' || password === '') {
-            alert("All fields are required");
+        if (password.length < '') {
+            alert("Password must be at least 6 characters long");
             return;
         }
-        const resp = await axios.post("http://localhost:8000/api/signin", { email, password });
-        if (resp.data.error)
-            alert(resp.data.error)
-        else {
-            setState(resp.data);
-            storage.set('user', JSON.stringify(resp.data)); // better alt to bottom
-            // await AsyncStorage.setItem("auth-rn", JSON.stringify(resp.data));
-
-            alert("Sign In Successful")
-            navigation.naviage("Home")
+        try {
+            const user= state.user;
+            console.log("USER IN SUBMIT", user);
+            const res = await axios.post('http://localhost:8000/api/update-password', {password, user})
+            const data = res.data;
+            if(data.error) alert(data.error);
+            else{
+                alert("Password Updated susccesfully")
+                setPassword('');
+            }
+        } catch (error) {
+            alert("Password update failed")
+            console.log(error);
         }
     }
 
@@ -72,7 +76,7 @@ const Account = () => {
 
         const base64Image = `data:image/jpg;base64,${pickerResult.assets[0].base64}`;
         // const base64Image = `data:image/jpg;base64,${pickerResult.base64}`;
-        console.log('photo', base64Image);
+        // console.log('photo', base64Image);
 
 
         // setUploadImage(photo.uri);
@@ -92,6 +96,16 @@ const Account = () => {
         });
 
         console.log("UPLOADED RESPONSE => ", data); 
+        console.log('CURRENT STATE', state)
+        let update_state = state;
+        update_state.user = data;
+        // const new_user = data;
+
+        storage.set('user', JSON.stringify(update_state));
+        setState({...state, user:data})
+        setImage(date.image);
+        alert('profile image saved');
+
     };
 
     return (
@@ -114,7 +128,6 @@ const Account = () => {
                         </TouchableOpacity>
                         )
                     )}
-                    <Image source={{uri: uploadImage}} style={styles.imageStyles} /> 
                 </View>
 
                 {image && image.url ? (

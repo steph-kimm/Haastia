@@ -30,7 +30,7 @@ const SignUp = ({ navigation }) => {
             // await AsyncStorage.setItem("auth-rn", JSON.stringify(resp.data));
             
             alert("Sign Up Successful")
-            navigation.naviage("Home")
+            navigation.navigate("Home")
         }
     // const res = await axios.post('http://localhost:8000/api/signup', { name, email, password })
     //   .then((response) => 

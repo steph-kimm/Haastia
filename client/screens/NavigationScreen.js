@@ -9,8 +9,9 @@ import { AuthContext, AuthProvider } from '../context/auth';
 import Home from './Home';
 import HeaderTabs from '../components/header/HeaderTabs';
 import Account from './Account';
-import Post from './Post';
+import Post from './AddPost';
 import Links from './Links';
+
 
 const Stack = createNativeStackNavigator();
 

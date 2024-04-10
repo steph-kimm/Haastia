@@ -20,6 +20,7 @@ cloudinary.config({
 
 import sgMail from "@sendgrid/mail";
 sgMail.setApiKey(process.env.SENDGRID_KEY);
+
 export const signup = async (req, res) => {
     try {
         // validation
@@ -187,6 +188,24 @@ export const uploadImage = async (req, res) => {
             role: user.role,
             image: user.image,
         });
+    } catch (err) {
+        console.log(err);
+    }
+};
+
+export const updatePassword = async (req, res) => {
+    try {
+        const { password } = req.body;
+        console.log(req.body.user.user_id)
+        const hashedPassword = await hashPassword(password);
+        const user = await User.findByIdAndUpdate(
+            req.body.user._id,
+            {
+                password: hashedPassword,
+            });
+        user.password = undefined;
+        user.secret = undefined;
+        return res.json(user);
     } catch (err) {
         console.log(err);
     }

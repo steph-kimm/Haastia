@@ -1,16 +1,18 @@
 import React from 'react'
 import { NavigationContainer } from "@react-navigation/native";
-import NavigationScreen from './NavigationScreen' 
-import { AuthProvider } from'../context/auth'
-
+import NavigationScreen from './NavigationScreen'
+import { AuthProvider } from '../context/auth'
+import { PostProvider } from '../context/post'
 
 const Navigation = () => {
     return (
         <NavigationContainer>
             <AuthProvider>
-                <NavigationScreen />
-             </AuthProvider>
-         </NavigationContainer>
+                <PostProvider>
+                    <NavigationScreen />
+                </PostProvider>
+            </AuthProvider>
+        </NavigationContainer>
     )
 }
 

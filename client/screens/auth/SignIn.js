@@ -93,6 +93,7 @@ const SignIn = ({navigation}) => {
                         Sign Up
                     </Text>
           </Text>
+          {/* <Text onPress={() => navigation.navigate('ForgotPassword')} style={styles.forgotText}> Forgot Password?</Text> */}
 
           <Text style={{ marginHorizontal: 24}}> {JSON.stringify({ name, email, password })}</Text>
       
@@ -104,6 +105,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
+  firgitText: {fontsize: 12, textAlign: 'center', marginTop:10, color: 'darkgreen', fontWeight:'bold'},
   signupText: {
     fontSize: 30,
     textAlign: 'center',

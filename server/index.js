@@ -7,6 +7,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 
 import authRoutes from "./routes/auth.js";
+import postRoutes from './routes/post.js'
 
 import morgan from "morgan";
 
@@ -33,5 +34,6 @@ app.use(morgan("dev"));
 
 // route middlewares
 app.use("/api", authRoutes);
+app.use("/api", postRoutes);
 
 app.listen(8000, () => console.log("Server running on port 8000"));
