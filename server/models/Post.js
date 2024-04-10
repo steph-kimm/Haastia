@@ -33,7 +33,10 @@ const postSchema = new Schema(
             type: String,
             default: "Other",
         },
-        image: [imageSchema],
+        images: {
+            type: [imageSchema],
+            required: false
+        },
         // resetCode: "",
     },
     { timestamps: true }

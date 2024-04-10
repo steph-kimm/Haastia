@@ -118,7 +118,6 @@ const Account = () => {
                     If that is empty then it will go to the image someone JUST uploaded
 
                 */}
-                {/* {console.log( 'image', image)} */}
 
                     {image && image.url ? <Image source={{ uri: image.url }} style={styles.imageStyles} /> : (
                         uploadImage ? <Image source={{uri: uploadImage}} style={styles.imageStyles} /> : (
