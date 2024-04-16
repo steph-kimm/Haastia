@@ -9,9 +9,9 @@ import { AuthContext, AuthProvider } from '../context/auth';
 import Home from './Home';
 import HeaderTabs from '../components/header/HeaderTabs';
 import Account from './Account';
-import Post from './AddPost';
-import Links from './Links';
-
+import AddPost from './AddPost';
+import Links from './Saved';
+import PostDetailsScreen from './PostDetailsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -28,8 +28,9 @@ const NavigationScreen = () => {
           <>
           <Stack.Screen name="Home" component={Home} options={{headerRight: () => <HeaderTabs/>}} /> 
           <Stack.Screen name="Account" component={Account} />
-          <Stack.Screen name="Post" component={Post} />
+          <Stack.Screen name="AddPost" component={AddPost} />
           <Stack.Screen name="Links" component={Links} />
+          <Stack.Screen name="PostDetails" component={PostDetailsScreen} />
           </>
         ):( 
           <>

@@ -1,39 +1,67 @@
-import { StyleSheet, Text, SafeAreaView, ScrollView, View, Image } from 'react-native'
-import React, { useContext, useEffect } from 'react'
+import { StyleSheet, Text, SafeAreaView, ScrollView, View, Image, TouchableOpacity } from 'react-native'
+import React, { useContext, useEffect, useState } from 'react'
 import { PostContext } from '../context/post'
 import FooterList from '../components/footer/FooterList'
 import axios from "axios"
+import FontAwesome5 from "react-native-vector-icons/FontAwesome5"
+import { AuthContext } from '../context/auth'
+import Post from '../components/Post'
+import { useNavigation } from '@react-navigation/native';
 
 const Home = () => {
+    const navigation = useNavigation();
+
     const [posts, setPosts] = useContext(PostContext);
+    const [state, setState] = useContext(AuthContext);
+    const [saved, setSaved] = useState([]);
 
     useEffect(() => {
+        const { saved_posts } = state.user;
+        setSaved(saved_posts);
+
         const fetchPosts = async () => {
             const res = await axios.get("http://localhost:8000/api/get-posts");
             setPosts(res.data);
-            console.log('posts', posts);
+            // console.log('posts', posts);
         };
         fetchPosts();
         // console.log('post first image', posts[0].images);
     }, [])
 
+    const handlePostPress = (post) => {
+        // Navigate to post details screen and pass post ID as param OR full post
+        console.log('post pressed'); //TODO: update this so that it navigates to post deatils
+        navigation.navigate('PostDetails', { post });
+      };
 
+    const handleSave = async (item) => {
+        console.log('item=>', item);
+        let new_saved = saved;
+        new_saved.push(item);
+
+        try {
+            const user= state.user;
+            const res = await axios.post('http://localhost:8000/api/update-saved-posts', {posts:new_saved, user})
+            const data = res.data;
+            if(data.error) alert(data.error);
+            else{
+                alert("Post saved successfully")
+                setSaved(new_saved);
+            }
+        } catch (error) {
+            alert("Post update failed")
+            console.log(error);
+        }
+    }
 
     return (
         <SafeAreaView style={styles.container}>
             {/* <Text style={StyleSheet.mainText}>Services</Text> */}
             <ScrollView showsVerticalScrollIndicator={false}>
                 {posts && posts.map(item => (
-                    // {console.log(item)}
-                    <View key={item._id} style={{alignItems:'center'}}>
-                    <View  style={styles.box}>
-                        {console.log('item.images[0]?.url', item.images[0]?.url)}
-                        {item.images[0]?.url ? <Image style={styles.image} source={{ uri: item.images[0].url }} /> : null}
-                        <Text>{item.title}</Text>
-                        <Text>{item.description}</Text>
-                        <Text>${item.price}</Text>
-                    </View>
-                    </View>
+                    <TouchableOpacity key={item.id} onPress={() => handlePostPress(item)}>
+                    <Post item={item} handleSave={handleSave}/>
+                    </TouchableOpacity>
                 ))}
             </ScrollView>
             <FooterList />

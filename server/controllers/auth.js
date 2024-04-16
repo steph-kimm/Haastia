@@ -210,3 +210,21 @@ export const updatePassword = async (req, res) => {
         console.log(err);
     }
 };
+
+export const updateSavedPosts = async (req, res) => {
+    try {
+        const { posts } = req.body;
+        console.log(req.body.user.user_id)
+        // const hashedPassword = await hashPassword(password);
+        const user = await User.findByIdAndUpdate(
+            req.body.user._id,
+            {
+                saved_posts: posts,
+            });
+        user.password = undefined;
+        user.secret = undefined;
+        return res.json(user);
+    } catch (err) {
+        console.log(err);
+    }
+};

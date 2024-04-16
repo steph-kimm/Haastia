@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TextInput, Image, TouchableOpacity, SafeAreaView } from 'react-native'
+import { StyleSheet, Text, View, TextInput, Image, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native'
 import React, { useContext, useEffect, useState } from 'react'
 import FooterList from '../components/footer/FooterList'
 // import {KeyboardAwareScrollView} NOTE: need to add this later to be able to see while typing
@@ -7,7 +7,9 @@ import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5"
 import * as ImagePicker from "expo-image-picker"
-import { storage } from '../context/storage' 
+import { storage } from '../context/storage'
+import { PostContext } from '../context/post'
+import Post from '../components/Post'
 
 const Account = () => {
     const [email, setEmail] = useState("");
@@ -15,21 +17,30 @@ const Account = () => {
     const [password, setPassword] = useState("");
     const [role, setRole] = useState("");
     const [state, setState] = useContext(AuthContext);
+    const [id, setId] = useState("");
     const [image, setImage] = useState({
         url: "https://www.shutterstock.com/image-vector/vector-flat-illustration-grayscale-avatar-600nw-2281862025.jpg",
         public_id: ""
     }) //TODO: this should be set in the UseEffect based on if the user has it!
     const [uploadImage, setUploadImage] = useState('');
+    const [posts, setPosts] = useContext(PostContext);
 
     useEffect(() => {
-        console.log(state)
+        // console.log('state.user', state.user);
         if (state) {
-            const { name, email, role, image } = state.user;
+            const { name, email, role, image, _id } = state.user;
             setName(name);
             setEmail(email);
             setRole(role);
             setImage(image)
+            setId(_id);
         }
+        const fetchPosts = async () => {
+            const res = await axios.get("http://localhost:8000/api/get-posts");
+            setPosts(res.data);
+            // console.log('posts', posts);
+        };
+        fetchPosts();
     }, [state])
 
     const handleSubmit = async () => {
@@ -38,12 +49,12 @@ const Account = () => {
             return;
         }
         try {
-            const user= state.user;
-            console.log("USER IN SUBMIT", user);
-            const res = await axios.post('http://localhost:8000/api/update-password', {password, user})
+            const user = state.user;
+            // console.log("USER IN SUBMIT", user);
+            const res = await axios.post('http://localhost:8000/api/update-password', { password, user })
             const data = res.data;
-            if(data.error) alert(data.error);
-            else{
+            if (data.error) alert(data.error);
+            else {
                 alert("Password Updated susccesfully")
                 setPassword('');
             }
@@ -53,9 +64,28 @@ const Account = () => {
         }
     }
 
+    const handleSave = async (item) => {
+        console.log('item=>', item);
+        let new_saved = saved;
+        new_saved.push(item);
+
+        try {
+            const user = state.user;
+            const res = await axios.post('http://localhost:8000/api/update-saved-posts', { posts: new_saved, user })
+            const data = res.data;
+            if (data.error) alert(data.error);
+            else {
+                alert("Post saved successfully")
+                setSaved(new_saved);
+            }
+        } catch (error) {
+            alert("Post update failed")
+            console.log(error);
+        }
+    }
 
     const handleImageUpload = async () => {
-        console.log('handling photo upload');
+        // console.log('handling photo upload');
         let permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (permissionResult.granted === false) {
             alert("Camera access is required");
@@ -69,15 +99,10 @@ const Account = () => {
         if (pickerResult.canceled === true) {
             return;
         }
-        console.log("USERFIRST, ", state);
-        console.log('pickerResult' ,  pickerResult.assets[0].uri);
-        
-        
+
 
         const base64Image = `data:image/jpg;base64,${pickerResult.assets[0].base64}`;
         // const base64Image = `data:image/jpg;base64,${pickerResult.base64}`;
-        // console.log('photo', base64Image);
-
 
         // setUploadImage(photo.uri);
         setUploadImage(base64Image);
@@ -91,69 +116,99 @@ const Account = () => {
 
         //pass in base64 image 
         const { data } = await axios.post("http://localhost:8000/api/upload-image", { //this goes to Cloudinary
-            image:  base64Image, // photo,
+            image: base64Image, // photo,
             user: state.user //parsed.user
         });
 
-        console.log("UPLOADED RESPONSE => ", data); 
+        console.log("UPLOADED RESPONSE => ", data);
         console.log('CURRENT STATE', state)
         let update_state = state;
-        update_state.user = data;
+        update_state.user.image = data.image;
         // const new_user = data;
-
+        console.log('updated State', update_state)
         storage.set('user', JSON.stringify(update_state));
-        setState({...state, user:data})
-        setImage(date.image);
+        setState(update_state);
+        // setState({...state, user:data})
+        setImage(data.image);
         alert('profile image saved');
 
     };
 
     return (
         <>
-            <View style={{ marginVertical: 100 }}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={{ marginVertical: 100 }}>
 
-                <View style={styles.imageContainer}>
-                {/* 
+                    <View style={styles.imageContainer}>
+                        {/* 
                     first image comes from the user state.
                     If that is empty then it will go to the image someone JUST uploaded
 
                 */}
 
-                    {image && image.url ? <Image source={{ uri: image.url }} style={styles.imageStyles} /> : (
-                        uploadImage ? <Image source={{uri: uploadImage}} style={styles.imageStyles} /> : (
-                        
+                        {image && image.url ? <Image source={{ uri: image.url }} style={styles.imageStyles} /> : (
+                            uploadImage ? <Image source={{ uri: uploadImage }} style={styles.imageStyles} /> : (
+
+                                <TouchableOpacity onPress={() => handleImageUpload()}>
+                                    <FontAwesome5 name="camera" size={25} color="darkmagenta" style={styles.iconStyle} />
+                                </TouchableOpacity>
+                            )
+                        )}
+                    </View>
+
+                    {image && image.url ? (
                         <TouchableOpacity onPress={() => handleImageUpload()}>
                             <FontAwesome5 name="camera" size={25} color="darkmagenta" style={styles.iconStyle} />
                         </TouchableOpacity>
-                        )
+                    ) : (
+                        <></>
                     )}
-                </View>
 
-                {image && image.url ? (
-                    <TouchableOpacity onPress={() => handleImageUpload()}>
-                        <FontAwesome5 name="camera" size={25} color="darkmagenta" style={styles.iconStyle} />
+                    <Text style={styles.signupText}>{name}</Text>
+                    {/* <Text style={styles.emailText}>{email}</Text> */}
+                    <Text style={styles.roleText}>{role ? role : "member"}</Text>
+                    <View style={{ marginHorizontal: 24 }}>
+                        <Text style={{ fontSize: 16, color: '#8e93a1' }}>PASSWORD</Text>
+                        <TextInput style={styles.signupInput} value={password} onChangeText={text => setPassword(text)} secureTextEntry={true} autoCompleType="password" />
+                    </View>
+                    <TouchableOpacity onPress={handleSubmit} style={styles.buttonStyle}>
+                        <Text style={styles.buttonText}>Update Password</Text>
                     </TouchableOpacity>
-                ) : (
-                    <></>
-                )}
+                    {/* Below Is Posts  */}
+                    <Text> Your Services: </Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ width: '100%' }} >
+                        {posts && posts.filter((item) => {
+                            const owner_id = item.owner.id;
+                            const state_id = state.user._id;
 
-                <Text style={styles.signupText}>{name}</Text>
-                <Text style={styles.emailText}>{email}</Text>
-                <Text style={styles.roleText}>{role ? role : "member"}</Text>
-                <View style={{ marginHorizontal: 24 }}>
-                    <Text style={{ fontSize: 16, color: '#8e93a1' }}>PASSWORD</Text>
-                    <TextInput style={styles.signupInput} value={password} onChangeText={text => setPassword(text)} secureTextEntry={true} autoCompleType="password" />
+                            console.log('item.owner.id', item.owner.id, state.user._id, item.owner._id == state.user._id, owner_id === state_id);
+                            return owner_id === id
+                        }).map(item => (
+
+                            // {console.log(item)}
+                            // <View key={item._id} style={{alignItems:'center', width: '94vw'}}>
+                            // <Post item={item} handleSave={handleSave} />
+                                 
+
+                            <View key={item._id} style={{ alignItems: 'center', width: '400px' }}>
+                                {/* <Post item={item} handleSave={handleSave} />
+                                 */}
+                                <View style={styles.box}>
+                                    {console.log('item.images[0]?.url', item.images[0]?.url)}
+                                    {item.images[0]?.url ? <Image style={styles.image} source={{ uri: item.images[0].url }} /> : null}
+                                    <Text style={styles.title}>{item.title}</Text>
+                                    <Text>{item.description}</Text>
+                                    <Text>${item.price}</Text>
+                                    {item.owner.name ? <Text> Done By: {item.owner.name}</Text> : null}
+                                </View>
+
+                            </View>
+                        ))}
+                    </ScrollView>
+
                 </View>
-                <TouchableOpacity onPress={handleSubmit} style={styles.buttonStyle}>
-                    <Text style={styles.buttonText}>Update Password</Text>
-                </TouchableOpacity>
-            </View>
+            </ScrollView>
         </>
-
-        // <SafeAreaView style={styles.container}>
-        //     <Text style={styles.mainText}> Account Component </Text>
-        //     <FooterList/>
-        // </SafeAreaView>
     )
 }
 
@@ -168,6 +223,15 @@ const styles = StyleSheet.create({
     buttonText: { fontSize: 20, textAlign: 'center', color: '#fff', textTransform: 'uppercase', fontweight: 'bold' },
     imageContainer: { justifyContent: "center", alignItems: "center" },
     imageStyles: { width: 100, height: 100, marginVertical: 20 },
+    image: { height: '70%', width: '100%', borderTopRightRadius: 14, borderTopLeftRadius: 14 },
+    box: {
+        backgroundColor: "#fff", width: 380, height: 280, borderRadius: 14, shadowColor: "#171717",
+        shadowOffset: { width: -2, height: 4 }, shadowOpacity: 0.2, shadowRadius: 3, marginBottom: 20, marginRight: 15, marginLeft: 15
+    },
+    title: {
+        fontWeight: 'bold',
+        fontSize: 20
+    }
     // mainText: {fontSize:30, textAlign: 'center'}
 })
 

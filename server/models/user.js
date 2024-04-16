@@ -23,6 +23,9 @@ const userSchema = new Schema(
             type: String,
             default: "Customer",
         },
+        location: {
+            type: String,
+        },
         image: {
             public_id: {
                 type: String,
@@ -31,8 +34,20 @@ const userSchema = new Schema(
                 type: String,
             },
         },
+        saved_posts: {
+            type: [String],
+        },
+        rating: {
+            type: mongoose.Decimal128,
+            default: "Customer",
+        },
+        jobs_done: {
+            type: Number,
+            default: 0,
+        },
         // resetCode: "",
     },
+    
     { timestamps: true }
 );
 export default mongoose.model("User", userSchema);

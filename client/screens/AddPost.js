@@ -8,15 +8,17 @@ import { Dropdown } from 'react-native-element-dropdown';
 import { PostContext } from '../context/post';
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5"
 import * as ImagePicker from "expo-image-picker"
+import { AuthContext } from '../context/auth'
 
-const Post = ({ navigation }) => {
+const AddPost = ({ navigation }) => {
     const [title, setTitle] = useState('');
-    const [category, setCategory] = useState(null);
     const [price, setPrice] = useState("0");
     const [description, setDescription] = useState('');
-    const [images, setImages] = useState([])
+    const [images, setImages] = useState([]);
+    const [category, setCategory] = useState(null);
     const [isFocus, setIsFocus] = useState(false);
     const [posts, setPosts] = useContext(PostContext);
+    const [state, setState] = useContext(AuthContext);
 
     const handleSubmit = async () => {
         if (title === '') {
@@ -26,9 +28,9 @@ const Post = ({ navigation }) => {
         try {
             console.log('title, description, price, category,', title, description, price, category,);
             const { data } = await axios.post("http://localhost:8000/api/add-post", {
-                title, description, price, category, images
+                title, description, price, category, images, owner: state.user
                 // images
-            });
+            }); //TODO: Make a token required when passing in and send it via a header.
             console.log("data => ", data)
             setPosts([data, ...posts])
             setTimeout(() => {
@@ -77,23 +79,23 @@ const Post = ({ navigation }) => {
                 <TouchableOpacity onPress={() => handleImageUpload()}>
                     <FontAwesome5 name="camera" size={25} color="darkmagenta" style={styles.iconStyle} />
                 </TouchableOpacity>
-                <View style={{ marginHorizontal: 24 }}>
-                    <Text style={{ fontSize: 16, color: "#8e9331" }}>TITLE</Text>
-                    <TextInput style={styles.postInput} value={title} onChangeText={text => setTitle(text)}
+                <View style={styles.inputContainer}>
+                    <Text style={styles.label}>TITLE</Text>
+                    <TextInput style={styles.input} value={title} onChangeText={text => setTitle(text)}
                         autoCapitalize="sentences" placeholder="Give a title" />
                 </View>
-                <View style={{ marginHorizontal: 24 }}>
-                    <Text style={{ fontSize: 16, color: "#8e9331" }}>Description</Text>
-                    <TextInput style={styles.postInput} value={description} onChangeText={text => setDescription(text)}
+                <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Description</Text>
+                    <TextInput style={styles.input} value={description} onChangeText={text => setDescription(text)}
                         autoCapitalize="sentences" placeholder="Give a Description" />
                 </View>
-                <View style={{ marginHorizontal: 24 }}>
-                    <Text style={{ fontSize: 16, color: "#8e9331" }}>Price</Text>
-                    <CurrencyInput style={styles.postInput} value={price} onChangeValue={text => setPrice(text)} delimiter=","
+                <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Price</Text>
+                    <CurrencyInput style={styles.input} value={price} onChangeValue={text => setPrice(text)} delimiter=","
                         separator="." placeholder="Give a Price" />
                 </View>
-                <View style={{ marginHorizontal: 24 }}>
-                    <Text style={{ fontSize: 16, color: "#8e9331" }}>Category</Text>
+                <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Category</Text>
                     <Dropdown
                         style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
                         placeholderStyle={styles.placeholderStyle}
@@ -114,14 +116,6 @@ const Post = ({ navigation }) => {
                             setCategory(item.value);
                             setIsFocus(false);
                         }}
-                    // renderLeftIcon={() => (
-                    //     <AntDesign
-                    //         style={styles.icon}
-                    //         color={isFocus ? 'blue' : 'black'}
-                    //         name="Safety"
-                    //         size={20}
-                    //     />
-                    // )}
                     />
                 </View>
                 {/* <View style={{ marginhorizontal: 24 }}>
@@ -130,7 +124,7 @@ const Post = ({ navigation }) => {
                         autoCapitalize="none" autoCorrect={false} placeholder="Paste the ur!" />
                 </View> */}
 
-                <TouchableOpacity onPress={handleSubmit} styles={styles.buttonStyle} >
+                <TouchableOpacity onPress={handleSubmit} styles={styles.button} >
                     <Text styles={styles.buttonText}>Submit</Text >
                 </TouchableOpacity >
             </ScrollView>
@@ -141,25 +135,71 @@ const Post = ({ navigation }) => {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1 },
-    mainText: { fontSize: 30, textAlign: 'center' },
-    postInput: { borderBottomWidth: 0.5, height: 48, borderBottomColor: "#8e93a1", marginBottom: 30 },
-    buttonStyle: {
-        backgroundColor: "darkmagenta",
-        height: 50,
+    container: {
+        flex: 1,
+        margin: 24,
+      },
+      mainText: {
+        fontSize: 24,
+        fontWeight: 'bold',
         marginBottom: 20,
-        justifycontent: "center",
-        marginHorizontal: 15,
-        borderRadius: 15,
-    },
-    buttonText: {
-        fontsize: 20,
-        textAlign: "center",
-        color: "#fff",
-        textTransform: "uppercase",
-        fontWeight: "bold"
-    },
+        // color: '#333',
+      },
+      iconStyle: {
+
+      },
+      inputContainer: {
+        marginBottom: 20,
+      },
+      label: {
+        fontSize: 16,
+        // color: "#8e9331",
+        marginBottom: 5,
+      },
+      input: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 5,
+        padding: 10,
+        fontSize: 16,
+      },
+      dropdown: {
+        borderWidth: 1,
+        borderRadius: 5,
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+      },
+      placeholderStyle: {
+        color: '#8e9331',
+      },
+      selectedTextStyle: {
+        fontSize: 16,
+      },
+      inputSearchStyle: {
+        fontSize: 16,
+      },
+      button: {
+        backgroundColor: 'darkmagenta',
+        padding: 15,
+        borderRadius: 5,
+        alignItems: 'center',
+        marginTop: 20,
+      },
+      buttonText: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: 'bold',
+      },
+    //   descriptionInput: {
+    //     borderWidth: 1,
+    //     borderColor: '#ccc',
+    //     borderRadius: 5,
+    //     padding: 10,
+    //     fontSize: 16,
+    //     minHeight: 100, // Adjust the minimum height of the description input
+    //     textAlignVertical: 'top', // Align the text at the top vertically
+    //   },
 
 })
 
-export default Post
+export default AddPost

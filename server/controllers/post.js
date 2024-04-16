@@ -15,20 +15,13 @@ export const addPost = async (req, res) => {
             imageArray.push(image);
         }
         console.log('imageArray', imageArray);
-        // console.log('result', result);
-
-        // title, description, price, category, images
 
         req.body.images = imageArray;
-        // const post = await new Post({
-        //     title: req.body.title,
-        //     description: req.body.description,
-        //     price: req.body.price,
-        //     category: req.body.category,
-        //     images: imageArray,
+        // console.log("req.body.user", req.body.owner)
+        const owner = {id: req.body.owner._id, name: req.body.owner.name } // TODO: Pass in 2
+        req.body.owner = owner;
 
-        // }).save();
-
+        // req.body.owner = req.body.owner._id; //just ID
 
         const post = await new Post({ ...req.body }).save();
         res.json(post);
@@ -41,12 +34,11 @@ export const addPost = async (req, res) => {
 
 export const getPosts = async (req, res) => {
     console.log(req.body);
-    console.log('in colorollers');
     try {
         const all = await Post.find().sort({ createdAt: -1 }).limit(500);
         console.log("fetched posts in server", all)
         res.json(all);
     } catch (err) {
-        console.log('error:', error);
+        console.log('error:', err);
     }
 }

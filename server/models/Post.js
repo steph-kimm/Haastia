@@ -1,11 +1,21 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
+import User from './user.js'
 
 const imageSchema = new Schema({
     public_id: {
         type: String,
     },
     url: {
+        type: String,
+    },
+})
+
+const ownerSchema = new Schema({
+    id: {
+        type: String,
+    },
+    name: {
         type: String,
     },
 })
@@ -37,7 +47,19 @@ const postSchema = new Schema(
             type: [imageSchema],
             required: false
         },
-        // resetCode: "",
+        // owner: {
+        //     type: User,
+        //     required: false // TODO URGENT: Chaneg this to true
+        // },
+        owner: {
+            type: ownerSchema,
+            required: false // TODO URGENT: Chaneg this to true
+        },
+        // owner: {
+        //     type: mongoose.Schema.Types.ObjectId,
+        //     ref: 'User',
+        //     required: false // TODO URGENT: Chaneg this to true
+        // },
     },
     { timestamps: true }
 );

@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'; //uninstal
 import { AuthContext } from '../../context/auth';
 // import { MMKV } from 'react-native-mmkv'
 import { storage } from '../../context/storage';
+import { Dropdown } from 'react-native-element-dropdown';
 
 // keyBoardAwareScrollView
 const SignUp = ({ navigation }) => {
@@ -14,6 +15,8 @@ const SignUp = ({ navigation }) => {
   const [data, setData] = useState("");
   const [status, setStatus] = useState("n/a");
   const [state, setState] = useContext(AuthContext);
+  const [category, setCategory] = useState(null);
+  const [isFocus, setIsFocus] = useState(false);
 
   const handleSubmit = async () => {
     if (name === '' || email === '' || password === '') {
@@ -59,6 +62,10 @@ const SignUp = ({ navigation }) => {
     //     console.error(error);
     //   });
   };
+  const categoryOptions = [
+    { label: 'Customer', value: 'Customer' },
+    { label: 'Beautician', value: 'Beautician' },
+];
 
   return (
 
@@ -86,7 +93,27 @@ const SignUp = ({ navigation }) => {
           <TextInput style={styles.signupInput} value={password} onChangeText={text => setPassword(text)} secureTextEntry={true} autoCompleteType='password' />
         </View>
       </View>
-
+      <Dropdown
+                        style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
+                        placeholderStyle={styles.placeholderStyle}
+                        selectedTextStyle={styles.selectedTextStyle}
+                        inputSearchStyle={styles.inputSearchStyle}
+                        iconStyle={styles.iconStyle}
+                        data={categoryOptions}
+                        search
+                        maxHeight={300}
+                        labelField="label"
+                        valueField="value"
+                        placeholder={!isFocus ? 'Select item' : '...'}
+                        searchPlaceholder="Search..."
+                        value={category}
+                        onFocus={() => setIsFocus(true)}
+                        onBlur={() => setIsFocus(false)}
+                        onChange={item => {
+                            setCategory(item.value);
+                            setIsFocus(false);
+                        }}
+                    />
       <TouchableOpacity onPress={handleSubmit} style={styles.buttonStyle}>
         <Text style={styles.buttonText}>Submit</Text>
       </TouchableOpacity>
@@ -97,7 +124,7 @@ const SignUp = ({ navigation }) => {
         </Text>
       </Text>
       <Text style={{ marginHorizontal: 24 }}> {JSON.stringify({ name, email, password })} {status}</Text>
-
+      
     </View>
   );
 };

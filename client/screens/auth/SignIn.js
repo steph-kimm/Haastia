@@ -16,7 +16,7 @@ const SignIn = ({navigation}) => {
 
   
   const handleSubmit = async () => {
-    if (name=== '' || email=== ''|| password=== ''){
+    if (email=== ''|| password=== ''){
       alert ("All fields are required");
       return;
     }
@@ -45,7 +45,7 @@ const SignIn = ({navigation}) => {
 
             // await AsyncStorage.setItem("auth-rn", JSON.stringify(resp.data));
             alert("Sign In Successful")
-            navigation.naviage("Home")
+            navigation.navigate("Home")
         }
     // const resp = await axios.post('http://localhost:8000/api/signin', {email, password});
     // if(resp.data.error)
@@ -64,15 +64,17 @@ const SignIn = ({navigation}) => {
       <Image source={require('../../assets/logo.png')} style={styles.imageStyles}/>
       </View>
 
-      <Text style={styles.signupText}>Sign In</Text>
+      {/* <Text style={styles.signupText}>Sign In</Text>
       <View style={{marginHorizontal: 24}}>
         <Text style={{fontSize: 16, color: '#Be93a1'}}> NAME</Text>
         <View style={styles.inputWrapper}>
           <TextInput style={styles.signupInput} value={name} onChangeText={text => setName(text)} autoCapitalize='words' autoCorrect={false}/>
         </View>
-      </View>
+      </View> */}
+
           <View style={{ marginHorizontal: 24 }} >
-            <Text style={{ fontSize: 16, color:'#8e93a1' }}>EMAIL</Text>
+            <Text style={{ fontSize: 16, color:'#8e93a1' }}>EMAIL OR NAME </Text> 
+            {/* TODO: Add a login with the name */}
             <View style={styles.inputWrapper}>
               <TextInput style={styles. signupInput} value={email} onChangeText={text => setEmail (text)} autoCompleteType='email' keyboardType='email-address'/>
             </View>
@@ -95,7 +97,7 @@ const SignIn = ({navigation}) => {
           </Text>
           {/* <Text onPress={() => navigation.navigate('ForgotPassword')} style={styles.forgotText}> Forgot Password?</Text> */}
 
-          <Text style={{ marginHorizontal: 24}}> {JSON.stringify({ name, email, password })}</Text>
+          {/* <Text style={{ marginHorizontal: 24}}> {JSON.stringify({ name, email, password })}</Text> */}
       
     </View>
   );
