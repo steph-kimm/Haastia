@@ -23,8 +23,8 @@ sgMail.setApiKey(process.env.SENDGRID_KEY);
 
 export const signup = async (req, res) => {
     try {
-        // validation
-        const { name, email, password } = req.body;
+        const { name, email, password, location, role, image } = req.body;
+        // validation TODO: move validation to front end?
         if (!name) {
             return res.json({
                 error: "Name is required",
@@ -48,11 +48,22 @@ export const signup = async (req, res) => {
         }
         // hash password
         const hashedPassword = await hashPassword(password);
+        // upload image to cloudinary 
+        const result = await cloudinary.uploader.upload(image, {
+            public_id: nanoid(),
+            resource_type: 'jpg',
+        });// this takes the base64 image given and passes an id and safe url for the database
         try {
             const user = await new User({
                 name,
                 email,
                 password: hashedPassword,
+                location, 
+                role, 
+                image: {
+                    public_id: result.public_id,
+                    url: result.secure_url,
+                },
             }).save();
             // create signed token
             const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {

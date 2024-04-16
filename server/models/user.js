@@ -39,7 +39,7 @@ const userSchema = new Schema(
         },
         rating: {
             type: mongoose.Decimal128,
-            default: "Customer",
+            default: 0,
         },
         jobs_done: {
             type: Number,

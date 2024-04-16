@@ -20,6 +20,30 @@ const ownerSchema = new Schema({
     },
 })
 
+const addOnSchema = new Schema({
+    title: {
+        type: String,
+        trim: true,
+        required: true,
+    },
+    description: {
+        type: String,
+        trim: true,
+        required: true,
+        unique: true,
+    },
+    price: {
+        type: Number,
+        required: true,
+        min: 20,
+        max: 1000,
+    },
+    max: {
+        type: Number,
+        required: true,
+    },
+})
+
 const postSchema = new Schema(
     {
         title: {
@@ -47,19 +71,14 @@ const postSchema = new Schema(
             type: [imageSchema],
             required: false
         },
-        // owner: {
-        //     type: User,
-        //     required: false // TODO URGENT: Chaneg this to true
-        // },
+        addOn: {
+            type: [addOnSchema],
+            required: false
+        },
         owner: {
             type: ownerSchema,
             required: false // TODO URGENT: Chaneg this to true
         },
-        // owner: {
-        //     type: mongoose.Schema.Types.ObjectId,
-        //     ref: 'User',
-        //     required: false // TODO URGENT: Chaneg this to true
-        // },
     },
     { timestamps: true }
 );
