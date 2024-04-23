@@ -6,7 +6,7 @@ import FontAwesome5 from "react-native-vector-icons/FontAwesome5"
 const Post = ({ item, handleSave }) => {
     return (
        // TODO Can remove key here since it is added in home. Just add in saved posts first. 
-        <View key={item._id} style={{alignItems:'center', width: '94vw'}}>
+        <View key={item._id} style={{alignItems:'center', width: '100%'}}>
             <View style={styles.box}>
                 {/* {console.log('item._id', item._id)} */}
                 {item.images[0]?.url ? <Image style={styles.image} source={{ uri: item.images[0].url }} /> : null}

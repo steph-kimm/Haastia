@@ -32,7 +32,7 @@ const Home = () => {
         // Navigate to post details screen and pass post ID as param OR full post
         console.log('post pressed'); //TODO: update this so that it navigates to post deatils
         navigation.navigate('PostDetails', { post });
-      };
+    };
 
     const handleSave = async (item) => {
         console.log('item=>', item);

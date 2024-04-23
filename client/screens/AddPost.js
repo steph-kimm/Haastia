@@ -19,6 +19,8 @@ const AddPost = ({ navigation }) => {
     const [isFocus, setIsFocus] = useState(false);
     const [posts, setPosts] = useContext(PostContext);
     const [state, setState] = useContext(AuthContext);
+    const [addOnsCount, setAddOnsCount] = useState(0);
+    const [addOns, setAddOns] = useState([]);
 
     const handleSubmit = async () => {
         if (title === '') {
@@ -28,9 +30,10 @@ const AddPost = ({ navigation }) => {
         try {
             console.log('title, description, price, category,', title, description, price, category,);
             const { data } = await axios.post("http://localhost:8000/api/add-post", {
-                title, description, price, category, images, owner: state.user
+                title, description, price, category, images, owner: state.user, addOns
                 // images
             }); //TODO: Make a token required when passing in and send it via a header.
+            // TODO: verify the add-Ons
             console.log("data => ", data)
             setPosts([data, ...posts])
             setTimeout(() => {
@@ -63,7 +66,7 @@ const AddPost = ({ navigation }) => {
         if (pickerResult.canceled === true) {
             return;
         }
-        
+
         const base64Image = `data:image/jpg;base64,${pickerResult.assets[0].base64}`;
         let oldImagesArray = images; //TODO: better way to do this?
         oldImagesArray.push(base64Image);
@@ -71,6 +74,50 @@ const AddPost = ({ navigation }) => {
         // setImages(oldArray => [...oldArray, base64Image] );
         console.log(images)
     };
+    const handleAddOnChange = (count) => {
+        if (count !== addOnsCount) {
+          setAddOnsCount(count);
+          if (count < addOns.length) {
+            // Remove excess add-ons if count decreases
+            setAddOns(addOns.slice(0, count));
+          }
+        }
+      };
+
+    const handleAddOnFieldChange = (index, field, value) => {
+        const updatedAddOns = [...addOns];
+        updatedAddOns[index] = { ...updatedAddOns[index], [field]: value };
+        setAddOns(updatedAddOns);
+    };
+
+    const renderAddOnFields = () => {
+        return Array.from({ length: addOnsCount }, (_, index) => (
+            <View key={index} style={styles.addOnContainer}>
+                <Text style={styles.label}>Add-On {index + 1}</Text>
+                <TextInput
+                    style={styles.input}
+                    value={addOns[index]?.title || ''}
+                    onChangeText={(text) => handleAddOnFieldChange(index, 'title', text)}
+                    placeholder="Title"
+                />
+                <CurrencyInput
+                    style={styles.input}
+                    value={addOns[index]?.price || ''}
+                    onChangeValue={(text) => handleAddOnFieldChange(index, 'price', text)}
+                    delimiter=","
+                    separator="."
+                    placeholder="Price"
+                />
+                <TextInput
+                    style={[styles.input, { height: 100 }]} // Adjust height for description input
+                    value={addOns[index]?.description || ''}
+                    onChangeText={(text) => handleAddOnFieldChange(index, 'description', text)}
+                    multiline={true}
+                    placeholder="Description"
+                />
+            </View>
+        ));
+    }
 
     return (
         <SafeAreaView style={styles.container}>
@@ -123,6 +170,56 @@ const AddPost = ({ navigation }) => {
                     <TextInput style={styles.postInput} value={link} onChangeText={text => settink(text)}
                         autoCapitalize="none" autoCorrect={false} placeholder="Paste the ur!" />
                 </View> */}
+                <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Add-Ons?</Text>
+                    <Dropdown
+                        style={[styles.dropdown, isFocus && { borderColor: 'blue' }]}
+                        placeholderStyle={styles.placeholderStyle}
+                        selectedTextStyle={styles.selectedTextStyle}
+                        inputSearchStyle={styles.inputSearchStyle}
+                        iconStyle={styles.iconStyle}
+                        data={[
+                            { label: '0', value: 0 },
+                            { label: '1', value: 1 },
+                            { label: '2', value: 2 },
+                            { label: '3', value: 3 },
+                            { label: '4', value: 4 },
+                            { label: '5', value: 5 },
+                        ]}
+                        search
+                        maxHeight={300}
+                        labelField="label"
+                        valueField="value"
+                        placeholder={!isFocus ? 'Select number of add-ons' : '...'}
+                        searchPlaceholder="Search..."
+                        value={addOnsCount}
+                        // onFocus={() => setIsFocus(true)}
+                        // onBlur={() => setIsFocus(false)}
+                        onChange={item => {
+                            handleAddOnChange(item.value);
+                        }}
+                    />
+                </View>
+
+                {/* <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Add-On</Text>
+                    <Dropdown
+                        style={styles.dropdown}
+                        placeholder="Select number of add-ons"
+                        items={[
+                            { label: '0', value: 0 },
+                            { label: '1', value: 1 },
+                            { label: '2', value: 2 },
+                            { label: '3', value: 3 },
+                            { label: '4', value: 4 },
+                            { label: '5', value: 5 },
+                        ]}
+                        defaultValue={0}
+                        containerStyle={{ height: 40 }}
+                        // onChangeItem={(item) => handleAddOnChange(item.value)}
+                    />
+                </View> */}
+                {renderAddOnFields()}
 
                 <TouchableOpacity onPress={handleSubmit} styles={styles.button} >
                     <Text styles={styles.buttonText}>Submit</Text >
@@ -138,58 +235,58 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         margin: 24,
-      },
-      mainText: {
+    },
+    mainText: {
         fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 20,
         // color: '#333',
-      },
-      iconStyle: {
+    },
+    iconStyle: {
 
-      },
-      inputContainer: {
+    },
+    inputContainer: {
         marginBottom: 20,
-      },
-      label: {
+    },
+    label: {
         fontSize: 16,
         // color: "#8e9331",
         marginBottom: 5,
-      },
-      input: {
+    },
+    input: {
         borderWidth: 1,
         borderColor: '#ccc',
         borderRadius: 5,
         padding: 10,
         fontSize: 16,
-      },
-      dropdown: {
+    },
+    dropdown: {
         borderWidth: 1,
         borderRadius: 5,
         paddingVertical: 10,
         paddingHorizontal: 15,
-      },
-      placeholderStyle: {
+    },
+    placeholderStyle: {
         color: '#8e9331',
-      },
-      selectedTextStyle: {
+    },
+    selectedTextStyle: {
         fontSize: 16,
-      },
-      inputSearchStyle: {
+    },
+    inputSearchStyle: {
         fontSize: 16,
-      },
-      button: {
+    },
+    button: {
         backgroundColor: 'darkmagenta',
         padding: 15,
         borderRadius: 5,
         alignItems: 'center',
         marginTop: 20,
-      },
-      buttonText: {
+    },
+    buttonText: {
         color: '#fff',
         fontSize: 18,
         fontWeight: 'bold',
-      },
+    },
     //   descriptionInput: {
     //     borderWidth: 1,
     //     borderColor: '#ccc',

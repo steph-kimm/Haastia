@@ -71,7 +71,7 @@ const postSchema = new Schema(
             type: [imageSchema],
             required: false
         },
-        addOn: {
+        addOns: {
             type: [addOnSchema],
             required: false
         },

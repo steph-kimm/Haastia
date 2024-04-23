@@ -138,13 +138,14 @@ const Account = () => {
         <>
             <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={{ marginVertical: 100 }}>
-
+                    <View>
+                        <TouchableOpacity onPress={() => { }}>
+                            <FontAwesome5 name="cog" size={25} color="darkmagenta" style={styles.iconStyle} />
+                        </TouchableOpacity>
+                    </View>
                     <View style={styles.imageContainer}>
-                        {/* 
-                    first image comes from the user state.
-                    If that is empty then it will go to the image someone JUST uploaded
-
-                */}
+                        {/* first image comes from the user state.
+                    If that is empty then it will go to the image someone JUST uploaded*/}
 
                         {image && image.url ? <Image source={{ uri: image.url }} style={styles.imageStyles} /> : (
                             uploadImage ? <Image source={{ uri: uploadImage }} style={styles.imageStyles} /> : (
@@ -163,6 +164,11 @@ const Account = () => {
                     ) : (
                         <></>
                     )}
+                    <View>
+                        <TouchableOpacity onPress={() =>{} }>
+                            <FontAwesome5 name="pen" size={25} color="darkmagenta" style={styles.iconStyle} />
+                        </TouchableOpacity>
+                    </View>
 
                     <Text style={styles.signupText}>{name}</Text>
                     {/* <Text style={styles.emailText}>{email}</Text> */}
@@ -184,11 +190,6 @@ const Account = () => {
                             console.log('item.owner.id', item.owner.id, state.user._id, item.owner._id == state.user._id, owner_id === state_id);
                             return owner_id === id
                         }).map(item => (
-
-                            // {console.log(item)}
-                            // <View key={item._id} style={{alignItems:'center', width: '94vw'}}>
-                            // <Post item={item} handleSave={handleSave} />
-                                 
 
                             <View key={item._id} style={{ alignItems: 'center', width: '400px' }}>
                                 {/* <Post item={item} handleSave={handleSave} />
