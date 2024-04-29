@@ -13,15 +13,23 @@ const Links = () => {
 
     const handleSave = async (item) => {
         console.log('item=>', item);
-        let new_saved = saved;
-        new_saved.push(item);
+        // let new_saved = saved;
+        // new_saved.push(item);
+        // TODO: test below
+        if (saved.includes(item)) {
+            // If item is already in the array, remove it
+            setSaved(saved.filter(savedItem => savedItem !== item));
+        } else {
+            // If item is not in the array, add it
+            setSaved(saved.concat(item));
+        }
 
         try {
-            const user= state.user;
-            const res = await axios.post('http://localhost:8000/api/update-saved-posts', {posts:new_saved, user})
+            const user = state.user;
+            const res = await axios.post('http://localhost:8000/api/update-saved-posts', { posts: new_saved, user })
             const data = res.data;
-            if(data.error) alert(data.error);
-            else{
+            if (data.error) alert(data.error);
+            else {
                 alert("Post saved successfully")
                 setSaved(new_saved);
             }

@@ -16,6 +16,10 @@ const Account = () => {
     const [name, setName] = useState("");
     const [password, setPassword] = useState("");
     const [role, setRole] = useState("");
+    const [location, setLocation] = useState("");
+    const [rating, setRating] = useState(0);
+    const [jobsDone, setJobsDone] = useState(0);
+    
     const [state, setState] = useContext(AuthContext);
     const [id, setId] = useState("");
     const [image, setImage] = useState({
@@ -28,12 +32,15 @@ const Account = () => {
     useEffect(() => {
         // console.log('state.user', state.user);
         if (state) {
-            const { name, email, role, image, _id } = state.user;
+            const { name, email, role, image, _id, location, rating, jobs_done } = state.user;
             setName(name);
             setEmail(email);
             setRole(role);
             setImage(image)
             setId(_id);
+            setLocation(location);
+            setRating(rating);
+            setJobsDone(jobs_done);
         }
         const fetchPosts = async () => {
             const res = await axios.get("http://localhost:8000/api/get-posts");
@@ -138,14 +145,7 @@ const Account = () => {
         <>
             <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={{ marginVertical: 100 }}>
-                    <View>
-                        <TouchableOpacity onPress={() => { }}>
-                            <FontAwesome5 name="cog" size={25} color="darkmagenta" style={styles.iconStyle} />
-                        </TouchableOpacity>
-                    </View>
-                    <View style={styles.imageContainer}>
-                        {/* first image comes from the user state.
-                    If that is empty then it will go to the image someone JUST uploaded*/}
+                                        {/* <View style={styles.imageContainer}>
 
                         {image && image.url ? <Image source={{ uri: image.url }} style={styles.imageStyles} /> : (
                             uploadImage ? <Image source={{ uri: uploadImage }} style={styles.imageStyles} /> : (
@@ -155,24 +155,55 @@ const Account = () => {
                                 </TouchableOpacity>
                             )
                         )}
-                    </View>
+                    </View> */}
 
-                    {image && image.url ? (
+                    {/* {image && image.url ? (
                         <TouchableOpacity onPress={() => handleImageUpload()}>
                             <FontAwesome5 name="camera" size={25} color="darkmagenta" style={styles.iconStyle} />
                         </TouchableOpacity>
                     ) : (
                         <></>
-                    )}
+                    )} */}
+                    <View style={styles.rowContainer}>
                     <View>
-                        <TouchableOpacity onPress={() =>{} }>
-                            <FontAwesome5 name="pen" size={25} color="darkmagenta" style={styles.iconStyle} />
+                        <TouchableOpacity onPress={() => { }}>
+                            <FontAwesome5 name="cog" size={50} color="gray" style={styles.iconStyle} />
                         </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.imageContainer}>
+                        {(image && image.url) || uploadImage ? (
+                            <Image source={{ uri: image?.url || uploadImage }} style={styles.imageStyles} />
+                        ) : (
+                            <TouchableOpacity onPress={() => handleImageUpload()}>
+                                <FontAwesome5 name="camera" size={25} color="gray" style={styles.iconStyle} />
+                            </TouchableOpacity>
+                        )}
+                    </View>
+
+                    <View>
+                        <TouchableOpacity onPress={() => { }}>
+                            <FontAwesome5 name="pen" size={50} color="gray" style={styles.iconStyle} />
+                        </TouchableOpacity>
+                    </View>
+                    </View>
+                    <View style={styles.rowContainer}> 
+                    <View>
+                        <Text style={styles.bigText}>{jobsDone? jobsDone : "-"}</Text>
+                        <Text>Jobs Done</Text>
+                    </View>
+                    <View>
+                        {/* TODO: does rating below show correctly? */}
+                        <Text style={styles.bigText}>{rating.toFixed? rating.toFixed + "/5" : "- / 5"}</Text>
+                        <Text>Rating</Text>
+                    </View>
                     </View>
 
                     <Text style={styles.signupText}>{name}</Text>
                     {/* <Text style={styles.emailText}>{email}</Text> */}
-                    <Text style={styles.roleText}>{role ? role : "member"}</Text>
+                    <Text style={styles.roleText}> {location ? location : "New York, NY"} </Text>
+                    {/* <Text style={styles.roleText}> {role ? role : "member"} </Text> */}
+
                     <View style={{ marginHorizontal: 24 }}>
                         <Text style={{ fontSize: 16, color: '#8e93a1' }}>PASSWORD</Text>
                         <TextInput style={styles.signupInput} value={password} onChangeText={text => setPassword(text)} secureTextEntry={true} autoCompleType="password" />
@@ -214,9 +245,15 @@ const Account = () => {
 }
 
 const styles = StyleSheet.create({
+    rowContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around', // Adjust the spacing between the views
+        alignItems: 'center', // Align the views vertically
+        paddingHorizontal: 10, // Add horizontal padding to the container
+      },
     iconStyle: { marginTop: -5, marginBottom: 10, alignSelf: 'center' },
     container: { flex: 1, justifyContent: 'space-between' },
-    signupText: { fontSize: 30, textAlign: 'center', paddingBottom: 10 },
+    signupText: { fontSize: 30, textAlign: 'center', paddingBottom: 10, marginTop:30 },
     emailText: { fontSize: 18, textAlign: 'center', paddingBottom: 10 },
     roleText: { fontSize: 16, textAlign: 'center', paddingBottom: 10, color: 'gray' },
     signupInput: { borderBottomWidth: 0.5, height: 48, borderBottomColor: "#893a1", marginBottom: 30 },
@@ -232,7 +269,13 @@ const styles = StyleSheet.create({
     title: {
         fontWeight: 'bold',
         fontSize: 20
-    }
+    },
+    bigText: {
+        fontSize: 23, // Adjust the font size as needed
+        color: 'purple', // Set the color to purple
+        fontWeight: 'bold', // Optional: Add bold font weight
+        marginTop: 30,
+      },
     // mainText: {fontSize:30, textAlign: 'center'}
 })
 

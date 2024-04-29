@@ -36,15 +36,23 @@ const Home = () => {
 
     const handleSave = async (item) => {
         console.log('item=>', item);
-        let new_saved = saved;
-        new_saved.push(item);
+        // let new_saved = saved;
+        // new_saved.push(item);
+        // TODO: test below
+        if (saved.includes(item)) {
+            // If item is already in the array, remove it
+            setSaved(saved.filter(savedItem => savedItem !== item));
+        } else {
+            // If item is not in the array, add it
+            setSaved(saved.concat(item));
+        }
 
         try {
-            const user= state.user;
-            const res = await axios.post('http://localhost:8000/api/update-saved-posts', {posts:new_saved, user})
+            const user = state.user;
+            const res = await axios.post('http://localhost:8000/api/update-saved-posts', { posts: new_saved, user })
             const data = res.data;
-            if(data.error) alert(data.error);
-            else{
+            if (data.error) alert(data.error);
+            else {
                 alert("Post saved successfully")
                 setSaved(new_saved);
             }
@@ -60,7 +68,7 @@ const Home = () => {
             <ScrollView showsVerticalScrollIndicator={false}>
                 {posts && posts.map(item => (
                     <TouchableOpacity key={item.id} onPress={() => handlePostPress(item)}>
-                    <Post item={item} handleSave={handleSave}/>
+                        <Post item={item} handleSave={handleSave} />
                     </TouchableOpacity>
                 ))}
             </ScrollView>
@@ -70,12 +78,12 @@ const Home = () => {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1},
+    container: { flex: 1 },
     mainText: { fontSize: 30, textAlign: 'center' },
     image: { height: '70%', width: '100%', borderTopRightRadius: 14, borderTopLeftRadius: 14 },
     box: {
         backgroundColor: "#fff", width: "92%", height: 280, borderRadius: 14, shadowColor: "#171717",
-    shadowOffset: { width: -2, height: 4 }, shadowOpacity: 0.2, shadowRadius: 3, marginBottom: 20,
+        shadowOffset: { width: -2, height: 4 }, shadowOpacity: 0.2, shadowRadius: 3, marginBottom: 20,
     }
 })
 
