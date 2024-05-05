@@ -10,6 +10,8 @@ import * as ImagePicker from "expo-image-picker"
 import { storage } from '../context/storage'
 import { PostContext } from '../context/post'
 import Post from '../components/Post'
+import { useNavigation } from '@react-navigation/native';
+
 
 const Account = () => {
     const [email, setEmail] = useState("");
@@ -19,7 +21,6 @@ const Account = () => {
     const [location, setLocation] = useState("");
     const [rating, setRating] = useState(0);
     const [jobsDone, setJobsDone] = useState(0);
-    
     const [state, setState] = useContext(AuthContext);
     const [id, setId] = useState("");
     const [image, setImage] = useState({
@@ -28,6 +29,7 @@ const Account = () => {
     }) //TODO: this should be set in the UseEffect based on if the user has it!
     const [uploadImage, setUploadImage] = useState('');
     const [posts, setPosts] = useContext(PostContext);
+    const navigation = useNavigation();
 
     useEffect(() => {
         // console.log('state.user', state.user);
@@ -75,7 +77,7 @@ const Account = () => {
         console.log('item=>', item);
         let new_saved = saved;
         new_saved.push(item);
-
+        // NOTE: If you're usuing this function there is an updated one in the Home screen
         try {
             const user = state.user;
             const res = await axios.post('http://localhost:8000/api/update-saved-posts', { posts: new_saved, user })
@@ -166,7 +168,7 @@ const Account = () => {
                     )} */}
                     <View style={styles.rowContainer}>
                     <View>
-                        <TouchableOpacity onPress={() => { }}>
+                        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
                             <FontAwesome5 name="cog" size={50} color="gray" style={styles.iconStyle} />
                         </TouchableOpacity>
                     </View>

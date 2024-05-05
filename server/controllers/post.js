@@ -3,7 +3,8 @@ import cloudinary from "cloudinary";
 import { nanoid } from "nanoid";
 
 export const addPost = async (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
+    console.log("BOOGY MAN")
     try {
         let imageArray = [];
         for (let i = 0; i < req.body.images.length; i++) {
@@ -22,7 +23,7 @@ export const addPost = async (req, res) => {
         req.body.owner = owner;
 
         // req.body.owner = req.body.owner._id; //just ID
-
+        console.log(req.body)
         const post = await new Post({ ...req.body }).save();
         res.json(post);
 

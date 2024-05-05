@@ -27,8 +27,9 @@ const AddPost = ({ navigation }) => {
             alert("Please add a title");
             return;
         }
+        
         try {
-            console.log('title, description, price, category,', title, description, price, category,);
+            console.log('title, description, price, category,', title, description, price, category, addOns);
             const { data } = await axios.post("http://localhost:8000/api/add-post", {
                 title, description, price, category, images, owner: state.user, addOns
                 // images
@@ -42,6 +43,24 @@ const AddPost = ({ navigation }) => {
             }, 500)
         } catch (error) {
             console.log(error);
+            if (error.response) {
+                // The request was made and the server responded with a status code
+                // that falls out of the range of 2xx
+                const { status, data } = error.response;
+                if (status === 400) {
+                    alert(`Bad Request: ${data.message}`);
+                } else if (status === 401) {
+                    alert(`Unauthorized: ${data.message}`);
+                } else {
+                    alert(`Error: ${data.message}`);
+                }
+            } else if (error.request) {
+                // The request was made but no response was received
+                alert('No response received from the server.');
+            } else {
+                // Something happened in setting up the request that triggered an error
+                alert('Error occurred while sending the request.');
+            }
         }
     }
     const categoryOptions = [
@@ -82,12 +101,14 @@ const AddPost = ({ navigation }) => {
             setAddOns(addOns.slice(0, count));
           }
         }
+        console.log(addOns);
       };
 
     const handleAddOnFieldChange = (index, field, value) => {
         const updatedAddOns = [...addOns];
         updatedAddOns[index] = { ...updatedAddOns[index], [field]: value };
         setAddOns(updatedAddOns);
+        console.log(addOns);
     };
 
     const renderAddOnFields = () => {

@@ -12,6 +12,7 @@ import Account from './Account';
 import AddPost from './AddPost';
 import Links from './Saved';
 import PostDetailsScreen from './PostDetailsScreen';
+import Settings from './Settings';
 
 const Stack = createNativeStackNavigator();
 
@@ -31,6 +32,7 @@ const NavigationScreen = () => {
           <Stack.Screen name="AddPost" component={AddPost} />
           <Stack.Screen name="Links" component={Links} />
           <Stack.Screen name="PostDetails" component={PostDetailsScreen} />
+          <Stack.Screen name="Settings" component={Settings} />
           </>
         ):( 
           <>

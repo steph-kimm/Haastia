@@ -38,10 +38,10 @@ const addOnSchema = new Schema({
         min: 20,
         max: 1000,
     },
-    max: {
-        type: Number,
-        required: true,
-    },
+    // max: {
+    //     type: Number,
+    //     required: true,
+    // },
 })
 
 const postSchema = new Schema(

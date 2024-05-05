@@ -17,6 +17,7 @@ const PostDetailsScreen = () => {
                 <Text style={styles.description}>{description}</Text>
                 <Text style={styles.owner}>Owner: {owner.name}</Text>
                 <Text style={[styles.price, { color: 'green' }]}>Price: ${price}</Text>
+                <Text style={styles.title}>Add Ons:</Text>
             </View>
         </View>
     );
