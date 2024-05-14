@@ -86,4 +86,4 @@ const postSchema = new Schema(
 
 
 
-export default mongoose.model("Post", postSchema); // instead of link
+export default mongoose.model("Post", postSchema); 

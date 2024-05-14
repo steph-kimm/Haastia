@@ -10,7 +10,7 @@ import { } from 'dotenv/config'
 // import dotenv from "dotenv";
 
 // const sgMail = require("@sendgrid/mail");
-
+// TODO: sanitize and validate all data before sending it
 // Adding to DB: FIRST add a controller here
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_NAME,
