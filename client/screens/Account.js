@@ -206,13 +206,14 @@ const Account = () => {
                     <Text style={styles.roleText}> {location ? location : "New York, NY"} </Text>
                     {/* <Text style={styles.roleText}> {role ? role : "member"} </Text> */}
 
-                    <View style={{ marginHorizontal: 24 }}>
+                    {/* <View style={{ marginHorizontal: 24 }}>
                         <Text style={{ fontSize: 16, color: '#8e93a1' }}>PASSWORD</Text>
                         <TextInput style={styles.signupInput} value={password} onChangeText={text => setPassword(text)} secureTextEntry={true} autoCompleType="password" />
                     </View>
                     <TouchableOpacity onPress={handleSubmit} style={styles.buttonStyle}>
                         <Text style={styles.buttonText}>Update Password</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
+
                     {/* Below Is Posts  */}
                     <Text> Your Services: </Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ width: '100%' }} >
@@ -220,7 +221,7 @@ const Account = () => {
                             const owner_id = item.owner.id;
                             const state_id = state.user._id;
 
-                            console.log('item.owner.id', item.owner.id, state.user._id, item.owner._id == state.user._id, owner_id === state_id);
+                            // console.log('item.owner.id', item.owner.id, state.user._id, item.owner._id == state.user._id, owner_id === state_id);
                             return owner_id === id
                         }).map(item => (
 

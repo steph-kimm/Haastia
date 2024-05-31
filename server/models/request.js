@@ -10,7 +10,7 @@ const requestSchema = new mongoose.Schema({
     recipient: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     post: { type: mongoose.Schema.Types.ObjectId, ref: 'Post', required: true },
     addOns: [{ type: String }],
-    requestType: { type: String, enum: ['approval', 'denial' , 'pending'], default: 'pending' },
+    requestType: { type: String, enum: ['accepted', 'rejected' , 'pending'], default: 'pending' },
     // dateTime: { type: Date, default: Date.now },
 });
 

@@ -13,26 +13,27 @@ import AddPost from './AddPost';
 import Links from './Saved';
 import PostDetailsScreen from './PostDetailsScreen';
 import Settings from './Settings';
+import Notifications from './Notifications';
 
 const Stack = createNativeStackNavigator();
 
 const NavigationScreen = () => {
   const [state, setState] = useContext(AuthContext);
   const authenticated = state && state.token !== '' && state.user !== null;
-
   return (
     <View style={styles.container}>
 
       <Stack.Navigator initialRouteName="SignIn">
-        {authenticated ? 
+        {authenticated ?
         (
           <>
-          <Stack.Screen name="Home" component={Home} options={{headerRight: () => <HeaderTabs/>}} /> 
-          <Stack.Screen name="Account" component={Account} />
+          <Stack.Screen name="Home" component={Home} options={{headerRight: () => <HeaderTabs icon={'notification'}/>}} /> 
+          <Stack.Screen name="Account" component={Account} options={{headerRight: () => <HeaderTabs icon={'signOut'}/>}}/>
           <Stack.Screen name="AddPost" component={AddPost} />
           <Stack.Screen name="Links" component={Links} />
           <Stack.Screen name="PostDetails" component={PostDetailsScreen} />
           <Stack.Screen name="Settings" component={Settings} />
+          <Stack.Screen name="Your Services" component={Notifications} initialParams={{ recipientId: state.user._id }} />
           </>
         ):( 
           <>

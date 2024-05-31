@@ -5,7 +5,7 @@ import { FontAwesome } from '@expo/vector-icons'; // Import FontAwesome from exp
 const NotificationBell = ({ notificationCount }) => {
   return (
     <View style={styles.container}>
-      <FontAwesome name="bell" size={24} color="black" />
+      <FontAwesome name="bell" size={24} color="darkmagenta" />
       {notificationCount > 0 && ( // Render badge only if notificationCount is greater than 0
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{notificationCount}</Text>

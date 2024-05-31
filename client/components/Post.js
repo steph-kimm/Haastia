@@ -10,14 +10,16 @@ const Post = ({ item, handleSave }) => {
             <View style={styles.box}>
                 {/* {console.log('item._id', item._id)} */}
                 {item.images[0]?.url ? <Image style={styles.image} source={{ uri: item.images[0].url }} /> : null}
+                <View style={styles.content}>
                 <Text style={styles.title}>{item.title}</Text>
                 <Text>{item.description}</Text>
                 <Text>${item.price}</Text>
                 {item.owner?.name ? <Text> Done By: {item.owner.name}</Text> : null}
                 {/* <TouchableOpacity onPress={item => {  handleSave(item._id)}}> */}
-                <TouchableOpacity onPress={() => handleSave(item._id)}>
+                <TouchableOpacity onPress={() => handleSave(item._id)} style={styles.bookmarkContainer}>
                     <FontAwesome5 name="bookmark" size={25} style={styles.saveIcon} />
                 </TouchableOpacity>
+                </View>
             </View>
         </View>
     )
@@ -43,6 +45,15 @@ const styles = StyleSheet.create({
     saveIcon: {
         color: 'gray'
 
+    },
+    content:{
+        flex: 1,
+        padding: 0,
+    },
+    bookmarkContainer: {
+        position: 'absolute',
+        bottom: 10,
+        right: 10,
     },
 })
 

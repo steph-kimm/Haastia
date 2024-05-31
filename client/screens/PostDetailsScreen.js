@@ -33,24 +33,24 @@ const PostDetailsScreen = () => {
             }, 500)
         } catch (error) {
             console.log(error);
-            if (error.response) {
-                // The request was made and the server responded with a status code
-                // that falls out of the range of 2xx
-                const { status, data } = error.response;
-                if (status === 400) {
-                    alert(`Bad Request: ${data.message}`);
-                } else if (status === 401) {
-                    alert(`Unauthorized: ${data.message}`);
-                } else {
-                    alert(`Error: ${data.message}`);
-                }
-            } else if (error.request) {
-                // The request was made but no response was received
-                alert('No response received from the server.');
-            } else {
-                // Something happened in setting up the request that triggered an error
-                alert('Error occurred while sending the request.');
-            }
+            // if (error.response) {
+            //     // The request was made and the server responded with a status code
+            //     // that falls out of the range of 2xx
+            //     const { status, data } = error.response;
+            //     if (status === 400) {
+            //         alert(`Bad Request: ${data.message}`);
+            //     } else if (status === 401) {
+            //         alert(`Unauthorized: ${data.message}`);
+            //     } else {
+            //         alert(`Error: ${data.message}`);
+            //     }
+            // } else if (error.request) {
+            //     // The request was made but no response was received
+            //     alert('No response received from the server.');
+            // } else {
+            //     // Something happened in setting up the request that triggered an error
+            //     alert('Error occurred while sending the request.');
+            // }
         }
         console.log('Request service button clicked');
     };
