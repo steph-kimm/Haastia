@@ -77,4 +77,25 @@ export const updateRequestStatus = async (req, res) => {
     }
 };
 
+export const addReview = async (req, res) => {
+    console.log('adding review');
+    try {
+        const { client, recipient, post, text, rating } = req.body;
+        console.log(client, recipient, post, text, rating );
+        // Create a new message instance
+        const request = await new Request({
+            client,
+            recipient,
+            post,
+            text,
+            rating 
+        }).save();
+
+        res.status(201).json({ message: 'Review added successfully', data: request });
+    } catch (error) {
+        console.error('Error adding review:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
 // module.exports = { addRequest };

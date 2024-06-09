@@ -15,7 +15,6 @@ const PostDetailsScreen = () => {
     useEffect(() => {
         console.log('selectedAddOns:', selectedAddOns);
     }, [selectedAddOns]);
-
     
     const handleRequestService = async () => {
         try {

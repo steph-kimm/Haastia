@@ -205,8 +205,10 @@ export const uploadImage = async (req, res) => {
 };
 
 export const updatePassword = async (req, res) => {
+    console.log('IN HERE', res)
     try {
         const { password } = req.body;
+        console.log('IN HERE', res)
         console.log(req.body.user.user_id)
         const hashedPassword = await hashPassword(password);
         const user = await User.findByIdAndUpdate(
@@ -223,6 +225,7 @@ export const updatePassword = async (req, res) => {
 };
 
 export const updateSavedPosts = async (req, res) => {
+    console.log('inside controller');
     try {
         const { posts } = req.body;
         console.log(req.body.user.user_id)

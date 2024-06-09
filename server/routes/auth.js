@@ -14,7 +14,7 @@ router.get("/", (req, res) => {
 router.post("/signup", signup); 
 router.post("/signin", signin);
 router.post("/forgot-password", forgotPassword); 
-router.post("/reset-password", resetPassword);
+router.post("/update-password", resetPassword);
 router.post("/upload-image", uploadImage);
 router.post("/upload-password", updatePassword);
 router.post("/update-saved-posts", updateSavedPosts);

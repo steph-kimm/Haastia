@@ -95,7 +95,6 @@ const Settings = ({user}) => {
             <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={{ marginVertical: 100 }}>
                     <View style={styles.rowContainer}>
-
                     <View style={styles.imageContainer}>
                         {(image && image.url) || uploadImage ? (
                             <Image source={{ uri: image?.url || uploadImage }} style={styles.imageStyles} />
@@ -105,13 +104,11 @@ const Settings = ({user}) => {
                             </TouchableOpacity>
                         )}
                     </View>
-
                     </View>
 
                     {/* <Text style={styles.signupText}>{name}</Text>
                     <Text style={styles.roleText}> {location ? location : "New York, NY"} </Text> */}
                     {<PasswordChange user={state.user}/>}
-
                 </View>
             </ScrollView>
         </>

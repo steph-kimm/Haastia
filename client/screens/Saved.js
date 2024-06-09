@@ -46,6 +46,7 @@ const Links = () => {
         const fetchPosts = async () => {
             const res = await axios.get("http://localhost:8000/api/get-posts");
             setPosts(res.data);
+            console.log(res.data);
             // console.log('posts', posts);
         };
         fetchPosts();

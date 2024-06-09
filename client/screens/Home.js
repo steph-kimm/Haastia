@@ -49,12 +49,12 @@ const Home = () => {
 
         try {
             const user = state.user;
-            const res = await axios.post('http://localhost:8000/api/update-saved-posts', { posts: new_saved, user })
+            const res = await axios.post('http://localhost:8000/api/update-saved-posts', { posts: saved, user })
             const data = res.data;
             if (data.error) alert(data.error);
             else {
                 alert("Post saved successfully")
-                setSaved(new_saved);
+                // setSaved(new_saved);
             }
         } catch (error) {
             alert("Post update failed")

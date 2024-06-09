@@ -6,6 +6,7 @@ import axios from 'axios'
 const PasswordChange = ({user}) => {
     const [password, setPassword] = useState("");
     const handleSubmit = async () => {
+        console.log(password, user);
         if (password.length < '') {
             alert("Password must be at least 6 characters long");
             return;

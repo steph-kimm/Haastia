@@ -14,6 +14,7 @@ import Links from './Saved';
 import PostDetailsScreen from './PostDetailsScreen';
 import Settings from './Settings';
 import Notifications from './Notifications';
+import AddReviewScreen from './AddReviewScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -34,6 +35,7 @@ const NavigationScreen = () => {
           <Stack.Screen name="PostDetails" component={PostDetailsScreen} />
           <Stack.Screen name="Settings" component={Settings} />
           <Stack.Screen name="Your Services" component={Notifications} initialParams={{ recipientId: state.user._id }} />
+          <Stack.Screen name="Add Review" component={AddReviewScreen} />
           </>
         ):( 
           <>
