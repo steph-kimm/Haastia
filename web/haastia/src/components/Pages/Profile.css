@@ -1,0 +1,49 @@
+.user-profile {
+    padding: 2rem;
+  }
+  
+  .profile-section {
+    display: flex;
+    align-items: center;
+  }
+  
+  .profile-picture {
+    border-radius: 50%;
+    width: 150px;
+    height: 150px;
+    margin-right: 1rem;
+  }
+  
+  .photos-section, .services-section, .reviews-section {
+    margin-top: 2rem;
+  }
+  
+  .photos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+  
+  .service-photo {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+  }
+  
+  .services-list, .reviews-list {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .service-item, .review-item {
+    padding: 1rem;
+    border: 1px solid #ddd;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+  }
+  
+  .price {
+    color: green;
+    font-weight: bold;
+  }
+  

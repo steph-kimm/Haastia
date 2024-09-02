@@ -1,0 +1,154 @@
+.home-container {
+    text-align: center;
+    padding: 2rem;
+  }
+  
+  .home-container h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .home-container p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .category-menu {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+  
+  .category-menu button {
+    margin: 0.5rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 4px;
+  }
+  
+  .category-menu button:hover {
+    background-color: #0056b3;
+  }
+  
+  .posts-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    justify-items: center;
+  }
+  
+  .post-link {
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .post-card {
+    width: 100%;
+    height: 450px; /* Fixed height */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    text-align: left;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .post-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+  }
+  
+  .post-card h2 {
+    margin: 0.5rem;
+    font-size: 1.25rem;
+  }
+  
+  .post-card p {
+    margin: 0.5rem;
+    flex-grow: 1; /* Ensure description grows to fill space */
+  }
+  
+  .post-card .price {
+    color: green;
+    font-size: 1.2rem;
+    margin: 0.5rem;
+    font-weight: bold;
+  }
+  
+  @media (max-width: 768px) {
+    .home-container {
+      padding: 1rem;
+    }
+  
+    .home-container h1 {
+      font-size: 2rem;
+    }
+  
+    .home-container p {
+      font-size: 1rem;
+    }
+  
+    .category-menu button {
+      flex: 1;
+      margin: 0.25rem;
+    }
+  
+    .post-link {
+      max-width: 100%;
+    }
+  
+    .post-card {
+      height: 400px; /* Adjust height for smaller screens */
+    }
+  
+    .post-card img {
+      height: 150px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .home-container {
+      padding: 0.5rem;
+    }
+  
+    .home-container h1 {
+      font-size: 1.5rem;
+    }
+  
+    .home-container p {
+      font-size: 0.9rem;
+    }
+  
+    .category-menu {
+      flex-direction: column;
+      align-items: center;
+    }
+  
+    .category-menu button {
+      width: 100%;
+      margin: 0.25rem 0;
+    }
+  
+    .post-link {
+      max-width: 100%;
+    }
+  
+    .post-card {
+      height: 350px; /* Adjust height for smaller screens */
+    }
+  
+    .post-card img {
+      height: 100px;
+    }
+  }
+  

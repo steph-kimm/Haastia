@@ -1,0 +1,45 @@
+.faq-container {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    width: 50%; /* Occupies one-third of the screen width */
+    margin-left: auto;
+    margin-right: auto;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+    text-align: center;
+}
+
+.faq-container.open {
+    background-color: #e0f7fa;
+}
+
+.faq-question {
+    font-weight: bold;
+}
+
+.faq-answer {
+    margin-top: 0.5rem;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.faq-container.open .faq-answer {
+    max-height: 200px; /* Adjust as needed */
+    transition: max-height 0.5s ease;
+}
+
+@media (max-width: 768px) {
+    .faq-container {
+        width: 75%; /* Wider on tablets */
+    }
+}
+
+@media (max-width: 480px) {
+    .faq-container {
+        width: 90%; /* Almost full width on mobile */
+    }
+}
