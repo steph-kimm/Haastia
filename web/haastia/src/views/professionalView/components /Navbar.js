@@ -10,6 +10,7 @@ const ProfessionalNavbar = () => {
         {/* <Link to="/professional-home">Home</Link> */}
       </div>
       <div className="navbar-links">
+      <Link to="/services">Services</Link>
         <Link to="/add-service">Add Service</Link>
         <Link to="/view-appointments">View Appointments</Link>
         <Link to="/profile">Profile</Link>

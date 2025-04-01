@@ -79,6 +79,10 @@ const postSchema = new Schema(
             type: ownerSchema,
             required: false // TODO URGENT: Chaneg this to true
         },
+        duration: {
+            type: Number, // duration in minutes
+            required: true,
+        },
     },
     { timestamps: true }
 );

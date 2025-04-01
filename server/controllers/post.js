@@ -7,6 +7,7 @@ export const addPost = async (req, res) => {
     console.log("BOOGY MAN")
     try {
         let imageArray = [];
+        if (req.body.images && req.body.images.length > 0) {
         for (let i = 0; i < req.body.images.length; i++) {
             const result = await cloudinary.uploader.upload(req.body.images[i], {
                 public_id: nanoid(),
@@ -15,10 +16,12 @@ export const addPost = async (req, res) => {
             let image = {public_id: result.public_id, url: result.secure_url,}
             imageArray.push(image);
         }
+    }
         console.log('imageArray', imageArray);
 
         req.body.images = imageArray;
         // console.log("req.body.user", req.body.owner)
+        req.body.images = imageArray.length > 0 ? imageArray : []; 
         const owner = {id: req.body.owner._id, name: req.body.owner.name } // TODO: Pass in 2
         req.body.owner = owner;
 
@@ -32,7 +35,7 @@ export const addPost = async (req, res) => {
     }
 
 }
-
+// Currently this gets all the information in posts. This will make it too slow in the longrun so edit to only get whats needed. 
 export const getPosts = async (req, res) => {
     console.log(req.body);
     try {
@@ -43,3 +46,30 @@ export const getPosts = async (req, res) => {
         console.log('error:', err);
     }
 }
+
+export const getPostById = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const post = await Post.findById(id);
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
+        }
+        res.json(post);
+    } catch (err) {
+        console.log('error:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+}
+// Post is service
+export const getUserPosts = async (req, res) => {
+    try {
+        const posts = await Post.find({ 'owner.id': req.params.userId });
+        if (!posts) {
+            return res.status(404).json({ message: 'No posts found for this user' });
+        }
+        res.json(posts);
+    } catch (error) {
+        console.error('Error fetching user posts:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};

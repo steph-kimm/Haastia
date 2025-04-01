@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, Button, Switch } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { AuthContext } from '../context/auth'
 import axios from 'axios'
@@ -11,6 +11,7 @@ const PostDetailsScreen = () => {
     const { title, owner, price, description, category, images, addOns } = post;
     const [selectedAddOns, setSelectedAddOns] = useState([]); //for Add Ons
     const [state, setState] = useContext(AuthContext);
+    const navigation = useNavigation();
 
     useEffect(() => {
         console.log('selectedAddOns:', selectedAddOns);
@@ -25,7 +26,6 @@ const PostDetailsScreen = () => {
             });
 
             console.log("data => ", data)
-            setPosts([data, ...posts])
             setTimeout(() => {
                 alert('Request added');
                 navigation.navigate('Home');

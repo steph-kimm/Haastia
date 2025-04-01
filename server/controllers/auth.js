@@ -21,9 +21,29 @@ cloudinary.config({
 import sgMail from "@sendgrid/mail";
 sgMail.setApiKey(process.env.SENDGRID_KEY);
 
+// export const signup = async (req, res) => {
+//     const { name, email, password, location, isProvider, availability } = req.body;
+//     console.log(name, email, location, isProvider, availability );
+//     try {
+//         const user = new User({
+//             name,
+//             email,
+//             password,
+//             location,
+//             role: isProvider ? 'Provider' : 'Customer',
+//             availability: isProvider ? availability : []
+//         });
+//         await user.save();
+//         res.status(201).json({ message: 'User signed up successfully', data: user });
+//     } catch (error) {
+//         console.error('Error signing up:', error);
+//         res.status(500).json({ message: 'Internal server error' });
+//     }
+// };
+
 export const signup = async (req, res) => {
     try {
-        const { name, email, password, location, role, image } = req.body;
+        const { name, email, password, location, isProvider, availability } = req.body;
         // validation TODO: move validation to front end?
         if (!name) {
             return res.json({
@@ -48,25 +68,39 @@ export const signup = async (req, res) => {
         }
         // hash password
         const hashedPassword = await hashPassword(password);
+        // IF you add the below back, amke sure you ONLY run it if someone put an image
         // upload image to cloudinary 
-        const result = await cloudinary.uploader.upload(image, {
-            public_id: nanoid(),
-            resource_type: 'jpg',
-        });// this takes the base64 image given and passes an id and safe url for the database
+        // const result = await cloudinary.uploader.upload(image, {
+        //     public_id: nanoid(),
+        //     resource_type: 'jpg',
+        // });// this takes the base64 image given and passes an id and safe url for the database
+        
         try {
             const user = await new User({
                 name,
                 email,
-                password: hashedPassword,
-                location, 
-                role, 
-                image: {
-                    public_id: result.public_id,
-                    url: result.secure_url,
-                },
+                password:hashedPassword,
+                location,
+                role: isProvider ? 'Provider' : 'Customer',
+                availability: isProvider ? availability : []
             }).save();
+
+            // const user = await new User({
+            //     name,
+            //     email,
+            //     password: hashedPassword,
+            //     location, 
+            //     role, 
+            //     image: {
+            //         public_id: result.public_id,
+            //         url: result.secure_url,
+            //     },
+            // }).save();
             // create signed token
-            const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+            // const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+            //     expiresIn: "7d",
+            // });
+            const token = jwt.sign({ _id: user._id, name: user.name, role: user.role }, process.env.JWT_SECRET, {
                 expiresIn: "7d",
             });
             //   console.log(user);
@@ -102,7 +136,10 @@ export const signin = async (req, res) => {
             });
         }
         // create signed token
-        const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+        // const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+        //     expiresIn: "7d",
+        // });
+        const token = jwt.sign({ _id: user._id, name: user.name, role: user.role }, process.env.JWT_SECRET, {
             expiresIn: "7d",
         });
         user.password = undefined;
@@ -240,5 +277,16 @@ export const updateSavedPosts = async (req, res) => {
         return res.json(user);
     } catch (err) {
         console.log(err);
+    }
+};
+
+export const getUserProfile = async (req, res) => {
+    try {
+        console.log('getting user')
+        const user = await User.findById(req.params.userId);
+        res.json(user);
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };

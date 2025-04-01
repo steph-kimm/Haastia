@@ -15,17 +15,19 @@ const AddReviewScreen = () => {
     const [text, setText] = useState('');
     const [rating, setRating] = useState("5");
     const handleSubmit = async () => {
-        console.log('client ', client, 'recipient ', recipient, 'post', post)
+        console.log('client ', client, 'recipient ', recipient, 'post', post, request._id)
         try {
             const { data } = await axios.post("http://localhost:8000/api/add-review", {
                 client,
                 recipient,
                 post,
                 text,
-                rating
+                rating, 
+                requestId: request._id
             });
+            
             console.log("data => ", data)
-            // TODO NEXT: Once the review is added change the status of the request to reviewed or done
+            
             setTimeout(() => {
                 alert('Review added!');
                 navigation.navigate('Home');

@@ -2,7 +2,7 @@ import express from "express";
 const router = express.Router();
 
 // controllers
-import { signup, signin, forgotPassword, resetPassword, uploadImage, updatePassword, updateSavedPosts } from "../controllers/auth.js";
+import { signup, signin, forgotPassword, resetPassword, uploadImage, updatePassword, updateSavedPosts, getUserProfile } from "../controllers/auth.js";
 
 router.get("/", (req, res) => {
     return res.json({
@@ -18,5 +18,6 @@ router.post("/update-password", resetPassword);
 router.post("/upload-image", uploadImage);
 router.post("/upload-password", updatePassword);
 router.post("/update-saved-posts", updateSavedPosts);
+router.get("/get-user/:userId", getUserProfile);
 
 export default router;

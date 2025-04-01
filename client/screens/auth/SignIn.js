@@ -97,7 +97,7 @@ const SignIn = ({navigation}) => {
           </Text>
           {/* <Text onPress={() => navigation.navigate('ForgotPassword')} style={styles.forgotText}> Forgot Password?</Text> */}
 
-          {/* <Text style={{ marginHorizontal: 24}}> {JSON.stringify({ name, email, password })}</Text> */}
+          <Text style={{ marginHorizontal: 24}}> {JSON.stringify({ name, email, password })}</Text>
       
     </View>
   );

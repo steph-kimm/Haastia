@@ -2,17 +2,15 @@ import express from "express";
 const router = express.Router();
 
 // controllers
-import { addRequest } from "../controllers/request.js";
-import { getRequestsByRecipientId } from "../controllers/request.js";
-import { updateRequestStatus } from "../controllers/request.js";
-import { getRequestsByClientId } from "../controllers/request.js";
-import { addReview } from "../controllers/request.js";
+import {addBooking, getBookingsByRecipientId, updateBookingStatus, getBookingsByClientId, addReview, getUserReviews, getAvailableSlots} from "../controllers/booking.js";
 
-// Adding to DB: SECOND add a route here
-router.post("/add-request", addRequest); 
+// TODO: chane the "request" routes to be "booking" 
+router.post("/add-request", addBooking); 
 router.post("/add-review", addReview); 
-router.get('/recipient-requests/:recipientId', getRequestsByRecipientId);
-router.get('/client-requests/:clientId', getRequestsByClientId);
-router.patch('/requests/:requestId', updateRequestStatus);
+router.get('/available-slots/:userId', getAvailableSlots);
+router.get('/recipient-requests/:recipientId', getBookingsByRecipientId);
+router.get('/client-requests/:clientId', getBookingsByClientId);
+router.patch('/requests/:requestId', updateBookingStatus);
+router.get("/get-reviews-by-user/:userId", getUserReviews);
 
 export default router;

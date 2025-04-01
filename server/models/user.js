@@ -1,5 +1,17 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
+
+const availabilitySchema = new Schema({
+    day: {
+        type: String,
+        required: true,
+    },
+    slots: {
+        type: [String], // Array of time slots (e.g., "09:00-11:00", "14:00-17:00")
+        required: true,
+    },
+});
+
 const userSchema = new Schema(
     {
         name: {
@@ -45,6 +57,7 @@ const userSchema = new Schema(
             type: Number,
             default: 0,
         },
+        availability: [availabilitySchema],
         // resetCode: "",
     },
     

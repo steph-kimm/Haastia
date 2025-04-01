@@ -78,7 +78,7 @@ const Notifications = () => {
     }
 
     const handleReview = async (request) => {
-        console.log('client ', client, 'recipient ', recipient, 'post', post)
+        // console.log('client ', client, 'recipient ', recipient, 'post', post)
         // JUST passing client ID and ricipient ID but it is the eintre post
         navigation.navigate('Add Review', { request });
     };
