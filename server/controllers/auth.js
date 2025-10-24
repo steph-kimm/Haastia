@@ -281,6 +281,7 @@ export const updateSavedPosts = async (req, res) => {
 };
 
 export const getUserProfile = async (req, res) => {
+    console.log("fetching user")
     try {
         console.log('getting user')
         const user = await User.findById(req.params.userId);
@@ -290,3 +291,22 @@ export const getUserProfile = async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
+
+export const updateAvailability = async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { availability } = req.body;
+  
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { availability },
+        { new: true }
+      );
+  
+      res.json(updatedUser);
+    } catch (err) {
+      console.error('Failed to update availability:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+  

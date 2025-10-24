@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import './AddServiceForm.css'; // Import CSS
+import { jwtDecode } from 'jwt-decode';
 
-const AddServiceForm = ({ owner }) => {
+const AddServiceForm = () => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [price, setPrice] = useState('');
@@ -31,6 +32,12 @@ const AddServiceForm = ({ owner }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+                // Get user from token
+            const token = localStorage.getItem('token');
+            if (!token) {
+            console.error("No token found — user might not be logged in");
+            return;
+        }
             const serviceData = {
                 title,
                 description,
@@ -38,10 +45,19 @@ const AddServiceForm = ({ owner }) => {
                 category,
                 duration,
                 images,
-                owner, // passed from props
+                // owner, // passed from props
             };
 
-            const response = await axios.post('http://localhost:8000/api/add-post', serviceData);
+            // const response = await axios.post('http://localhost:8000/api/add-post', serviceData);
+            const response = await axios.post(
+            'http://localhost:8000/api/add-post',
+            serviceData,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}` // send token to backend
+                }
+            }
+        );
             console.log('Service added:', response.data);
             // Reset the form
             setTitle('');

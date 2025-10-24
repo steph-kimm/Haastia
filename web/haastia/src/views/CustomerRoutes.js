@@ -8,7 +8,7 @@ import Signup from '../components/Pages/auth/Signup.js';
 import ServiceDetail from '../components/Pages/ServiceDetail.js';
 import HelpCenter from '../components/Pages/HelpCenter.js';
 import Home from '../components/Pages/Home.js'
-
+import SettingsPage from '../components/Pages/user/SettingsPage';
 
 const CustomerRoutes = () => {
     return (
@@ -19,6 +19,7 @@ const CustomerRoutes = () => {
             <Route path="/signup" element={<Signup />} />
             <Route path="/service/:id" element={<ServiceDetail />} />
             <Route path="/help" element={<HelpCenter />} />
+             <Route path="/settings" element={<SettingsPage />} />
         </Routes>
     );
 };
