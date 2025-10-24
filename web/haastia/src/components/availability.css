@@ -1,0 +1,58 @@
+.availability-editor {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: auto;
+    font-family: sans-serif;
+  }
+  
+  .week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .day-column {
+    border: 1px solid #ddd;
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: #fafafa;
+  }
+  
+  .slot-btn {
+    background-color: #f0f0f0;
+    color: black; /* Default text color before selection */
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    margin: 4px 0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  
+  .slot-btn.selected {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+  }
+  
+  .slot-btn:hover {
+    background-color: #e8f5e9;
+  }
+  
+  .save-btn {
+    margin-top: 2rem;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    background-color: #2E86AB;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .save-btn:hover {
+    background-color: #22688d;
+  }
+  

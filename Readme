@@ -1,0 +1,17 @@
+TODO next:
+- Saved posts: Right now you pull in all posts and filter. This is NOT GOOD. 
+    Lets change the DB to save an array of the IDs of the posts saved. 
+    Also make sure to send in the ID NOT as a string to do this correctly. 
+    Then when we pull can we can populate that instead of pulling everything. 
+- Add that you can change a pfp 
+- When you click on username let it go to that profile 
+- Add a date/time to the request service button. 
+
+
+EASY/ SMALL:
+- Post Details Screen: Let it show all the pictures for a post, not just one. (Right now it shows the first of the array)
+- Organize the homescreen better
+- Set Up Jak's laptop so that he can see this on it AND write down the steps you took so that he could see it.
+
+
+How to get the user infromation: 
