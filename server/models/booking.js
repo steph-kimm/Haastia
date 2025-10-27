@@ -1,18 +1,38 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-const requestedAddons = new mongoose.Schema({
-    // 
-})
-const bookingSchema = new mongoose.Schema({
-    client: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    recipient: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    post: { type: mongoose.Schema.Types.ObjectId, ref: 'Post', required: true },
-    addOns: [{ type: String }],
-    requestType: { type: String, enum: ['accepted', 'rejected', 'pending', 'completed', 'reviewed'], default: 'pending' },
-    dateTime: { type: Date, required: true},
-    duration: { type: Number, required: true }, // Duration in minutes
-});
+const bookingSchema = new Schema(
+  {
+    customer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    professional: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    service: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Service",
+      required: true,
+    },
+    date: {
+      type: Date,
+      required: true,
+    },
+    timeSlot: {
+      start: { type: String, required: true }, // e.g., "10:00"
+      end: { type: String, required: true },   // e.g., "11:00"
+    },
+    status: {
+      type: String,
+      enum: ["pending", "accepted", "declined"],
+      default: "pending",
+    },
+  },
+  { timestamps: true }
+);
 
-
-export default mongoose.model("Booking", bookingSchema); 
+export default mongoose.model("Booking", bookingSchema);

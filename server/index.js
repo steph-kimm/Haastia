@@ -14,6 +14,7 @@ import availabilityRoutes from "./routes/availability.js";
 import userRoutes from "./routes/user.js";
 import professionalRoutes from "./routes/professional.js";
 import serviceRoutes from "./routes/service.js";
+import bookingRoutes from "./routes/booking.js";
 
 import morgan from "morgan";
 
@@ -47,5 +48,6 @@ app.use("/api/availability", availabilityRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/professional", professionalRoutes);
 app.use("/api/services", serviceRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 app.listen(8000, () => console.log("Server running on port 8000"));
