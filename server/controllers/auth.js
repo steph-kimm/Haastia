@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { hashPassword, comparePassword } from "../helpers/auth.js";
 import { nanoid } from "nanoid";
 import cloudinary from "cloudinary";
+import Availability from "../models/availability.js";
 
 // sendgrid
 // require("dotenv").config();
@@ -21,100 +22,135 @@ cloudinary.config({
 import sgMail from "@sendgrid/mail";
 sgMail.setApiKey(process.env.SENDGRID_KEY);
 
+
 // export const signup = async (req, res) => {
-//     const { name, email, password, location, isProvider, availability } = req.body;
-//     console.log(name, email, location, isProvider, availability );
 //     try {
-//         const user = new User({
-//             name,
-//             email,
-//             password,
-//             location,
-//             role: isProvider ? 'Provider' : 'Customer',
-//             availability: isProvider ? availability : []
-//         });
-//         await user.save();
-//         res.status(201).json({ message: 'User signed up successfully', data: user });
-//     } catch (error) {
-//         console.error('Error signing up:', error);
-//         res.status(500).json({ message: 'Internal server error' });
+//         const { name, email, password, location, isProvider, availability } = req.body;
+//         // validation TODO: move validation to front end?
+//         if (!name) {
+//             return res.json({
+//                 error: "Name is required",
+//             });
+//         }
+//         if (!email) {
+//             return res.json({
+//                 error: "Email is required",
+//             });
+//         }
+//         if (!password || password.length < 6) {
+//             return res.json({
+//                 error: "Password is required and should be 6 characters long",
+//             });
+//         }
+//         const exist = await User.findOne({ email });
+//         if (exist) {
+//             return res.json({
+//                 error: "Email is taken",
+//             });
+//         }
+//         // hash password
+//         const hashedPassword = await hashPassword(password);
+//         // IF you add the below back, amke sure you ONLY run it if someone put an image
+//         // upload image to cloudinary 
+//         // const result = await cloudinary.uploader.upload(image, {
+//         //     public_id: nanoid(),
+//         //     resource_type: 'jpg',
+//         // });// this takes the base64 image given and passes an id and safe url for the database
+        
+//         try {
+//             const user = await new User({
+//                 name,
+//                 email,
+//                 password:hashedPassword,
+//                 location,
+//                 role: isProvider ? 'Provider' : 'Customer',
+//                 availability: isProvider ? availability : []
+//             }).save();
+
+//             // const user = await new User({
+//             //     name,
+//             //     email,
+//             //     password: hashedPassword,
+//             //     location, 
+//             //     role, 
+//             //     image: {
+//             //         public_id: result.public_id,
+//             //         url: result.secure_url,
+//             //     },
+//             // }).save();
+//             // create signed token
+//             // const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+//             //     expiresIn: "7d",
+//             // });
+//             const token = jwt.sign({ _id: user._id, name: user.name, role: user.role }, process.env.JWT_SECRET, {
+//                 expiresIn: "7d",
+//             });
+//             //   console.log(user);
+//             const { password, ...rest } = user._doc;
+//             return res.json({
+//                 token,
+//                 user: rest,
+//             });
+//         } catch (err) {
+//             console.log(err);
+//         }
+//     } catch (err) {
+//         console.log(err);
 //     }
 // };
-
 export const signup = async (req, res) => {
-    try {
-        const { name, email, password, location, isProvider, availability } = req.body;
-        // validation TODO: move validation to front end?
-        if (!name) {
-            return res.json({
-                error: "Name is required",
-            });
-        }
-        if (!email) {
-            return res.json({
-                error: "Email is required",
-            });
-        }
-        if (!password || password.length < 6) {
-            return res.json({
-                error: "Password is required and should be 6 characters long",
-            });
-        }
-        const exist = await User.findOne({ email });
-        if (exist) {
-            return res.json({
-                error: "Email is taken",
-            });
-        }
-        // hash password
-        const hashedPassword = await hashPassword(password);
-        // IF you add the below back, amke sure you ONLY run it if someone put an image
-        // upload image to cloudinary 
-        // const result = await cloudinary.uploader.upload(image, {
-        //     public_id: nanoid(),
-        //     resource_type: 'jpg',
-        // });// this takes the base64 image given and passes an id and safe url for the database
-        
-        try {
-            const user = await new User({
-                name,
-                email,
-                password:hashedPassword,
-                location,
-                role: isProvider ? 'Provider' : 'Customer',
-                availability: isProvider ? availability : []
-            }).save();
+  try {
+    const { name, email, password, location, isProvider, availability } = req.body;
 
-            // const user = await new User({
-            //     name,
-            //     email,
-            //     password: hashedPassword,
-            //     location, 
-            //     role, 
-            //     image: {
-            //         public_id: result.public_id,
-            //         url: result.secure_url,
-            //     },
-            // }).save();
-            // create signed token
-            // const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
-            //     expiresIn: "7d",
-            // });
-            const token = jwt.sign({ _id: user._id, name: user.name, role: user.role }, process.env.JWT_SECRET, {
-                expiresIn: "7d",
-            });
-            //   console.log(user);
-            const { password, ...rest } = user._doc;
-            return res.json({
-                token,
-                user: rest,
-            });
-        } catch (err) {
-            console.log(err);
-        }
-    } catch (err) {
-        console.log(err);
+    //  Basic validation
+    if (!name) return res.json({ error: "Name is required" });
+    if (!email) return res.json({ error: "Email is required" });
+    if (!password || password.length < 6)
+      return res.json({ error: "Password must be at least 6 characters long" });
+
+    //  Check if user already exists
+    const exist = await User.findOne({ email });
+    if (exist) return res.json({ error: "Email is already in use" });
+
+    //  Hash password
+    const hashedPassword = await hashPassword(password);
+
+    //  Create user
+    const user = await new User({
+      name,
+      email,
+      password: hashedPassword,
+      location,
+      role: isProvider ? "professional" : "customer",
+    }).save();
+
+    //  If provider, create availability record(s)
+    if (isProvider && Array.isArray(availability) && availability.length > 0) {
+      const availabilityDocs = availability.map((a) => ({
+        professionalId: user._id,
+        day: a.day,
+        slots: a.slots,
+      }));
+      await Availability.insertMany(availabilityDocs);
     }
+
+    //  Create JWT token
+    const token = jwt.sign(
+      { _id: user._id, name: user.name, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    //  Respond
+    const { password: _, ...userWithoutPassword } = user._doc;
+    return res.json({
+      token,
+      user: userWithoutPassword,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Signup failed. Please try again." });
+  }
 };
 
 export const signin = async (req, res) => {
@@ -211,35 +247,7 @@ export const resetPassword = async (req, res) => {
     }
 };
 
-export const uploadImage = async (req, res) => {
-    try {
-        const result = await cloudinary.uploader.upload(req.body.image, {
-            public_id: nanoid(),
-            resource_type: 'jpg',
-        });// this takes the base64 image given and passes an id and safe url for the database
-        console.log('result', result);
-        console.log(req.body.user);
-        const user = await User.findByIdAndUpdate(
-            req.body.user._id,
-            {
-                image: {
-                    public_id: result.public_id,
-                    url: result.secure_url,
-                },
-            },
-            { new: true }
-        );
-        console.log("user,", user);
-        return res.json({
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            image: user.image,
-        });
-    } catch (err) {
-        console.log(err);
-    }
-};
+
 
 export const updatePassword = async (req, res) => {
     console.log('IN HERE', res)
@@ -261,52 +269,25 @@ export const updatePassword = async (req, res) => {
     }
 };
 
-export const updateSavedPosts = async (req, res) => {
-    console.log('inside controller');
-    try {
-        const { posts } = req.body;
-        console.log(req.body.user.user_id)
-        // const hashedPassword = await hashPassword(password);
-        const user = await User.findByIdAndUpdate(
-            req.body.user._id,
-            {
-                saved_posts: posts,
-            });
-        user.password = undefined;
-        user.secret = undefined;
-        return res.json(user);
-    } catch (err) {
-        console.log(err);
-    }
-};
 
-export const getUserProfile = async (req, res) => {
-    console.log("fetching user")
-    try {
-        console.log('getting user')
-        const user = await User.findById(req.params.userId);
-        res.json(user);
-    } catch (error) {
-        console.error('Error fetching user profile:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-};
 
-export const updateAvailability = async (req, res) => {
-    try {
-      const { userId } = req.params;
-      const { availability } = req.body;
+
+// Not used now has own file/schema
+// export const updateAvailability = async (req, res) => {
+//     try {
+//       const { userId } = req.params;
+//       const { availability } = req.body;
   
-      const updatedUser = await User.findByIdAndUpdate(
-        userId,
-        { availability },
-        { new: true }
-      );
+//       const updatedUser = await User.findByIdAndUpdate(
+//         userId,
+//         { availability },
+//         { new: true }
+//       );
   
-      res.json(updatedUser);
-    } catch (err) {
-      console.error('Failed to update availability:', err);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  };
+//       res.json(updatedUser);
+//     } catch (err) {
+//       console.error('Failed to update availability:', err);
+//       res.status(500).json({ error: 'Internal server error' });
+//     }
+//   };
   

@@ -28,5 +28,8 @@
     "nanoid": "^4.0.2",
     "node-fetch": "^2.6.1"
   },
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
 }
