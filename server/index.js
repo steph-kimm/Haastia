@@ -10,6 +10,7 @@ import authRoutes from "./routes/auth.js";
 import postRoutes from './routes/post.js'
 import requestRoutes from './routes/request.js'
 import supportRoutes from './routes/support.js'
+import availabilityRoutes from "./routes/availability.js";
 
 import morgan from "morgan";
 
@@ -39,5 +40,6 @@ app.use("/api", authRoutes);
 app.use("/api", postRoutes);
 app.use("/api", requestRoutes);
 app.use("/api", supportRoutes);
+app.use("/api/availability", availabilityRoutes);
 
 app.listen(8000, () => console.log("Server running on port 8000"));

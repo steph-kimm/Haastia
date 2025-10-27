@@ -4,7 +4,8 @@ import { useView } from './ViewContext';
 import CustomerRoutes from './CustomerRoutes';
 import ProfessionalRoutes from './ProfessionalRoutes';
 import AdminRoutes from './AdminRoutes';
-import ProfessionalNavbar from './professionalView/components /Navbar';
+// import ProfessionalNavbar from './professionalView/components/Navbar';
+
 import Navbar from '../components/Navbar';
 // import AdminNavbar from '../components/AdminNavbar';
 
@@ -21,7 +22,7 @@ function AppRoutes() {
             )}
             {currentView === 'professional' && (
                 <>
-                    <ProfessionalNavbar />
+                    {/* <ProfessionalNavbar /> */}
                     <ProfessionalRoutes />
                 </>
             )}

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import ServiceItem from './components /ServiceItem';
+// import ServiceItem from './components/ServiceItem';
+
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import './Services.css'
+
 function Services() {
     const [services, setServices] = useState([]);
 
@@ -28,7 +30,8 @@ function Services() {
             <h2>Your Services</h2>
             {services.length > 0 ? (
                 services.map(service => (
-                    <ServiceItem key={service._id} service={service} />
+                    <p></p>
+                    // <ServiceItem key={service._id} service={service} />
                 ))
             ) : (
                 <p>No services available.</p>
