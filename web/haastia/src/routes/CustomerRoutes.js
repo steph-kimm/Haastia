@@ -9,6 +9,7 @@ import ServiceDetail from '../components/Pages/ServiceDetail.js';
 import HelpCenter from '../components/Pages/HelpCenter.js';
 import Home from '../components/Pages/Home.js'
 import SettingsPage from '../components/Pages/user/SettingsPage';
+import ProfessionalProfile from '../components/customer/ProfessionalProfile.js';
 
 const CustomerRoutes = () => {
     return (
@@ -20,6 +21,7 @@ const CustomerRoutes = () => {
             <Route path="/service/:id" element={<ServiceDetail />} />
             <Route path="/help" element={<HelpCenter />} />
              <Route path="/settings" element={<SettingsPage />} />
+             <Route path="/professional/:id" element={<ProfessionalProfile />} />
         </Routes>
     );
 };

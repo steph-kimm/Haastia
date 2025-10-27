@@ -8,7 +8,7 @@ import mongoose from "mongoose";
 
 import authRoutes from "./routes/auth.js";
 // import postRoutes from './routes/post.js'
-import requestRoutes from './routes/request.js'
+// import requestRoutes from './routes/request.js'
 import supportRoutes from './routes/support.js'
 import availabilityRoutes from "./routes/availability.js";
 import userRoutes from "./routes/user.js";
@@ -40,9 +40,9 @@ app.use(cors());
 app.use(morgan("dev"));
 
 // route middlewares
-app.use("/api", authRoutes);
+app.use("/api/auth", authRoutes);
 // app.use("/api", postRoutes);
-app.use("/api", requestRoutes);
+// app.use("/api", requestRoutes);
 app.use("/api", supportRoutes);
 app.use("/api/availability", availabilityRoutes);
 app.use("/api/user", userRoutes);

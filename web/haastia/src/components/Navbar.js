@@ -3,7 +3,7 @@ import { Link,useNavigate } from 'react-router-dom';
 import './Navbar.css';
 import SwitchView from '../SwitchView';
 import { jwtDecode } from 'jwt-decode';
-import { useView } from '../views/ViewContext';
+import { useView } from '../context/ViewContext';
 
 function Navbar() {
     const token = localStorage.getItem('token');

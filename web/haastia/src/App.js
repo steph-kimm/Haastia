@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
-import AppRoutes from './views/AppRoutes';
-import { ViewProvider } from './views/ViewContext';
+import AppRoutes from './routes/AppRoutes';
+import { ViewProvider } from './context/ViewContext';
 
 function App() {
     const [currentView, setCurrentView] = useState('customer'); // default view

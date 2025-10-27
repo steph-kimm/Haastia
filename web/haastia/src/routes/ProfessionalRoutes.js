@@ -1,8 +1,8 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
-import ProfessionalHome from './professionalView/ProfessionalHome';
-import Services from './professionalView/Services';
-import AddServiceForm from './professionalView/AddServiceForm';
+import ProfessionalHome from '../views/professionalView/ProfessionalHome';
+import Services from '../views/professionalView/Services';
+import AddServiceForm from '../views/professionalView/AddServiceForm';
 // import UpcomingAppointments from './Professional/UpcomingAppointments';
 // Import other professional-specific components
 

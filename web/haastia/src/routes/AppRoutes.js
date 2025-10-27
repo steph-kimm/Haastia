@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { useView } from './ViewContext'; 
+import { useView } from '../context/ViewContext' 
 import CustomerRoutes from './CustomerRoutes';
 import ProfessionalRoutes from './ProfessionalRoutes';
 import AdminRoutes from './AdminRoutes';
