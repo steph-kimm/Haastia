@@ -4,14 +4,14 @@ import { useView } from '../context/ViewContext'
 import CustomerRoutes from './CustomerRoutes';
 import ProfessionalRoutes from './ProfessionalRoutes';
 import AdminRoutes from './AdminRoutes';
-// import ProfessionalNavbar from './professionalView/components/Navbar';
+import ProfessionalNavbar from '../components/professional/ProfessionalNavbar';
 
 import Navbar from '../components/Navbar';
 // import AdminNavbar from '../components/AdminNavbar';
 
 // function AppRoutes({ currentView }) {
 function AppRoutes() {
-    const { currentView } = useView();
+    const { currentView = 'customer' } = useView();
     return (
         <>
             {currentView === 'customer' && (
@@ -22,7 +22,7 @@ function AppRoutes() {
             )}
             {currentView === 'professional' && (
                 <>
-                    {/* <ProfessionalNavbar /> */}
+                    <ProfessionalNavbar />
                     <ProfessionalRoutes />
                 </>
             )}
