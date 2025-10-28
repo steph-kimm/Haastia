@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import './Auth.css';
+import { useView } from '../../../context/ViewContext'
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -16,6 +17,7 @@ const Signup = () => {
     availability: daysOfWeek.map(day => ({ day, slots: '' }))
   });
   const navigate = useNavigate();
+  const { setCurrentView } = useView();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -66,7 +68,14 @@ const Signup = () => {
         navigate('/login');
       }, expirationTime);
 
-      navigate('/');
+      if (decodedToken.role === "professional") {
+        setCurrentView('professional'); // switches context
+        navigate('/add-service');       // goes to their page
+      } else {
+        setCurrentView('customer');
+        navigate('/');
+      }
+
     } catch (error) {
       console.error('Error signing up:', error);
       alert(error.response?.data?.error || 'Signup failed');
