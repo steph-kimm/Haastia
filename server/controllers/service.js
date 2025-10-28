@@ -58,7 +58,7 @@ export const getProfessionalServices = async (req, res) => {
     if (!services || services.length === 0) {
       return res.status(404).json({ message: "No services found for this professional" });
     }
-
+    console.log('services,' , services)
     res.json(services);
   } catch (err) {
     console.error("Error fetching professional's services:", err);

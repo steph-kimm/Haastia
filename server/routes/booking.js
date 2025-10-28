@@ -6,10 +6,12 @@ import {
   updateBookingStatus,
 } from "../controllers/booking.js";
 
+import { optionalAuth } from "../middlewares/optionalAuth.js";
+
 const router = express.Router();
 
 // Create booking
-router.post("/", createBooking);
+router.post("/", optionalAuth,  createBooking);
 
 // Get bookings for a professional
 router.get("/professional/:id", getBookingsForProfessional);

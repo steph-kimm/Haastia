@@ -11,44 +11,44 @@ function AppRoutes() {
   const { currentView, setCurrentView } = useView();
   const [userRole, setUserRole] = useState(null);
 
-  // Decode token once at startup
+  // Detect role from token and adjust context
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       const decoded = jwtDecode(token);
       setUserRole(decoded.role);
-
-      // automatically set professional view if user is professional
       if (decoded.role === "professional") {
         setCurrentView("professional");
       }
     }
   }, [setCurrentView]);
 
-  // wait for ViewContext to sync
-  if (!currentView && !userRole) return <div>Loading...</div>;
+  // Only render one section at a time
+  if (!currentView) return <div>Loading...</div>;
 
+  if (currentView === "professional") {
+    return (
+      <>
+        <ProfessionalNavbar />
+        <ProfessionalRoutes />
+      </>
+    );
+  }
+
+  if (currentView === "admin") {
+    return (
+      <>
+        {/* Add your AdminNavbar when ready */}
+        <AdminRoutes />
+      </>
+    );
+  }
+
+  // Default (customer)
   return (
     <>
-      {currentView === "customer" && (
-        <>
-          <Navbar />
-          <CustomerRoutes />
-        </>
-      )}
-
-      {(currentView === "professional" || userRole === "professional") && (
-        <>
-          <ProfessionalNavbar />
-          <ProfessionalRoutes />
-        </>
-      )}
-
-      {currentView === "admin" && (
-        <>
-          <AdminRoutes />
-        </>
-      )}
+      <Navbar />
+      <CustomerRoutes />
     </>
   );
 }

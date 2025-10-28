@@ -6,7 +6,12 @@ const bookingSchema = new Schema(
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false, // ✅ make optional for guests
+    },
+    guestInfo: {
+      name: String,
+      email: String,
+      phone: String,
     },
     professional: {
       type: mongoose.Schema.Types.ObjectId,
@@ -18,13 +23,10 @@ const bookingSchema = new Schema(
       ref: "Service",
       required: true,
     },
-    date: {
-      type: Date,
-      required: true,
-    },
+    date: { type: Date, required: true },
     timeSlot: {
-      start: { type: String, required: true }, // e.g., "10:00"
-      end: { type: String, required: true },   // e.g., "11:00"
+      start: { type: String, required: true },
+      end: { type: String, required: true },
     },
     status: {
       type: String,

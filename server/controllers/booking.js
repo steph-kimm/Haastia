@@ -3,22 +3,32 @@ import Availability from "../models/availability.js";
 
 // Create a new booking request
 export const createBooking = async (req, res) => {
+  console.log('creating')
   try {
-    const { professional, service, date, timeSlot } = req.body;
+    const { professional, service, date, timeSlot, guestInfo } = req.body;
 
     if (!professional || !service || !date || !timeSlot?.start || !timeSlot?.end) {
       return res.status(400).json({ error: "Missing required booking fields" });
     }
 
-    const booking = await new Booking({
-      customer: req.user._id,
+    const bookingData = {
       professional,
       service,
       date,
       timeSlot,
       status: "pending",
-    }).save();
+    };
+    console.log('req.user', req.user);
+    if (req.user?._id) {
+      bookingData.customer = req.user._id;
+      console.log(bookingData.customer)
+    } else if (guestInfo) {
+      bookingData.guestInfo = guestInfo;
+    } else {
+      return res.status(400).json({ error: "Guest info or user required" });
+    }
 
+    const booking = await new Booking(bookingData).save();
     res.json(booking);
   } catch (err) {
     console.error("Error creating booking:", err);
