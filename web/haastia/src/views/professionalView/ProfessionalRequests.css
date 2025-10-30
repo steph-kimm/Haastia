@@ -1,0 +1,89 @@
+.pro-reqs-container {
+  max-width: 1000px;
+  margin: 32px auto;
+  padding: 0 16px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.pro-reqs-container h2 {
+  margin-bottom: 16px;
+}
+
+.empty {
+  color: #666;
+  text-align: center;
+  margin-top: 24px;
+}
+
+.reqs-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.req-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e8e8e8;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card-top .label {
+  color: #555;
+  font-weight: 500;
+  margin-right: 6px;
+}
+.card-top .value {
+  color: #222;
+}
+
+.service-line, .who-line, .when-line {
+  margin-bottom: 6px;
+}
+
+.card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-badge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-badge.pending { background: #fff7e6; color: #a66a00; border: 1px solid #ffd699; }
+.status-badge.accepted { background: #edfbe6; color: #1b7a28; border: 1px solid #c6efc1; }
+.status-badge.declined { background: #fdecec; color: #a61e22; border: 1px solid #f6b9bc; }
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.actions button {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .05s ease, opacity .2s ease;
+}
+
+.actions button:active { transform: translateY(1px); }
+
+.actions .accept { background: #9dd91e; color: #fff; }
+.actions .decline { background: #e74c3c; color: #fff; }
+
+.actions.readonly button {
+  background: #f1f1f1;
+  color: #666;
+  cursor: default;
+}

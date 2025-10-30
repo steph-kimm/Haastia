@@ -7,6 +7,7 @@ import {
 } from "../controllers/booking.js";
 
 import { optionalAuth } from "../middlewares/optionalAuth.js";
+import { requireSignin } from "../middlewares/auth.js";
 
 const router = express.Router();
 
@@ -20,6 +21,6 @@ router.get("/professional/:id", getBookingsForProfessional);
 router.get("/customer/:id", getBookingsForCustomer);
 
 // Update booking status (accept/decline)
-router.put("/:id/status", updateBookingStatus);
+router.put("/:id/status", requireSignin, updateBookingStatus);
 
 export default router;

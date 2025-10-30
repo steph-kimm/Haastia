@@ -76,8 +76,16 @@ export const updateBookingStatus = async (req, res) => {
       return res.status(400).json({ error: "Invalid status value" });
     }
 
-    const booking = await Booking.findById(id);
-    if (!booking) return res.status(404).json({ error: "Booking not found" });
+    // Optional: only allow responding to pending requests
+    // Remove this block if you want to allow changing accepted/declined later
+    const booking = await Booking.findOne({ _id: id, professional: req.user._id });
+    if (!booking) {
+      return res.status(404).json({ error: "Booking not found or unauthorized" });
+    }
+
+    if (booking.status !== "pending") {
+      return res.status(400).json({ error: "Only pending bookings can be updated" });
+    }
 
     booking.status = status;
     await booking.save();

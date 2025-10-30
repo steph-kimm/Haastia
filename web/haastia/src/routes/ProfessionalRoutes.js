@@ -5,6 +5,7 @@ import MyServices from '../views/professionalView/MyServices';
 import AddServiceForm from '../views/professionalView/AddServiceForm';
 // import UpcomingAppointments from './Professional/UpcomingAppointments';
 // Import other professional-specific components
+import ProfessionalRequests from '../views/professionalView/ProfessionalRequests';
 
 const ProfessionalRoutes = () => {
     return (
@@ -15,6 +16,7 @@ const ProfessionalRoutes = () => {
             <Route path="/Services" element={<MyServices />} />
             {/* <Route path="/upcoming-appointments" component={UpcomingAppointments} /> */}
             {/* Add more professional-specific routes here */}
+            <Route path="/bookings" element={<ProfessionalRequests />} />
         </Routes>
     );
 };
