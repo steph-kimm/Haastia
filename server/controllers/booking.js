@@ -3,9 +3,8 @@ import Availability from "../models/availability.js";
 
 // Create a new booking request
 export const createBooking = async (req, res) => {
-  console.log('creating')
   try {
-    const { professional, service, date, timeSlot, guestInfo } = req.body;
+    const { professional, service, date, timeSlot, guestInfo, name, email, phone } = req.body;
 
     if (!professional || !service || !date || !timeSlot?.start || !timeSlot?.end) {
       return res.status(400).json({ error: "Missing required booking fields" });
@@ -18,14 +17,18 @@ export const createBooking = async (req, res) => {
       timeSlot,
       status: "pending",
     };
-    console.log('req.user', req.user);
+
     if (req.user?._id) {
       bookingData.customer = req.user._id;
-      console.log(bookingData.customer)
-    } else if (guestInfo) {
-      bookingData.guestInfo = guestInfo;
     } else {
-      return res.status(400).json({ error: "Guest info or user required" });
+      const normalizedGuest =
+        guestInfo ??
+        (name || email || phone ? { name: name || "", email: email || "", phone: phone || "" } : null);
+
+      if (!normalizedGuest || !normalizedGuest.name || !normalizedGuest.email || !normalizedGuest.phone) {
+        return res.status(400).json({ error: "Guest info or user required" });
+      }
+      bookingData.guestInfo = normalizedGuest;
     }
 
     const booking = await new Booking(bookingData).save();
@@ -35,6 +38,7 @@ export const createBooking = async (req, res) => {
     res.status(500).json({ error: "Error creating booking" });
   }
 };
+
 
 // Get all bookings for a professional
 export const getBookingsForProfessional = async (req, res) => {
@@ -66,22 +70,19 @@ export const getBookingsForCustomer = async (req, res) => {
   }
 };
 
-// Accept or decline a booking
+// Professional can accept/decline pending bookings
 export const updateBookingStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status } = req.body; // "accepted" | "declined"
 
     if (!["accepted", "declined"].includes(status)) {
       return res.status(400).json({ error: "Invalid status value" });
     }
 
-    // Optional: only allow responding to pending requests
-    // Remove this block if you want to allow changing accepted/declined later
+    // must be the owner (professional)
     const booking = await Booking.findOne({ _id: id, professional: req.user._id });
-    if (!booking) {
-      return res.status(404).json({ error: "Booking not found or unauthorized" });
-    }
+    if (!booking) return res.status(404).json({ error: "Booking not found or unauthorized" });
 
     if (booking.status !== "pending") {
       return res.status(400).json({ error: "Only pending bookings can be updated" });
@@ -94,5 +95,63 @@ export const updateBookingStatus = async (req, res) => {
   } catch (err) {
     console.error("Error updating booking status:", err);
     res.status(500).json({ error: "Failed to update booking status" });
+  }
+};
+
+// Cancel (either professional or customer) when pending/accepted
+export const cancelBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    const booking = await Booking.findById(id);
+    if (!booking) return res.status(404).json({ error: "Booking not found" });
+
+    const isProfessional = String(booking.professional) === String(req.user?._id);
+    const isCustomer = booking.customer && String(booking.customer) === String(req.user?._id);
+
+    if (!isProfessional && !isCustomer) {
+      return res.status(403).json({ error: "Not authorized to cancel this booking" });
+    }
+
+    if (!["pending", "accepted"].includes(booking.status)) {
+      return res.status(400).json({ error: "Only pending or accepted bookings can be cancelled" });
+    }
+
+    booking.status = "cancelled";
+    booking.cancellation = {
+      by: isProfessional ? "professional" : "customer",
+      at: new Date(),
+      reason,
+    };
+
+    await booking.save();
+    res.json(booking);
+  } catch (err) {
+    console.error("Error cancelling booking:", err);
+    res.status(500).json({ error: "Failed to cancel booking" });
+  }
+};
+
+// Complete (professional only) when accepted
+export const completeBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const booking = await Booking.findOne({ _id: id, professional: req.user._id });
+    if (!booking) return res.status(404).json({ error: "Booking not found or unauthorized" });
+
+    if (booking.status !== "accepted") {
+      return res.status(400).json({ error: "Only accepted bookings can be completed" });
+    }
+
+    booking.status = "completed";
+    booking.completedAt = new Date();
+    await booking.save();
+
+    res.json(booking);
+  } catch (err) {
+    console.error("Error completing booking:", err);
+    res.status(500).json({ error: "Failed to complete booking" });
   }
 };

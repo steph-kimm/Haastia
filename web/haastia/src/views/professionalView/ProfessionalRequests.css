@@ -5,9 +5,7 @@
   font-family: 'Poppins', sans-serif;
 }
 
-.pro-reqs-container h2 {
-  margin-bottom: 16px;
-}
+.pro-reqs-container h2 { margin-bottom: 16px; }
 
 .empty {
   color: #666;
@@ -32,18 +30,10 @@
   gap: 12px;
 }
 
-.card-top .label {
-  color: #555;
-  font-weight: 500;
-  margin-right: 6px;
-}
-.card-top .value {
-  color: #222;
-}
+.card-top .label { color: #555; font-weight: 500; margin-right: 6px; }
+.card-top .value { color: #222; }
 
-.service-line, .who-line, .when-line {
-  margin-bottom: 6px;
-}
+.service-line, .who-line, .when-line { margin-bottom: 6px; }
 
 .card-bottom {
   display: flex;
@@ -51,6 +41,7 @@
   align-items: center;
 }
 
+/* Badges */
 .status-badge {
   padding: 6px 10px;
   border-radius: 999px;
@@ -59,31 +50,61 @@
   text-transform: capitalize;
 }
 
-.status-badge.pending { background: #fff7e6; color: #a66a00; border: 1px solid #ffd699; }
+.status-badge.pending  { background: #fff7e6; color: #a66a00; border: 1px solid #ffd699; }
 .status-badge.accepted { background: #edfbe6; color: #1b7a28; border: 1px solid #c6efc1; }
 .status-badge.declined { background: #fdecec; color: #a61e22; border: 1px solid #f6b9bc; }
+.status-badge.cancelled{ background: #fdecec; color: #a61e22; border: 1px solid #f6b9bc; }
 
+/* Card state accents */
+.req-card.cancelled { opacity: .8; }
+.req-card.completed { border: 1px solid #c6efc1; }
+
+/* Actions (compact) */
 .actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .actions button {
+  padding: 6px 10px;      /* compact */
+  font-size: 0.875rem;    /* ~14px */
+  line-height: 1;
+  border-radius: 6px;
   border: none;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-weight: 600;
   cursor: pointer;
-  transition: transform .05s ease, opacity .2s ease;
+  font-weight: 600;
+  transition: transform .05s ease, opacity .2s ease, box-shadow .2s ease;
+  min-height: 30px;       /* decent tap target */
 }
 
 .actions button:active { transform: translateY(1px); }
 
-.actions .accept { background: #9dd91e; color: #fff; }
-.actions .decline { background: #e74c3c; color: #fff; }
+/* Variants */
+.actions .accept   { background: #9dd91e; color: #fff; }
+.actions .decline  { background: #e74c3c; color: #fff; }
+.actions .danger   { background: #e74c3c; color: #fff; }
+.actions .complete { background: #2ecc71; color: #fff; }
 
+/* Hover polish */
+.actions .accept:hover,
+.actions .complete:hover { box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+
+.actions .decline:hover,
+.actions .danger:hover { opacity: .92; }
+
+/* Read-only row */
 .actions.readonly button {
   background: #f1f1f1;
   color: #666;
   cursor: default;
+  box-shadow: none;
+}
+
+/* Extra-compact on small screens */
+@media (max-width: 480px) {
+  .actions button {
+    padding: 5px 8px;
+    font-size: 0.82rem;
+    min-height: 28px;
+  }
 }

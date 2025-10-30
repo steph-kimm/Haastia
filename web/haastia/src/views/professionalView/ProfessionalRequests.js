@@ -35,7 +35,41 @@ const ProfessionalRequests = () => {
     };
     fetchRequests();
   }, [professionalId, token]);
+const cancel = async (booking) => {
+  const ok = window.confirm(
+    "Are you sure you want to cancel this appointment?\nYou will not be paid for cancelled appointments."
+  );
+  if (!ok) return;
 
+  try {
+    const res = await axios.put(
+      `http://localhost:8000/api/bookings/${booking._id}/cancel`,
+      { reason: "Provider cancelled via dashboard" },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    setRequests(prev => prev.map(b => (b._id === booking._id ? res.data : b)));
+  } catch (err) {
+    console.error("Cancel error:", err.response?.data || err.message);
+    alert(err.response?.data?.error || "Failed to cancel booking");
+  }
+};
+
+const complete = async (bookingId) => {
+  const ok = window.confirm("Mark this appointment as completed?");
+  if (!ok) return;
+
+  try {
+    const res = await axios.put(
+      `http://localhost:8000/api/bookings/${bookingId}/complete`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    setRequests(prev => prev.map(b => (b._id === bookingId ? res.data : b)));
+  } catch (err) {
+    console.error("Complete error:", err.response?.data || err.message);
+    alert(err.response?.data?.error || "Failed to complete booking");
+  }
+};
   const updateStatus = async (bookingId, status) => {
     try {
       await axios.put(
@@ -91,23 +125,41 @@ const ProfessionalRequests = () => {
               </div>
 
               <div className="card-bottom">
-                <span className={`status-badge ${req.status}`}>{req.status}</span>
+                {/* Left side: status badge (always shown) */}
+      <span className={`status-badge ${req.status}`}>{req.status}</span>
 
-                {req.status === "pending" ? (
-                  <div className="actions">
-                    <button className="accept" onClick={() => updateStatus(req._id, "accepted")}>
-                      Accept
-                    </button>
-                    <button className="decline" onClick={() => updateStatus(req._id, "declined")}>
-                      Decline
-                    </button>
-                  </div>
-                ) : (
-                  <div className="actions readonly">
-                    {/* Optional: add "Reopen" or "Message" buttons later */}
-                    <button disabled>{req.status === "accepted" ? "Accepted" : "Declined"}</button>
-                  </div>
-                )}
+      {/* Right side: context actions */}
+      {req.status === "pending" && (
+        <div className="actions">
+          <button className="accept" onClick={() => updateStatus(req._id, "accepted")}>
+            Accept
+          </button>
+          <button className="decline" onClick={() => updateStatus(req._id, "declined")}>
+            Decline
+          </button>
+        </div>
+      )}
+
+      {req.status === "accepted" && (
+        <div className="actions">
+          <button className="danger" onClick={() => cancel(req)}>Cancel</button>
+          <button className="complete" onClick={() => complete(req._id)}>Mark Completed</button>
+        </div>
+      )}
+
+      {req.status === "cancelled" && (
+        <div className="actions readonly">
+          <span className="status-badge cancelled">
+            Cancelled {req.cancellation?.by ? `by ${req.cancellation.by}` : ""}
+          </span>
+        </div>
+      )}
+
+      {req.status === "completed" && (
+        <div className="actions readonly">
+          <span className="status-badge accepted">Completed</span>
+        </div>
+      )}
               </div>
             </div>
           ))}

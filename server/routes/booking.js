@@ -4,6 +4,8 @@ import {
   getBookingsForProfessional,
   getBookingsForCustomer,
   updateBookingStatus,
+    cancelBooking,
+  completeBooking,
 } from "../controllers/booking.js";
 
 import { optionalAuth } from "../middlewares/optionalAuth.js";
@@ -22,5 +24,11 @@ router.get("/customer/:id", getBookingsForCustomer);
 
 // Update booking status (accept/decline)
 router.put("/:id/status", requireSignin, updateBookingStatus);
+
+// Cancel (customer OR professional)
+router.put("/:id/cancel", requireSignin, cancelBooking);
+
+// Complete (professional)
+router.put("/:id/complete", requireSignin, completeBooking);
 
 export default router;
