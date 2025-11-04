@@ -1,0 +1,52 @@
+.pro-cal-wrapper {
+  max-width: 1100px;
+  margin: 28px auto;
+  padding: 0 16px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.pro-cal-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.pro-cal-header h2 {
+  margin: 0;
+}
+
+.pro-cal-header .sub {
+  color: #666;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.pro-cal-loading {
+  text-align: center;
+  color: #666;
+  padding: 24px 0;
+}
+
+/* Event styling by status */
+.evt { border-radius: 8px; font-weight: 600; }
+.evt-accepted  { background: #cfeec0 !important; border: 1px solid #b4e3a2 !important; color: #1b7a28 !important; }
+.evt-pending   { background: #ffe7b8 !important; border: 1px solid #ffd489 !important; color: #8a5a00 !important; }
+.evt-cancelled { background: #f6c5c7 !important; border: 1px solid #ef9ea1 !important; color: #8a1e23 !important; text-decoration: line-through; opacity: .85; }
+.evt-completed { background: #cfe8ff !important; border: 1px solid #a8d2ff !important; color: #0c3c78 !important; }
+
+/* Make FC look a bit softer */
+.fc .fc-button-primary {
+  background: #9dd91e;
+  border: none;
+  font-weight: 600;
+}
+.fc .fc-button-primary:disabled { opacity: .6; }
+.fc .fc-button-primary:hover { filter: brightness(.95); }
+
+.fc-theme-standard td, .fc-theme-standard th {
+  border-color: #eee;
+}
+.fc .fc-timegrid-slot {
+  height: 44px; /* roomy slots */
+}

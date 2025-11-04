@@ -1,0 +1,64 @@
+/* src/views/professionalView/ProfessionalHome.css */
+.pro-home {
+  max-width: 1100px;
+  margin: 28px auto;
+  padding: 0 16px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.pro-home-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.pro-home-header h1 { margin: 0; }
+.pro-home-header .sub { margin: 4px 0 0; color: #666; }
+
+.quick-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.qa-btn {
+  background: #9dd91e;
+  color: #fff;
+  border-radius: 10px;
+  font-weight: 600;
+  padding: 8px 12px;
+  text-decoration: none;
+}
+.qa-btn.outline {
+  background: #fff;
+  color: #1b1b1b;
+  border: 1px solid #e6e6e6;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 8px 0 12px;
+  color: #555;
+  font-size: 0.95rem;
+}
+.legend .dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  display: inline-block; margin-right: 6px;
+  border: 1px solid rgba(0,0,0,.1);
+  vertical-align: -1px;
+}
+.legend .accepted  { background: #cfeec0; border-color: #b4e3a2; }
+.legend .pending   { background: #ffe7b8; border-color: #ffd489; }
+.legend .cancelled { background: #f6c5c7; border-color: #ef9ea1; }
+.legend .completed { background: #cfe8ff; border-color: #a8d2ff; }
+
+.pro-home-calendar {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
