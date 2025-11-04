@@ -1,9 +1,8 @@
+// src/views/professionalView/AddNewServiceForm.jsx
 import React, { useState } from "react";
 import axios from "axios";
-import { jwtDecode } from "jwt-decode";
-import "./AddServiceForm.css";
 
-const AddServiceForm = () => {
+const AddNewServiceForm = ({ onSuccess }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -12,12 +11,11 @@ const AddServiceForm = () => {
   const [images, setImages] = useState([]);
   const [preview, setPreview] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
 
-  // ✅ Convert selected images to Base64 for Cloudinary
+  // Convert image files to Base64 for Cloudinary
   const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    const fileReaders = files.map(
+    const files = Array.from(e.target.files || []);
+    const readers = files.map(
       (file) =>
         new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -27,19 +25,17 @@ const AddServiceForm = () => {
         })
     );
 
-    Promise.all(fileReaders)
+    Promise.all(readers)
       .then((base64Images) => {
         setImages(base64Images);
-        setPreview(files.map((file) => URL.createObjectURL(file)));
+        setPreview(files.map((f) => URL.createObjectURL(f)));
       })
-      .catch((err) => console.error("Error reading files:", err));
+      .catch((err) => console.error("File read error:", err));
   };
 
-  // ✅ Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setSuccessMessage("");
 
     const token = localStorage.getItem("token");
     if (!token) {
@@ -58,16 +54,14 @@ const AddServiceForm = () => {
         images,
       };
 
-      const response = await axios.post(
-        "http://localhost:8000/api/services",
-        serviceData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await axios.post("http://localhost:8000/api/services", serviceData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      console.log("✅ Service added:", response.data);
-      setSuccessMessage("Service added successfully!");
+      // notify parent page
+      onSuccess?.(res.data);
+
+      // reset form
       setTitle("");
       setDescription("");
       setPrice("");
@@ -75,21 +69,17 @@ const AddServiceForm = () => {
       setDuration("");
       setImages([]);
       setPreview([]);
-    } catch (error) {
-      console.error("❌ Error adding service:", error);
-      alert("Failed to add service. Please try again.");
+    } catch (err) {
+      console.error("Error adding service:", err.response?.data || err.message);
+      alert(err.response?.data?.error || "Failed to add service. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="service-form-container">
-      <h2 className="form-title">Add a New Service</h2>
-
-      {successMessage && <p className="success-message">{successMessage}</p>}
-
-      <form onSubmit={handleSubmit} className="service-form">
+    <form className="svc-form" onSubmit={handleSubmit}>
+      <div className="form-grid">
         <div className="form-group">
           <label>Title</label>
           <input
@@ -108,7 +98,8 @@ const AddServiceForm = () => {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
-          ></textarea>
+            rows={4}
+          />
         </div>
 
         <div className="form-row">
@@ -147,25 +138,22 @@ const AddServiceForm = () => {
 
         <div className="form-group">
           <label>Upload Images</label>
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleImageUpload}
-          />
-          <div className="image-preview">
-            {preview.map((src, i) => (
-              <img key={i} src={src} alt={`preview-${i}`} />
-            ))}
-          </div>
+          <input type="file" accept="image/*" multiple onChange={handleImageUpload} />
+          {preview.length > 0 && (
+            <div className="image-preview">
+              {preview.map((src, i) => (
+                <img key={i} src={src} alt={`preview-${i}`} />
+              ))}
+            </div>
+          )}
         </div>
+      </div>
 
-        <button type="submit" className="submit-btn" disabled={loading}>
-          {loading ? "Adding..." : "Add Service"}
-        </button>
-      </form>
-    </div>
+      <button type="submit" className="btn-primary" disabled={loading}>
+        {loading ? "Adding..." : "Add Service"}
+      </button>
+    </form>
   );
 };
 
-export default AddServiceForm;
+export default AddNewServiceForm;
