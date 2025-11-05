@@ -47,7 +47,7 @@ const AvailabilityEditor = () => {
     const fetchAvailability = async () => {
       try {
         // TODO: do we have to get the user here? More efficient if we dont?
-        const { data } = await axios.get(`http://localhost:8000/api/get-user/${userId}`);
+        const { data } = await axios.get(`http://localhost:8000/api/user/get-user/${userId}`);
         setAvailability(normalizeAvailability(data.availability));
       } catch (err) {
         console.error('Error fetching availability', err);
@@ -77,20 +77,31 @@ const AvailabilityEditor = () => {
     setFeedback(null);
 
     try {
-      const filteredAvailability = availability
-        .filter(({ slots }) => slots.length)
-        .map(({ day, slots }) => ({ day, slots }));
+    const filteredAvailability = availability
+      .filter(({ slots }) => slots.length)
+      .map(({ day, slots }) => ({ day, slots }));
 
-      await axios.put(`http://localhost:8000/api/update-availability/${userId}`, {
-        availability: filteredAvailability,
-      });
-      setFeedback({ type: 'success', message: 'Availability updated successfully!' });
-    } catch (err) {
-      console.error('Error saving availability', err);
-      setFeedback({ type: 'error', message: 'Something went wrong while saving. Please try again.' });
-    } finally {
-      setIsSaving(false);
-    }
+    // This matches backend route PUT /api/availability/:professionalId
+    const res = await axios.put(
+      `http://localhost:8000/api/availability/${userId}`,
+      { availability: filteredAvailability }
+    );
+
+    console.log('Updated availability:', res.data);
+
+    setFeedback({
+      type: 'success',
+      message: 'Availability updated successfully!',
+    });
+  } catch (err) {
+    console.error('Error saving availability', err);
+    setFeedback({
+      type: 'error',
+      message: 'Something went wrong while saving. Please try again.',
+    });
+  } finally {
+    setIsSaving(false);
+  }
   };
 
   const selectedSummary = useMemo(

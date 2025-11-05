@@ -4,7 +4,7 @@ import { setAvailability, getAvailability } from "../controllers/availability.js
 const router = express.Router();
 
 // POST /api/availability - create or update availability
-router.post("/", setAvailability);
+router.post("/:professionalId", setAvailability);
 
 // GET /api/availability/:professionalId - get all availability
 router.get("/:professionalId", getAvailability);
