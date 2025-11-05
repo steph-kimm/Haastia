@@ -1,24 +1,36 @@
-import React from 'react';
-import { Route, Routes } from 'react-router-dom';
-import ProfessionalHome from '../views/professionalView/ProfessionalHome';
-import MyServices from '../views/professionalView/MyServices';
-import AddServicePage from '../views/professionalView/AddServicePage';
-// import UpcomingAppointments from './Professional/UpcomingAppointments';
-// Import other professional-specific components
-import ProfessionalRequests from '../views/professionalView/ProfessionalRequests';
+import React from "react";
+import { Route, Routes } from "react-router-dom";
+
+import ProfessionalRouteGuard from "./ProfessionalRouteGuard";
+import {
+  customerRouteConfig,
+  professionalRouteConfig,
+} from "./routeConfig";
 
 const ProfessionalRoutes = () => {
-    return (
-        <Routes>
-            {/* <Route exact path="/" component={ProfessionalHome} /> */}
-            <Route path="/add-service" element={<AddServicePage />} />
-            <Route path="/professional-home" element={<ProfessionalHome />} />
-            <Route path="/Services" element={<MyServices />} />
-            {/* <Route path="/upcoming-appointments" component={UpcomingAppointments} /> */}
-            {/* Add more professional-specific routes here */}
-            <Route path="/bookings" element={<ProfessionalRequests />} />
-        </Routes>
-    );
+  return (
+    <Routes>
+      {customerRouteConfig.map(({ path, component: Component }) => (
+        <Route
+          key={`customer-${path}`}
+          path={path}
+          element={<Component />}
+        />
+      ))}
+
+      {professionalRouteConfig.map(({ path, component: Component }) => (
+        <Route
+          key={`professional-${path}`}
+          path={path}
+          element={
+            <ProfessionalRouteGuard>
+              <Component />
+            </ProfessionalRouteGuard>
+          }
+        />
+      ))}
+    </Routes>
+  );
 };
 
 export default ProfessionalRoutes;

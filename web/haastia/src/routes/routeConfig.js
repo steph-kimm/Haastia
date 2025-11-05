@@ -1,0 +1,34 @@
+import Home from "../components/Pages/Home";
+import Login from "../components/Pages/auth/Login";
+import Signup from "../components/Pages/auth/Signup";
+import HelpCenter from "../components/Pages/HelpCenter";
+import ServiceDetail from "../components/Pages/ServiceDetail";
+import UserProfile from "../components/Pages/Profile";
+import ProfessionalProfile from "../components/customer/ProfessionalProfile";
+import ProfessionalBookingPage from "../components/Pages/booking/ProfessionalBookingPage";
+import SettingsPage from "../components/Pages/user/SettingsPage";
+
+import ProfessionalHome from "../views/professionalView/ProfessionalHome";
+import MyServices from "../views/professionalView/MyServices";
+import AddServicePage from "../views/professionalView/AddServicePage";
+import ProfessionalRequests from "../views/professionalView/ProfessionalRequests";
+
+export const customerRouteConfig = [
+  { path: "/", component: Home },
+  { path: "/profile/:userId", component: UserProfile },
+  { path: "/login", component: Login },
+  { path: "/signup", component: Signup },
+  { path: "/service/:id", component: ServiceDetail },
+  { path: "/help", component: HelpCenter },
+  { path: "/settings", component: SettingsPage },
+  { path: "/professional/:id", component: ProfessionalProfile },
+  { path: "/professional/:id/book", component: ProfessionalBookingPage },
+];
+
+export const professionalRouteConfig = [
+  { path: "/add-service", component: AddServicePage },
+  { path: "/professional-home", component: ProfessionalHome },
+  { path: "/Services", component: MyServices },
+  { path: "/bookings", component: ProfessionalRequests },
+];
+
