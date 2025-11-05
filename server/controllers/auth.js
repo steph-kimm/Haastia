@@ -4,7 +4,7 @@ import { hashPassword, comparePassword } from "../helpers/auth.js";
 import { nanoid } from "nanoid";
 import cloudinary from "cloudinary";
 import Availability from "../models/availability.js";
-
+import { sendEmail } from "../utils/sendEmail.js";
 // sendgrid
 // require("dotenv").config();
 import { } from 'dotenv/config'
@@ -23,99 +23,24 @@ import sgMail from "@sendgrid/mail";
 sgMail.setApiKey(process.env.SENDGRID_KEY);
 
 
-// export const signup = async (req, res) => {
-//     try {
-//         const { name, email, password, location, isProvider, availability } = req.body;
-//         // validation TODO: move validation to front end?
-//         if (!name) {
-//             return res.json({
-//                 error: "Name is required",
-//             });
-//         }
-//         if (!email) {
-//             return res.json({
-//                 error: "Email is required",
-//             });
-//         }
-//         if (!password || password.length < 6) {
-//             return res.json({
-//                 error: "Password is required and should be 6 characters long",
-//             });
-//         }
-//         const exist = await User.findOne({ email });
-//         if (exist) {
-//             return res.json({
-//                 error: "Email is taken",
-//             });
-//         }
-//         // hash password
-//         const hashedPassword = await hashPassword(password);
-//         // IF you add the below back, amke sure you ONLY run it if someone put an image
-//         // upload image to cloudinary 
-//         // const result = await cloudinary.uploader.upload(image, {
-//         //     public_id: nanoid(),
-//         //     resource_type: 'jpg',
-//         // });// this takes the base64 image given and passes an id and safe url for the database
-        
-//         try {
-//             const user = await new User({
-//                 name,
-//                 email,
-//                 password:hashedPassword,
-//                 location,
-//                 role: isProvider ? 'Provider' : 'Customer',
-//                 availability: isProvider ? availability : []
-//             }).save();
-
-//             // const user = await new User({
-//             //     name,
-//             //     email,
-//             //     password: hashedPassword,
-//             //     location, 
-//             //     role, 
-//             //     image: {
-//             //         public_id: result.public_id,
-//             //         url: result.secure_url,
-//             //     },
-//             // }).save();
-//             // create signed token
-//             // const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
-//             //     expiresIn: "7d",
-//             // });
-//             const token = jwt.sign({ _id: user._id, name: user.name, role: user.role }, process.env.JWT_SECRET, {
-//                 expiresIn: "7d",
-//             });
-//             //   console.log(user);
-//             const { password, ...rest } = user._doc;
-//             return res.json({
-//                 token,
-//                 user: rest,
-//             });
-//         } catch (err) {
-//             console.log(err);
-//         }
-//     } catch (err) {
-//         console.log(err);
-//     }
-// };
 export const signup = async (req, res) => {
   try {
     const { name, email, password, location, isProvider, availability } = req.body;
 
-    //  Basic validation
+    // Basic validation
     if (!name) return res.json({ error: "Name is required" });
     if (!email) return res.json({ error: "Email is required" });
     if (!password || password.length < 6)
       return res.json({ error: "Password must be at least 6 characters long" });
 
-    //  Check if user already exists
+    // Check if user already exists
     const exist = await User.findOne({ email });
     if (exist) return res.json({ error: "Email is already in use" });
 
-    //  Hash password
+    // Hash password
     const hashedPassword = await hashPassword(password);
 
-    //  Create user
+    // Create user
     const user = await new User({
       name,
       email,
@@ -124,7 +49,7 @@ export const signup = async (req, res) => {
       role: isProvider ? "professional" : "customer",
     }).save();
 
-    //  If provider, create availability record(s)
+    // If provider, create availability record(s)
     if (isProvider && Array.isArray(availability) && availability.length > 0) {
       const availabilityDocs = availability.map((a) => ({
         professionalId: user._id,
@@ -134,14 +59,27 @@ export const signup = async (req, res) => {
       await Availability.insertMany(availabilityDocs);
     }
 
-    //  Create JWT token
+    // Create JWT token
     const token = jwt.sign(
       { _id: user._id, name: user.name, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    //  Respond
+    // ✉️ Send welcome email (non-blocking)
+    try {
+      await sendEmail(
+        email,
+        "Welcome to Haastia!",
+        `Hi ${name},\n\nThanks for joining Haastia! Your account has been successfully created.\n\nEnjoy booking and managing your appointments easily.\n\n— The Haastia Team`
+      );
+      console.log(`Welcome email sent to ${email}`);
+    } catch (emailError) {
+      console.error("Failed to send welcome email:", emailError);
+      // Do not return error — user signup should still succeed
+    }
+
+    // Respond
     const { password: _, ...userWithoutPassword } = user._doc;
     return res.json({
       token,
@@ -152,6 +90,7 @@ export const signup = async (req, res) => {
     return res.status(500).json({ error: "Signup failed. Please try again." });
   }
 };
+
 
 export const signin = async (req, res) => {
     try {
