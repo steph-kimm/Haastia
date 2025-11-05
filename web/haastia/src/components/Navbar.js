@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 import { useView } from '../context/ViewContext';
@@ -8,12 +8,6 @@ function Navbar() {
   const navigate = useNavigate();
   const { currentView, setCurrentView } = useView();
   const auth = getValidToken();
-
-  useEffect(() => {
-    if (!auth) {
-      navigate('/login');
-    }
-  }, [auth, navigate]);
 
   const userName = auth?.payload?.name ?? null;
   const userRole = auth?.payload?.role ?? null;
