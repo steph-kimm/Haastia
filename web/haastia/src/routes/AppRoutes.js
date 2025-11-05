@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { matchPath, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useView } from "../context/ViewContext";
 import CustomerRoutes from "./CustomerRoutes";
 import ProfessionalRoutes from "./ProfessionalRoutes";
@@ -14,25 +14,28 @@ function AppRoutes() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const protectedPaths = React.useMemo(
-    () => professionalRouteConfig.map(({ path }) => path),
+  const protectedPathSet = React.useMemo(
+    () =>
+      new Set(
+        professionalRouteConfig.map(({ path }) => {
+          const trimmed = path.replace(/\/+$/, "");
+          return trimmed === "" ? "/" : trimmed.toLowerCase();
+        })
+      ),
     []
   );
 
-  const isProtectedPath = React.useCallback(
-    (pathname) =>
-      protectedPaths.some((protectedPath) =>
-        matchPath({ path: protectedPath, end: true }, pathname)
-      ),
-    [protectedPaths]
-  );
+  const normalizedPathname = React.useMemo(() => {
+    const trimmed = location.pathname.replace(/\/+$/, "");
+    return trimmed === "" ? "/" : trimmed.toLowerCase();
+  }, [location.pathname]);
 
   // Detect role from token and adjust context
   useEffect(() => {
     const auth = getValidToken();
     if (!auth) {
       setCurrentView("customer");
-      if (isProtectedPath(location.pathname)) {
+      if (protectedPathSet.has(normalizedPathname)) {
         navigate("/login", { replace: true });
       }
       return;
@@ -50,7 +53,7 @@ function AppRoutes() {
     }
 
     setCurrentView("customer");
-  }, [isProtectedPath, location.pathname, navigate, setCurrentView]);
+  }, [navigate, normalizedPathname, protectedPathSet, setCurrentView]);
 
   // Only render one section at a time
   if (!currentView) return <div>Loading...</div>;
