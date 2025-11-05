@@ -1,58 +1,185 @@
 .availability-editor {
-    padding: 2rem;
-    max-width: 1200px;
-    margin: auto;
-    font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.editor-head h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  color: #0f1d2b;
+}
+
+.editor-sub {
+  margin: 0;
+  color: #475467;
+  line-height: 1.6;
+  max-width: 720px;
+}
+
+.availability-summary {
+  background: #f7fbfd;
+  border: 1px solid rgba(46, 134, 171, 0.15);
+  border-radius: 14px;
+  padding: 1.5rem;
+}
+
+.availability-summary h4 {
+  margin: 0 0 1rem;
+  font-size: 1.125rem;
+  color: #0f1d2b;
+}
+
+.summary-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.summary-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.summary-day {
+  font-weight: 600;
+  color: #1f2937;
+  min-width: 110px;
+}
+
+.summary-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.summary-chip {
+  background: white;
+  border: 1px solid rgba(46, 134, 171, 0.35);
+  color: #2e86ab;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.summary-empty {
+  margin: 0;
+  color: #475467;
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+}
+
+.day-column {
+  border: 1px solid #e4ebf3;
+  padding: 1rem;
+  border-radius: 12px;
+  background-color: #ffffff;
+  box-shadow: 0 10px 30px rgba(15, 29, 43, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.day-column strong {
+  font-size: 1rem;
+  color: #0f1d2b;
+}
+
+.slot-btn {
+  background-color: #f3f6f9;
+  color: #1f2937;
+  border: 1px solid transparent;
+  padding: 0.6rem 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease,
+    box-shadow 0.2s ease;
+}
+
+.slot-btn.selected {
+  background-color: #2e86ab;
+  color: white;
+  border-color: #2e86ab;
+  box-shadow: 0 8px 18px rgba(46, 134, 171, 0.3);
+}
+
+.slot-btn:hover {
+  background-color: rgba(46, 134, 171, 0.12);
+}
+
+.slot-btn:active {
+  transform: translateY(1px);
+}
+
+.save-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.save-btn {
+  padding: 0.85rem 2.5rem;
+  font-size: 1rem;
+  background-color: #2e86ab;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.save-btn:hover:not(:disabled) {
+  background-color: #22688d;
+  box-shadow: 0 10px 26px rgba(34, 104, 141, 0.32);
+}
+
+.save-btn:disabled {
+  background-color: #94b9cb;
+  cursor: wait;
+}
+
+.save-feedback {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.save-feedback.success {
+  color: #1f7a4d;
+}
+
+.save-feedback.error {
+  color: #c2410c;
+}
+
+@media (max-width: 960px) {
+  .summary-day {
+    min-width: 80px;
   }
-  
-  .week-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 1rem;
-    margin-top: 1rem;
-  }
-  
-  .day-column {
-    border: 1px solid #ddd;
-    padding: 1rem;
-    border-radius: 8px;
-    background-color: #fafafa;
-  }
-  
-  .slot-btn {
-    background-color: #f0f0f0;
-    color: black; /* Default text color before selection */
-    border: 1px solid #ccc;
-    padding: 8px 12px;
-    margin: 4px 0;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+}
+
+@media (max-width: 640px) {
+  .availability-summary {
+    padding: 1.25rem;
   }
 
-  
-  .slot-btn.selected {
-    background-color: #4CAF50;
-    color: white;
-    border-color: #4CAF50;
+  .week-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
   }
-  
-  .slot-btn:hover {
-    background-color: #e8f5e9;
+
+  .slot-btn {
+    padding: 0.55rem 0.45rem;
+    font-size: 0.9rem;
   }
-  
-  .save-btn {
-    margin-top: 2rem;
-    padding: 0.75rem 2rem;
-    font-size: 1rem;
-    background-color: #2E86AB;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  
-  .save-btn:hover {
-    background-color: #22688d;
-  }
-  
+}

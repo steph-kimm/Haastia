@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import './availability.css';
 import { jwtDecode } from 'jwt-decode';
@@ -10,17 +10,37 @@ const timeSlots = [
   '16:00-17:00', '17:00-18:00', '18:00-19:00', '19:00-20:00',
 ];
 
+const normalizeAvailability = (rawAvailability = []) => {
+  const map = new Map(
+    rawAvailability
+      .filter((entry) => entry?.day)
+      .map((entry) => [
+        entry.day,
+        Array.isArray(entry.slots)
+          ? [...entry.slots].sort()
+          : [],
+      ])
+  );
+
+  return weekdays.map((day) => ({
+    day,
+    slots: map.get(day) || [],
+  }));
+};
+
 const AvailabilityEditor = () => {
   const token = localStorage.getItem('token');
   const userId = token ? jwtDecode(token)._id : null;
-  const [availability, setAvailability] = useState([]);
+  const [availability, setAvailability] = useState(() => normalizeAvailability());
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState(null);
 
   useEffect(() => {
     const fetchAvailability = async () => {
       try {
         // TODO: do we have to get the user here? More efficient if we dont?
         const { data } = await axios.get(`http://localhost:8000/api/get-user/${userId}`);
-        setAvailability(data.availability || []);
+        setAvailability(normalizeAvailability(data.availability));
       } catch (err) {
         console.error('Error fetching availability', err);
       }
@@ -29,45 +49,84 @@ const AvailabilityEditor = () => {
   }, [userId]);
   const toggleSlot = (day, slot) => {
     setAvailability(prev => {
-      const updated = prev.map(entry => {
-        if (entry.day === day) {
-          const slots = entry.slots.includes(slot)
-            ? entry.slots.filter(s => s !== slot)
-            : [...entry.slots, slot];
-          return { ...entry, slots };
-        }
-        return entry;
+      return prev.map(entry => {
+        if (entry.day !== day) return entry;
+
+        const isSelected = entry.slots.includes(slot);
+        const updatedSlots = isSelected
+          ? entry.slots.filter(s => s !== slot)
+          : [...entry.slots, slot].sort();
+
+        return { ...entry, slots: updatedSlots };
       });
-  
-      // If the day doesn't exist, add it
-      const exists = updated.find(entry => entry.day === day);
-      if (!exists) {
-        updated.push({ day, slots: [slot] });
-      }
-  
-      return [...updated];
     });
   };
-  
+
 
   const handleSave = async () => {
+    if (!userId) return;
+    setIsSaving(true);
+    setFeedback(null);
+
     try {
-      await axios.put(`http://localhost:8000/api/update-availability/${userId}`, { availability });
-      alert('Availability updated successfully!');
+      const filteredAvailability = availability
+        .filter(({ slots }) => slots.length)
+        .map(({ day, slots }) => ({ day, slots }));
+
+      await axios.put(`http://localhost:8000/api/update-availability/${userId}`, {
+        availability: filteredAvailability,
+      });
+      setFeedback({ type: 'success', message: 'Availability updated successfully!' });
     } catch (err) {
       console.error('Error saving availability', err);
+      setFeedback({ type: 'error', message: 'Something went wrong while saving. Please try again.' });
+    } finally {
+      setIsSaving(false);
     }
   };
 
+  const selectedSummary = useMemo(
+    () => availability.filter(({ slots }) => slots.length > 0),
+    [availability]
+  );
+
   return (
     <div className="availability-editor">
-      <h3>Edit Your Weekly Availability</h3>
+      <div className="editor-head">
+        <h3>Edit Your Weekly Availability</h3>
+        <p className="editor-sub">
+          Tap a time block to toggle it on or off. Selected hours show clients when you are free to
+          take on appointments.
+        </p>
+      </div>
+
+      <div className="availability-summary">
+        <h4>This week at a glance</h4>
+        {selectedSummary.length ? (
+          <ul className="summary-list">
+            {selectedSummary.map(({ day, slots }) => (
+              <li key={day}>
+                <span className="summary-day">{day}</span>
+                <div className="summary-slots">
+                  {slots.map((slot) => (
+                    <span key={slot} className="summary-chip">{slot}</span>
+                  ))}
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="summary-empty">No hours selected yet. Choose slots below to open up your calendar.</p>
+        )}
+      </div>
+
       <div className="week-grid">
         {weekdays.map(day => (
           <div key={day} className="day-column">
             <strong>{day}</strong>
             {timeSlots.map(slot => {
-              const isSelected = availability.find(d => d.day === day)?.slots.includes(slot);
+              const slotsForDay = availability.find(d => d.day === day)?.slots || [];
+              const isSelected = slotsForDay.includes(slot);
               return (
                 <button
                   key={slot}
@@ -81,7 +140,14 @@ const AvailabilityEditor = () => {
           </div>
         ))}
       </div>
-      <button className="save-btn" onClick={handleSave}>Save Availability</button>
+      <div className="save-row">
+        <button className="save-btn" onClick={handleSave} disabled={isSaving}>
+          {isSaving ? 'Saving…' : 'Save Availability'}
+        </button>
+        {feedback && (
+          <span className={`save-feedback ${feedback.type}`}>{feedback.message}</span>
+        )}
+      </div>
     </div>
   );
 };
