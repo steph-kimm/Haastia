@@ -6,6 +6,7 @@ import {
   updateBookingStatus,
     cancelBooking,
   completeBooking,
+  getAvailableSlotsForProfessional,
 } from "../controllers/booking.js";
 
 import { optionalAuth } from "../middlewares/optionalAuth.js";
@@ -18,6 +19,9 @@ router.post("/", optionalAuth,  createBooking);
 
 // Get bookings for a professional
 router.get("/professional/:id", getBookingsForProfessional);
+
+// Get available slots for a professional excluding accepted bookings
+router.get("/professional/:id/available-slots", getAvailableSlotsForProfessional);
 
 // Get bookings for a customer
 router.get("/customer/:id", getBookingsForCustomer);

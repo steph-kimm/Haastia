@@ -9,36 +9,62 @@ const BookingDatePicker = ({ providerId }) => {
 
     useEffect(() => {
         const fetchAvailableSlots = async () => {
+            if (!providerId) return;
             try {
-                const response = await axios.get(`/api/available-slots/${providerId}`);
-                setAvailableSlots(response.data);
+                const response = await axios.get(`http://localhost:8000/api/bookings/professional/${providerId}/available-slots`);
+                setAvailableSlots(response.data || []);
             } catch (error) {
                 console.error('Error fetching available slots:', error);
+                setAvailableSlots([]);
             }
         };
 
         fetchAvailableSlots();
     }, [providerId]);
 
-    const getMinTimeForDay = (date) => {
+    const toEpochTime = (timeString) => new Date(`1970-01-01T${timeString}:00Z`);
+
+    const getSlotsForDay = (date) => {
         const day = date.toLocaleDateString('en-US', { weekday: 'long' });
-        const slots = availableSlots.find(slot => slot.day === day);
-        return slots ? new Date(`1970-01-01T${slots.slots[0].split('-')[0]}:00Z`) : new Date('1970-01-01T00:00:00Z');
+        const entry = availableSlots.find(slot => slot.day === day);
+        return entry?.slots?.filter(Boolean) || [];
+    };
+
+    const getMinTimeForDay = (date) => {
+        const slots = getSlotsForDay(date);
+        if (!slots.length) return new Date('1970-01-01T00:00:00Z');
+
+        const earliest = slots
+            .map(slot => slot.split('-')[0])
+            .filter(Boolean)
+            .sort()[0];
+
+        return earliest ? toEpochTime(earliest) : new Date('1970-01-01T00:00:00Z');
     };
 
     const getMaxTimeForDay = (date) => {
-        const day = date.toLocaleDateString('en-US', { weekday: 'long' });
-        const slots = availableSlots.find(slot => slot.day === day);
-        return slots ? new Date(`1970-01-01T${slots.slots[slots.slots.length - 1].split('-')[1]}:00Z`) : new Date('1970-01-01T23:59:59Z');
+        const slots = getSlotsForDay(date);
+        if (!slots.length) return new Date('1970-01-01T23:59:59Z');
+
+        const sorted = slots
+            .map(slot => slot.split('-')[1])
+            .filter(Boolean)
+            .sort();
+
+        const latest = sorted[sorted.length - 1];
+
+        return latest ? toEpochTime(latest) : new Date('1970-01-01T23:59:59Z');
     };
 
     const isSlotAvailable = (time) => {
-        const day = time.toLocaleDateString('en-US', { weekday: 'long' });
-        const slots = availableSlots.find(slot => slot.day === day);
-        if (!slots) return false;
+        const slots = getSlotsForDay(time);
+        if (!slots.length) return false;
 
         const timeString = time.toTimeString().split(' ')[0].substring(0, 5);
-        return slots.slots.some(slot => timeString >= slot.split('-')[0] && timeString < slot.split('-')[1]);
+        return slots.some(slot => {
+            const [start, end] = slot.split('-');
+            return start && end && timeString >= start && timeString < end;
+        });
     };
 
     const handleDateChange = (date) => {
