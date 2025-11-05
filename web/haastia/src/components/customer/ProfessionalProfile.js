@@ -6,6 +6,17 @@ import { useParams } from "react-router-dom";
 import Modal from "../modal/Modal.js";
 import "./ProfessionalProfile.css"; // keep your page styles
 
+const FALLBACK_AVATAR =
+  "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
+
+const getRatingValue = (rating) => {
+  if (!rating) return null;
+  if (typeof rating === "number") return rating;
+  if (typeof rating === "string") return parseFloat(rating);
+  if (rating?.$numberDecimal) return parseFloat(rating.$numberDecimal);
+  return null;
+};
+
 const ProfessionalProfile = () => {
   const { id } = useParams();
   const [professional, setProfessional] = useState(null);
@@ -33,24 +44,87 @@ const ProfessionalProfile = () => {
 
   if (!professional) return <p>Loading...</p>;
 
+  const ratingValue = getRatingValue(professional.rating);
+  const formattedRating =
+    typeof ratingValue === "number" && !Number.isNaN(ratingValue)
+      ? ratingValue.toFixed(1)
+      : null;
+
+  const jobsCompleted = professional.jobs_done ?? professional.jobsDone ?? 0;
+  const profileImage = professional?.image?.url || FALLBACK_AVATAR;
+  const locationLabel = professional.location?.trim() || "Location TBD";
+  const firstName = professional.name?.split(" ")[0] || "This professional";
+
   return (
     <div className="professional-profile">
-      <h2>{professional.name}</h2>
-      <p>{professional.location}</p>
-
-      <h3>Services</h3>
-      <ul>
-        {services.map((s) => (
-          <li key={s._id}>
-            <strong>{s.title}</strong>
-            <div className="price-line">
-              <p className="price">${s.price}</p>
-              {s.duration && <p className="duration">· {s.duration} min</p>}
+      <section className="profile-hero">
+        <div className="profile-card">
+          <div className="profile-avatar">
+            <img src={profileImage} alt={`${professional.name} profile`} />
+          </div>
+          <div className="profile-meta">
+            <span className="profile-label">Professional</span>
+            <h2>{professional.name}</h2>
+            <p className="profile-location">{locationLabel}</p>
+            <div className="profile-stats">
+              <div>
+                <span className="stat-title">Rating</span>
+                <span className="stat-value">
+                  {formattedRating && ratingValue > 0 ? `${formattedRating}/5` : "New"}
+                </span>
+              </div>
+              <div>
+                <span className="stat-title">Jobs</span>
+                <span className="stat-value">{jobsCompleted}</span>
+              </div>
+              {professional.email && (
+                <div>
+                  <span className="stat-title">Contact</span>
+                  <span className="stat-value">{professional.email}</span>
+                </div>
+              )}
             </div>
-            <button onClick={() => setSelectedService(s)}>Book</button>
-          </li>
-        ))}
-      </ul>
+          </div>
+        </div>
+      </section>
+
+      <section className="services-section">
+        <div className="section-heading">
+          <div>
+            <h3>Services</h3>
+            <p className="section-subtitle">
+              Choose the service that best fits your needs and book instantly.
+            </p>
+          </div>
+        </div>
+        <ul className="services-grid">
+          {services.map((s) => (
+            <li key={s._id} className="service-card">
+              <div className="service-card__body">
+                <strong>{s.title}</strong>
+                {s.description && <p className="service-description">{s.description}</p>}
+              </div>
+              <div className="service-card__footer">
+                <div className="price-line">
+                  <p className="price">${s.price}</p>
+                  {s.duration && <p className="duration">· {s.duration} min</p>}
+                </div>
+                <button onClick={() => setSelectedService(s)}>Book service</button>
+              </div>
+            </li>
+          ))}
+          {services.length === 0 && (
+            <li className="service-card empty-state">
+              <div className="service-card__body">
+                <strong>No services listed yet</strong>
+                <p className="service-description">
+                  Check back soon to discover what {firstName} offers.
+                </p>
+              </div>
+            </li>
+          )}
+        </ul>
+      </section>
 
       {/* Booking Modal */}
       <Modal
