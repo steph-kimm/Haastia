@@ -20,54 +20,66 @@ function Navbar() {
 
   return (
     <nav className="navbar">
-      <div className="navbar-brand">
-        <Link to="/">Haastia</Link>
-        <Link to="/">Home</Link>
-      </div>
+      <div className="navbar-wrapper">
+        <div className="navbar-brand">
+          <Link to="/" className="brand-logo">
+            Haastia
+          </Link>
+          <Link to="/" className="nav-link">
+            Home
+          </Link>
+        </div>
 
-      <div className="navbar-links">
-        {userName ? (
-          <div className="user-menu">
-            <span className="user-name">{userName || 'name'}</span>
-            <div className="dropdown-content">
-              <Link to="/profile" className="dropdown-item">
-                Account
-              </Link>
+        <div className="navbar-links">
+          {userName ? (
+            <div className="user-menu">
+              <span className="user-name">{userName || 'name'}</span>
+              <div className="dropdown-content">
+                <Link to="/profile" className="dropdown-item">
+                  Account
+                </Link>
 
-              {/* ✅ Toggle view buttons */}
-              {currentView === 'professional' ? (
-                <button
-                  onClick={() => {
-                    setCurrentView('customer');
-                    navigate('/');
-                  }}
-                >
-                  Switch to Customer View
-                </button>
-              ) : (
-                userRole === 'professional' && (
+                {/* ✅ Toggle view buttons */}
+                {currentView === 'professional' ? (
                   <button
+                    className="dropdown-item"
                     onClick={() => {
-                      setCurrentView('professional');
-                      navigate('/professional-home');
+                      setCurrentView('customer');
+                      navigate('/');
                     }}
                   >
-                    Switch to Professional View
+                    Switch to Customer View
                   </button>
-                )
-              )}
+                ) : (
+                  userRole === 'professional' && (
+                    <button
+                      className="dropdown-item"
+                      onClick={() => {
+                        setCurrentView('professional');
+                        navigate('/professional-home');
+                      }}
+                    >
+                      Switch to Professional View
+                    </button>
+                  )
+                )}
 
-              <button onClick={handleLogout} className="dropdown-item">
-                Logout
-              </button>
+                <button onClick={handleLogout} className="dropdown-item">
+                  Logout
+                </button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <>
-            <Link to="/login">Login</Link>
-            <Link to="/signup">Signup</Link>
-          </>
-        )}
+          ) : (
+            <>
+              <Link to="/login" className="nav-link nav-action">
+                Login
+              </Link>
+              <Link to="/signup" className="nav-link nav-action nav-action--primary">
+                Signup
+              </Link>
+            </>
+          )}
+        </div>
       </div>
     </nav>
   );
