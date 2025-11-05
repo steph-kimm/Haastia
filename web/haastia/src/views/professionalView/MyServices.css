@@ -1,147 +1,160 @@
-.service-form-container {
-    width: 100%;
-    max-width: 600px;
-    margin: 2rem auto;
-    padding: 2rem;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    background-color: #fff;
+/* ---------- Page container ---------- */
+.services-container {
+  max-width: 1100px;
+  margin: 28px auto;
+  padding: 0 16px;
+  font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
 
-.service-form-container h2 {
-    text-align: center;
-    font-size: 1.8rem;
-    margin-bottom: 1.5rem;
-    color: #343a40;
+.services-container h2 {
+  margin: 0 0 14px;
+  letter-spacing: .2px;
 }
 
-.service-form {
-    display: flex;
-    flex-direction: column;
+/* Empty state */
+.no-services {
+  color: #667085;
+  background: #f8fafc;
+  border: 1px dashed #e4e7ec;
+  padding: 16px;
+  border-radius: 12px;
+  text-align: center;
 }
 
-.form-group {
-    margin-bottom: 1.5rem;
+/* ---------- Grid ---------- */
+.service-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
 }
 
-.form-group label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-    color: #495057;
+@media (min-width: 560px) {
+  .service-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 960px) {
+  .service-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
-.form-group input[type="text"],
-.form-group input[type="number"],
-.form-group textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ced4da;
-    border-radius: 5px;
-    font-size: 1rem;
-    background-color: #f8f9fa;
-    box-sizing: border-box;
+/* ---------- Card ---------- */
+.service-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid #eef0f3;
+  border-radius: 14px;
+  box-shadow: 0 4px 18px rgba(16,24,40,.06);
+  padding: 12px;
 }
 
-.form-group textarea {
-    height: 100px;
+.service-img {
+  width: 100%;
+  aspect-ratio: 16 / 10;         /* consistent thumbnails */
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #eef0f3;
 }
 
-.form-group input[type="file"] {
-    border: none;
-    font-size: 1rem;
+/* Text blocks */
+.service-card h3 {
+  margin: 4px 0 0;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+.price {
+  margin: 0;
+  font-weight: 700;
+  color: #0b1217;
+}
+.category {
+  margin: 0;
+  color: #667085;
+  font-size: .92rem;
+}
+.desc {
+  margin: 6px 0 0;
+  color: #344054;
+  font-size: .95rem;
 }
 
-.submit-btn {
-    padding: 0.75rem 1.5rem;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
-    width: 100%;
-    margin-top: 1.5rem;
+/* ---------- Actions ---------- */
+.actions {
+  margin-top: auto;              /* push to bottom */
+  display: flex;
+  gap: 8px;
 }
 
-.submit-btn:hover {
-    background-color: #0056b3;
+.actions button {
+  border: 0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .05s ease, filter .15s ease, box-shadow .2s ease;
 }
 
+.actions button:hover { filter: brightness(.98); }
+.actions button:active { transform: translateY(1px); }
 
-LIMINAL BELOW input[type="range"] {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 39px;
-    background: linear-gradient(to right, #9acd32 0%, #9acd32 1%, #d9d9d980 1%, #d9d9d980 100%);
-    border-radius: 0;
-    outline: none;
-    border: none;
-    margin-bottom: 20px;
+.actions button:not(.delete) {
+  background: #9dd91e;
+  color: #0b1217;
+  box-shadow: 0 2px 10px rgba(157,217,30,.18);
 }
 
-
-input[type="range"]::-webkit-slider-runnable-track {
-    height: 39px;
-    background: linear-gradient(to right, #9acd32 0%, #9acd32 0%, #d9d9d980 0%, #d9d9d980 100%);
+.actions .delete {
+  background: #fff;
+  color: #d92d20;
+  border: 1px solid #fdd8d3;
+}
+.actions .delete:hover {
+  background: #fff5f4;
 }
 
-input[type="range"]::-moz-range-track {
-    height: 39px;
-    background: linear-gradient(to right, #9acd32 0%, #9acd32 0%, #d9d9d980 0%, #d9d9d980 100%);
+/* ---------- Inline edit form ---------- */
+.edit-form {
+  display: grid;
+  gap: 10px;
 }
 
-input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 0px;
-    height: 39px;
-    background: transparent;
-    cursor: pointer;
+.edit-form input,
+.edit-form textarea {
+  border: 1px solid #d7dde3;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  background: #fff;
 }
 
+.edit-form textarea { min-height: 84px; resize: vertical; }
 
-.slider-labels {
-    display: flex;
-    justify-content: space-between;
-    font-size: 16px;
-    margin-bottom: 20px;
+.edit-form input:focus,
+.edit-form textarea:focus {
+  border-color: #9dd91e;
+  box-shadow: 0 0 0 3px rgba(157,217,30,.15);
 }
 
-
-.price-display {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
+.edit-form button {
+  width: fit-content;
+  border: 0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-.price-display .total-cost,
-.price-display .msrp-discount {
-    background-color: #f0f0f0;
-    padding: 20px;
-    border-radius: 8px;
-    flex: 1;
-    height: auto;
+.edit-form button:first-of-type {          /* Save */
+  background: #2ecc71;
+  color: #fff;
+}
+.edit-form button:last-of-type {           /* Cancel */
+  background: #f2f4f7;
+  color: #101828;
 }
 
-.price-display .total-cost {
-    margin-right: 30px;
-}
-
-.price-display .msrp-discount {
-    margin-right: 71px;
-}
-
-.buy-now {
-    background-color: #9acd32;
-    color: white;
-    padding: 12px 28px;
-    border-radius: 70px;
-    font-size: 18px;
-    cursor: pointer;
-    height: 50px;
-    align-self: center;
+/* ---------- Subtle motion prefs ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .actions button { transition: none; }
 }

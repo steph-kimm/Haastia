@@ -4,7 +4,7 @@ import Availability from "../models/availability.js";
 export const getProfessionalProfile = async (req, res) => {
   try {
     const { id } = req.params; // professionalId
-
+    console.log("looking, " ,id)
     // 1️⃣ Find the user and ensure they’re a professional
     const professional = await User.findById(id).select("-password");
     if (!professional) {
