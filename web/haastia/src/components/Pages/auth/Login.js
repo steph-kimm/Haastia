@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import './Auth.css'
+import './Auth.css';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
@@ -39,23 +39,52 @@ function Login() {
   };
 
   return (
-    <div>
-      <h1>Login</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button type="submit">Login</button>
-      </form>
+    <div className="auth-page">
+      <div className="auth-inner">
+        <header className="auth-header">
+          <span className="eyebrow">Welcome back</span>
+          <h1>Log in to Haastia</h1>
+          <p className="sub">Access your account to manage bookings, update services, and stay connected with clients.</p>
+        </header>
+
+        <section className="auth-form">
+          <form className="auth-card" onSubmit={handleSubmit}>
+            <div className="form-grid">
+              <div className="form-group">
+                <label htmlFor="login-email">Email address</label>
+                <div className="input-shell">
+                  <input
+                    id="login-email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="login-password">Password</label>
+                <div className="input-shell">
+                  <input
+                    id="login-password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button className="auth-submit" type="submit">
+              Log In
+            </button>
+          </form>
+        </section>
+      </div>
     </div>
   );
 }
