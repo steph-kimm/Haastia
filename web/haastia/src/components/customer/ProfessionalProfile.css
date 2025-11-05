@@ -1,155 +1,271 @@
-/* Page scaffold */
+:root {
+  color-scheme: light;
+}
+
 .professional-profile {
-  max-width: 1100px;
-  margin: 28px auto;
-  padding: 0 16px 32px;
-  font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  max-width: 1120px;
+  margin: 32px auto 48px;
+  padding: 0 20px 64px;
+  font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: #0f172a;
 }
 
-/* Header */
-.professional-profile h2 {
-  margin: 0 0 4px;
-  letter-spacing: .2px;
-}
-.professional-profile > p {
-  margin: 0 0 16px;
-  color: #667085;
+.profile-hero {
+  background: linear-gradient(135deg, rgba(157, 217, 30, 0.2), rgba(13, 148, 136, 0.18));
+  padding: 1px;
+  border-radius: 28px;
+  box-shadow: 0 16px 60px rgba(15, 23, 42, 0.12);
 }
 
-/* Section title */
-.professional-profile h3 {
-  margin: 18px 0 10px;
-}
-
-/* Services grid (use your existing <ul>) */
-.professional-profile ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-
-  display: grid;
-  gap: 14px;
-  grid-template-columns: 1fr; /* mobile default */
-}
-
-@media (min-width: 560px) {
-  .professional-profile ul {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-@media (min-width: 960px) {
-  .professional-profile ul {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-/* Each service card (your existing <li>) */
-.professional-profile li {
-  background: #fff;
-  border: 1px solid #eef0f3;
-  border-radius: 14px;
-  box-shadow: 0 4px 18px rgba(16,24,40,.06);
-  padding: 12px;
-  display: grid;
-  gap: 8px;
-  align-content: start;
-  min-height: 140px;
-}
-
-.professional-profile li strong {
-  font-size: 1.05rem;
-}
-
-.professional-profile .price-line {
+.profile-card {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding: 28px;
+  background: #ffffff;
+  border-radius: 27px;
+}
+
+.profile-avatar {
+  width: 128px;
+  height: 128px;
+  border-radius: 20px;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+}
+
+.profile-avatar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 20px;
+  pointer-events: none;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-meta {
+  flex: 1;
+  min-width: 240px;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.profile-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(157, 217, 30, 0.18);
+  color: #3f6212;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 6px 12px;
+  border-radius: 999px;
+  width: fit-content;
+}
+
+.profile-meta h2 {
+  margin: 0;
+  font-size: clamp(1.75rem, 2vw + 1rem, 2.4rem);
+  letter-spacing: -0.02em;
+}
+
+.profile-location {
+  margin: 0;
+  color: #475569;
+  font-size: 1rem;
+}
+
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.profile-stats div {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.stat-title {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.stat-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+.services-section {
+  margin-top: 48px;
+  display: grid;
+  gap: 24px;
+}
+
+.section-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.section-heading h3 {
+  margin: 0;
+  font-size: 1.6rem;
+  letter-spacing: -0.01em;
+}
+
+.section-subtitle {
+  margin: 4px 0 0;
+  color: #64748b;
+  max-width: 520px;
+}
+
+.services-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.service-card {
+  background: #ffffff;
+  border-radius: 22px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  display: grid;
+  gap: 18px;
+  padding: 22px 22px 20px;
+  min-height: 200px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.14);
+}
+
+.service-card__body {
+  display: grid;
+  gap: 10px;
+}
+
+.service-card__body strong {
+  font-size: 1.1rem;
+}
+
+.service-description {
+  margin: 0;
+  color: #475569;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.service-card__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.price-line {
+  display: flex;
+  gap: 10px;
   align-items: baseline;
 }
 
-.professional-profile .price {
+.price {
   margin: 0;
+  font-size: 1.3rem;
   font-weight: 700;
-  color: #0b1217;
-}
-
-.professional-profile .duration {
-  margin: 0;
-  color: #667085;
-  font-size: .92rem;
-}
-
-/* Book button */
-.professional-profile li button {
-  justify-self: start;
-  border: 0;
-  border-radius: 10px;
-  padding: 8px 12px;
-  font-weight: 700;
-  cursor: pointer;
-  background: #9dd91e;
-  color: #0b1217;
-  box-shadow: 0 2px 10px rgba(157,217,30,.18);
-  transition: transform .05s ease, filter .15s ease, box-shadow .2s ease;
-}
-.professional-profile li button:hover {
-  filter: brightness(.98);
-}
-.professional-profile li button:active {
-  transform: translateY(1px);
-}
-
-/* Booking form section that appears below the list */
-.professional-profile .booking-panel {
-  margin-top: 18px;
-  background: #fff;
-  border: 1px solid #eef0f3;
-  border-radius: 14px;
-  box-shadow: 0 4px 18px rgba(16,24,40,.06);
-  padding: 14px;
-}
-
-/* Light defaults for any inputs inside the booking form */
-.professional-profile .booking-panel input,
-.professional-profile .booking-panel select,
-.professional-profile .booking-panel textarea {
-  width: 100%;
-  border: 1px solid #d7dde3;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 0.95rem;
-  outline: none;
-  background: #fff;
-  transition: border-color .15s, box-shadow .15s;
-  margin-bottom: 10px;
-}
-.professional-profile .booking-panel input:focus,
-.professional-profile .booking-panel select:focus,
-.professional-profile .booking-panel textarea:focus {
-  border-color: #9dd91e;
-  box-shadow: 0 0 0 3px rgba(157,217,30,.15);
-}
-
-/* Buttons inside booking form */
-.professional-profile .booking-panel button {
-  border: 0;
-  border-radius: 10px;
-  padding: 9px 14px;
-  font-weight: 700;
-  cursor: pointer;
-  background: #9dd91e;
-  color: #0b1217;
-}
-.professional-profile .booking-panel .secondary {
-  background: #fff;
   color: #101828;
-  border: 1px solid #e6e6e6;
-  margin-left: 8px;
 }
 
-/* Reduce motion preference */
+.duration {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.92rem;
+}
+
+.service-card button {
+  border: none;
+  border-radius: 14px;
+  padding: 10px 18px;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(135deg, #9dd91e, #22c55e);
+  color: #052e16;
+  box-shadow: 0 10px 25px rgba(34, 197, 94, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  white-space: nowrap;
+}
+
+.service-card button:hover {
+  filter: brightness(0.98);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(34, 197, 94, 0.32);
+}
+
+.service-card button:active {
+  transform: translateY(0);
+}
+
+.empty-state {
+  min-height: unset;
+  text-align: left;
+  align-items: flex-start;
+}
+
+@media (max-width: 640px) {
+  .profile-card {
+    padding: 22px;
+  }
+
+  .profile-avatar {
+    width: 110px;
+    height: 110px;
+  }
+
+  .service-card {
+    padding: 20px;
+  }
+
+  .service-card__footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .service-card button {
+    width: 100%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .professional-profile li button,
-  .professional-profile .booking-panel button {
+  .service-card,
+  .service-card button {
     transition: none;
   }
 }
