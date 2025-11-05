@@ -76,7 +76,7 @@ const ProfessionalCalendar = () => {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
-
+        console.log("bookingsRes", bookingsRes)
         setAvailability(availRes.data || []);
 
         // Map bookings -> calendar events
