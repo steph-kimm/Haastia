@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { getValidToken } from "../../utils/auth";
 
@@ -18,6 +18,20 @@ const getTodayISODate = () => {
   return today.toISOString().split("T")[0];
 };
 
+const getDayAvailabilityForDate = (availability, isoDate) => {
+  if (!isoDate) return null;
+
+  const selectedDate = new Date(`${isoDate}T00:00:00`);
+  if (Number.isNaN(selectedDate.getTime())) {
+    return null;
+  }
+
+  const dayName = DAY_NAMES[selectedDate.getDay()];
+  return availability.find(
+    (entry) => entry.day?.toLowerCase() === dayName.toLowerCase()
+  );
+};
+
 const BookingForm = ({ professionalId, service, availability = [], onSuccess }) => {
   const [date, setDate] = useState("");
   const [timeSlot, setTimeSlot] = useState("");
@@ -31,21 +45,51 @@ const BookingForm = ({ professionalId, service, availability = [], onSuccess }) 
   const isLoggedIn = Boolean(token);
 
   const availableSlotsForSelectedDate = useMemo(() => {
-    if (!date) return [];
-    const selectedDate = new Date(`${date}T00:00:00`);
-    const dayName = DAY_NAMES[selectedDate.getDay()];
-    const dayAvailability = availability.find(
-      (entry) => entry.day?.toLowerCase() === dayName.toLowerCase()
-    );
+    const dayAvailability = getDayAvailabilityForDate(availability, date);
     return dayAvailability?.slots ?? [];
   }, [availability, date]);
 
   const handleDateChange = (value) => {
+    if (!value) {
+      setDate("");
+      setTimeSlot("");
+      return;
+    }
+
+    const dayAvailability = getDayAvailabilityForDate(availability, value);
+    const hasSlots = dayAvailability?.slots?.length;
+
+    if (!hasSlots) {
+      setFeedback({
+        type: "error",
+        message: "No availability on the selected date. Please choose another date.",
+      });
+      setDate("");
+      setTimeSlot("");
+      return;
+    }
+
+    if (feedback.type === "error") {
+      setFeedback({ type: "", message: "" });
+    }
+
     setDate(value);
     setTimeSlot("");
   };
 
   const todayISODate = useMemo(getTodayISODate, []);
+
+  useEffect(() => {
+    if (!date) return;
+
+    const dayAvailability = getDayAvailabilityForDate(availability, date);
+    const hasSlots = dayAvailability?.slots?.length;
+
+    if (!hasSlots) {
+      setDate("");
+      setTimeSlot("");
+    }
+  }, [availability, date]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
