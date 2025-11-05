@@ -1,6 +1,30 @@
 import Booking from "../models/booking.js";
 import Availability from "../models/availability.js";
 
+const DAY_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+const normalizeSlotToString = (slot) => {
+  if (!slot) return null;
+  if (typeof slot === "string") return slot;
+  if (slot.start && slot.end) return `${slot.start}-${slot.end}`;
+  return null;
+};
+
+const dayNameFromDate = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  const index = date.getUTCDay();
+  return DAY_NAMES[index] ?? null;
+};
+
 // Create a new booking request
 export const createBooking = async (req, res) => {
   try {
@@ -36,6 +60,51 @@ export const createBooking = async (req, res) => {
   } catch (err) {
     console.error("Error creating booking:", err);
     res.status(500).json({ error: "Error creating booking" });
+  }
+};
+
+
+// Return available slots for a professional excluding accepted bookings
+export const getAvailableSlotsForProfessional = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [availabilityDocs, acceptedBookings] = await Promise.all([
+      Availability.find({ professionalId: id }),
+      Booking.find({ professional: id, status: "accepted" }),
+    ]);
+
+    const bookedByDay = new Map();
+
+    for (const booking of acceptedBookings) {
+      const start = booking?.timeSlot?.start;
+      const end = booking?.timeSlot?.end;
+      if (!start || !end) continue;
+
+      const dayName = dayNameFromDate(booking.date);
+      if (!dayName) continue;
+
+      if (!bookedByDay.has(dayName)) bookedByDay.set(dayName, new Set());
+      bookedByDay.get(dayName).add(`${start}-${end}`);
+    }
+
+    const response = availabilityDocs.map((doc) => {
+      const bookedForDay = bookedByDay.get(doc.day) ?? new Set();
+
+      const availableSlots = (doc.slots || [])
+        .map(normalizeSlotToString)
+        .filter((slot) => slot && !bookedForDay.has(slot));
+
+      return {
+        day: doc.day,
+        slots: availableSlots,
+      };
+    });
+
+    res.json(response);
+  } catch (err) {
+    console.error("Error fetching available slots:", err);
+    res.status(500).json({ error: "Failed to fetch available slots" });
   }
 };
 
