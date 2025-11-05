@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import "./ProfessionalRequests.css";
-import { jwtDecode } from "jwt-decode";
+import { getValidToken } from "../../utils/auth";
 
 const ProfessionalRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("token");
-
-  const professionalId = (() => {
-    try {
-      return token ? jwtDecode(token)._id : null;
-    } catch {
-      return null;
-    }
-  })();
+  const navigate = useNavigate();
+  const auth = getValidToken();
+  const token = auth?.token;
+  const professionalId = auth?.payload?._id || auth?.payload?.id || null;
 
   useEffect(() => {
+    if (!token || !professionalId) {
+      navigate("/login");
+      return;
+    }
     const fetchRequests = async () => {
       if (!professionalId) return;
       try {
@@ -34,43 +34,46 @@ const ProfessionalRequests = () => {
       }
     };
     fetchRequests();
-  }, [professionalId, token]);
-const cancel = async (booking) => {
-  const ok = window.confirm(
-    "Are you sure you want to cancel this appointment?\nYou will not be paid for cancelled appointments."
-  );
-  if (!ok) return;
-
-  try {
-    const res = await axios.put(
-      `http://localhost:8000/api/bookings/${booking._id}/cancel`,
-      { reason: "Provider cancelled via dashboard" },
-      { headers: { Authorization: `Bearer ${token}` } }
+  }, [navigate, professionalId, token]);
+  const cancel = async (booking) => {
+    const ok = window.confirm(
+      "Are you sure you want to cancel this appointment?\nYou will not be paid for cancelled appointments."
     );
-    setRequests(prev => prev.map(b => (b._id === booking._id ? res.data : b)));
-  } catch (err) {
-    console.error("Cancel error:", err.response?.data || err.message);
-    alert(err.response?.data?.error || "Failed to cancel booking");
-  }
-};
+    if (!ok) return;
 
-const complete = async (bookingId) => {
-  const ok = window.confirm("Mark this appointment as completed?");
-  if (!ok) return;
+    if (!token) return;
+    try {
+      const res = await axios.put(
+        `http://localhost:8000/api/bookings/${booking._id}/cancel`,
+        { reason: "Provider cancelled via dashboard" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setRequests((prev) => prev.map((b) => (b._id === booking._id ? res.data : b)));
+    } catch (err) {
+      console.error("Cancel error:", err.response?.data || err.message);
+      alert(err.response?.data?.error || "Failed to cancel booking");
+    }
+  };
 
-  try {
-    const res = await axios.put(
-      `http://localhost:8000/api/bookings/${bookingId}/complete`,
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    setRequests(prev => prev.map(b => (b._id === bookingId ? res.data : b)));
-  } catch (err) {
-    console.error("Complete error:", err.response?.data || err.message);
-    alert(err.response?.data?.error || "Failed to complete booking");
-  }
-};
+  const complete = async (bookingId) => {
+    const ok = window.confirm("Mark this appointment as completed?");
+    if (!ok) return;
+
+    if (!token) return;
+    try {
+      const res = await axios.put(
+        `http://localhost:8000/api/bookings/${bookingId}/complete`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setRequests((prev) => prev.map((b) => (b._id === bookingId ? res.data : b)));
+    } catch (err) {
+      console.error("Complete error:", err.response?.data || err.message);
+      alert(err.response?.data?.error || "Failed to complete booking");
+    }
+  };
   const updateStatus = async (bookingId, status) => {
+    if (!token) return;
     try {
       await axios.put(
         `http://localhost:8000/api/bookings/${bookingId}/status`,
@@ -89,84 +92,84 @@ const complete = async (bookingId) => {
 
   if (loading) return <div className="pro-reqs-loading">Loading requests...</div>;
 
-  return (
-    <div className="pro-reqs-container">
-      <h2>Booking Requests</h2>
+    return (
+      <div className="pro-reqs-container">
+        <h2>Booking Requests</h2>
 
-      {requests.length === 0 ? (
-        <p className="empty">No booking requests yet.</p>
-      ) : (
-        <div className="reqs-list">
-          {requests.map((req) => (
-            <div key={req._id} className={`req-card ${req.status}`}>
-              <div className="card-top">
-                <div className="service-line">
-                  <span className="label">Service: </span>
-                  <span className="value">{req.service?.title} (${req.service?.price})</span>
+        {requests.length === 0 ? (
+          <p className="empty">No booking requests yet.</p>
+        ) : (
+          <div className="reqs-list">
+            {requests.map((req) => (
+              <div key={req._id} className={`req-card ${req.status}`}>
+                <div className="card-top">
+                  <div className="service-line">
+                    <span className="label">Service: </span>
+                    <span className="value">{req.service?.title} (${req.service?.price})</span>
+                  </div>
+
+                  <div className="who-line">
+                    <span className="label">Customer: </span>
+                    {req.customer ? (
+                      <span className="value">{req.customer?.name} ({req.customer?.email})</span>
+                    ) : (
+                      <span className="value">
+                        {req.guestInfo?.name} ({req.guestInfo?.email} · {req.guestInfo?.phone})
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="when-line">
+                    <span className="label">When: </span>
+                    <span className="value">
+                      {new Date(req.date).toLocaleDateString()} · {req.timeSlot?.start}–{req.timeSlot?.end}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="who-line">
-                  <span className="label">Customer: </span>
-                  {req.customer ? (
-                    <span className="value">{req.customer?.name} ({req.customer?.email})</span>
-                  ) : (
-                    <span className="value">
-                      {req.guestInfo?.name} ({req.guestInfo?.email} · {req.guestInfo?.phone})
-                    </span>
+                <div className="card-bottom">
+                  {/* Left side: status badge (always shown) */}
+                  <span className={`status-badge ${req.status}`}>{req.status}</span>
+
+                  {/* Right side: context actions */}
+                  {req.status === "pending" && (
+                    <div className="actions">
+                      <button className="accept" onClick={() => updateStatus(req._id, "accepted")}>
+                        Accept
+                      </button>
+                      <button className="decline" onClick={() => updateStatus(req._id, "declined")}>
+                        Decline
+                      </button>
+                    </div>
+                  )}
+
+                  {req.status === "accepted" && (
+                    <div className="actions">
+                      <button className="danger" onClick={() => cancel(req)}>Cancel</button>
+                      <button className="complete" onClick={() => complete(req._id)}>Mark Completed</button>
+                    </div>
+                  )}
+
+                  {req.status === "cancelled" && (
+                    <div className="actions readonly">
+                      <span className="status-badge cancelled">
+                        Cancelled {req.cancellation?.by ? `by ${req.cancellation.by}` : ""}
+                      </span>
+                    </div>
+                  )}
+
+                  {req.status === "completed" && (
+                    <div className="actions readonly">
+                      <span className="status-badge accepted">Completed</span>
+                    </div>
                   )}
                 </div>
-
-                <div className="when-line">
-                  <span className="label">When: </span>
-                  <span className="value">
-                    {new Date(req.date).toLocaleDateString()} · {req.timeSlot?.start}–{req.timeSlot?.end}
-                  </span>
-                </div>
               </div>
-
-              <div className="card-bottom">
-                {/* Left side: status badge (always shown) */}
-      <span className={`status-badge ${req.status}`}>{req.status}</span>
-
-      {/* Right side: context actions */}
-      {req.status === "pending" && (
-        <div className="actions">
-          <button className="accept" onClick={() => updateStatus(req._id, "accepted")}>
-            Accept
-          </button>
-          <button className="decline" onClick={() => updateStatus(req._id, "declined")}>
-            Decline
-          </button>
-        </div>
-      )}
-
-      {req.status === "accepted" && (
-        <div className="actions">
-          <button className="danger" onClick={() => cancel(req)}>Cancel</button>
-          <button className="complete" onClick={() => complete(req._id)}>Mark Completed</button>
-        </div>
-      )}
-
-      {req.status === "cancelled" && (
-        <div className="actions readonly">
-          <span className="status-badge cancelled">
-            Cancelled {req.cancellation?.by ? `by ${req.cancellation.by}` : ""}
-          </span>
-        </div>
-      )}
-
-      {req.status === "completed" && (
-        <div className="actions readonly">
-          <span className="status-badge accepted">Completed</span>
-        </div>
-      )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+            ))}
+          </div>
+        )}
+      </div>
+    );
 };
 
 export default ProfessionalRequests;

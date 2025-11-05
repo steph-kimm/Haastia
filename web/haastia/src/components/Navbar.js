@@ -1,20 +1,25 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Navbar.css';
-import { jwtDecode } from 'jwt-decode';
 import { useView } from '../context/ViewContext';
+import { clearAuthStorage, getValidToken } from '../utils/auth';
 
 function Navbar() {
-  const token = localStorage.getItem('token');
   const navigate = useNavigate();
   const { currentView, setCurrentView } = useView();
+  const auth = getValidToken();
 
-  const userName = token ? jwtDecode(token).name : null;
-  const userRole = token ? jwtDecode(token).role : null;
+  useEffect(() => {
+    if (!auth) {
+      navigate('/login');
+    }
+  }, [auth, navigate]);
+
+  const userName = auth?.payload?.name ?? null;
+  const userRole = auth?.payload?.role ?? null;
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('currentView');
+    clearAuthStorage();
     navigate('/login');
   };
 

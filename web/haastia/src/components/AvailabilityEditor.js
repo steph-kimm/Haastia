@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import './availability.css';
-import { jwtDecode } from 'jwt-decode';
+import { getValidToken } from '../utils/auth';
 
 const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const timeSlots = [
@@ -29,11 +30,18 @@ const normalizeAvailability = (rawAvailability = []) => {
 };
 
 const AvailabilityEditor = () => {
-  const token = localStorage.getItem('token');
-  const userId = token ? jwtDecode(token)._id : null;
+  const navigate = useNavigate();
+  const auth = getValidToken();
+  const userId = auth?.payload?._id || auth?.payload?.id || null;
   const [availability, setAvailability] = useState(() => normalizeAvailability());
   const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState(null);
+
+  useEffect(() => {
+    if (!auth) {
+      navigate('/login');
+    }
+  }, [auth, navigate]);
 
   useEffect(() => {
     const fetchAvailability = async () => {

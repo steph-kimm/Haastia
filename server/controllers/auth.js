@@ -93,6 +93,7 @@ export const signup = async (req, res) => {
 
 
 export const signin = async (req, res) => {
+    console.log("signingn in ")
     try {
         const { email, password } = req.body;
         // check if our db has user with that email

@@ -13,7 +13,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:8000/api/signin', { email, password });
+      const response = await axios.post('http://localhost:8000/api/auth/signin', { email, password });
       console.log(response.data);
       const { token } = response.data;
 
