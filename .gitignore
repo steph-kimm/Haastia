@@ -1,0 +1,35 @@
+# Node modules and dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Environment files
+.env
+.env.*
+
+# Build output and cache
+dist/
+build/
+.next/
+coverage/
+.cache/
+tmp/
+temp/
+
+# Logs
+*.log
+logs/
+
+# OS & IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Specific client/server ignores
+client/node_modules/
+client/build/
+server/node_modules/
+server/.env
+server/build/

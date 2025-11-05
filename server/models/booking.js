@@ -1,18 +1,47 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-const requestedAddons = new mongoose.Schema({
-    // 
-})
-const bookingSchema = new mongoose.Schema({
-    client: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    recipient: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    post: { type: mongoose.Schema.Types.ObjectId, ref: 'Post', required: true },
-    addOns: [{ type: String }],
-    requestType: { type: String, enum: ['accepted', 'rejected', 'pending', 'completed', 'reviewed'], default: 'pending' },
-    dateTime: { type: Date, required: true},
-    duration: { type: Number, required: true }, // Duration in minutes
-});
+const cancellationSchema = new Schema(
+  {
+    by: { type: String, enum: ["customer", "professional"], required: true },
+    at: { type: Date, default: Date.now },
+    reason: { type: String },
+  },
+  { _id: false }
+);
 
+const bookingSchema = new Schema(
+  {
+    customer: { type: Schema.Types.ObjectId, ref: "User", required: false }, // allow guests
+    guestInfo: { name: String, email: String, phone: String },
 
-export default mongoose.model("Booking", bookingSchema); 
+    professional: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    service: { type: Schema.Types.ObjectId, ref: "Service", required: true },
+
+    date: { type: Date, required: true },
+    timeSlot: {
+      start: { type: String, required: true },
+      end:   { type: String, required: true },
+    },
+
+    // Lifecycle state
+    status: {
+      type: String,
+      enum: ["pending", "accepted", "declined", "cancelled", "completed"],
+      default: "pending",
+    },
+
+    // Cancellation details (optional)
+    cancellation: { type: cancellationSchema, default: null },
+
+    // Completion timestamp (optional)
+    completedAt: { type: Date },
+  },
+  { timestamps: true }
+);
+
+// helpful indexes
+bookingSchema.index({ professional: 1, status: 1, date: 1 });
+bookingSchema.index({ customer: 1, status: 1, date: 1 });
+
+export default mongoose.model("Booking", bookingSchema);

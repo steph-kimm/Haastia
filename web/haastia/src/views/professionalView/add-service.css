@@ -1,0 +1,110 @@
+
+.add-svc-page {
+  max-width: 960px;
+  margin: 32px auto;
+  padding: 0 20px 32px;
+  font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: #fafbfc;
+}
+
+/* Header */
+.add-svc-header { margin: 8px 0 18px; }
+.add-svc-header h1 { margin: 0; }
+.add-svc-header .sub { margin: 6px 0 0; color: #6a6f76; }
+
+/* ✅ Cardless form section */
+.form-section {
+  padding: 0;          /* no box */
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+
+/* Form */
+.svc-form { display: grid; gap: 16px; }
+.svc-form .form-grid { display: grid; gap: 14px; }
+
+.form-group { display: grid; gap: 8px; }
+.form-group label { font-weight: 600; color: #1f2937; }
+
+/* Softer inputs (no heavy boxed look) */
+.form-group input,
+.form-group textarea {
+  border: 1px solid #dfe4ea;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.form-group textarea { resize: vertical; min-height: 96px; }
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #9dd91e;
+  box-shadow: 0 0 0 3px rgba(157,217,30,.15);
+}
+
+/* Two-up row on desktop only */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* Image preview */
+.image-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+  margin-top: 6px;
+}
+.image-preview img {
+  width: 100%; height: 110px; object-fit: cover;
+  border-radius: 12px; border: 1px solid #e8ecf0;
+}
+
+/* Buttons (single primary) */
+.btn-primary {
+  width: fit-content;
+  background: #9dd91e;
+  color: #0b1217;
+  border: 0;
+  border-radius: 12px;
+  font-weight: 700;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: transform .05s, filter .15s, box-shadow .2s;
+}
+.btn-primary:hover { filter: brightness(.98); box-shadow: 0 4px 14px rgba(157,217,30,.25); }
+.btn-primary:active { transform: translateY(1px); }
+
+/* Success state — keep as a single card (or switch to form-section if you want zero cards) */
+.success-card {
+  background: #fff;
+  border: 1px solid #e6f4d6;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 6px 24px rgba(16,24,40,.06);
+  text-align: center;
+}
+.success-icon {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: #e9f7da; color: #1b7a28;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.2rem; margin-bottom: 8px;
+  border: 1px solid #cfe8b5;
+}
+.muted { color: #6a6f76; margin-top: 4px; }
+.cta-row { margin-top: 14px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.btn-ghost { background: #fff; color: #1b1f24; border: 1px solid #d7dde3; border-radius: 12px; font-weight: 700; padding: 10px 16px; cursor: pointer; }
+.btn-ghost:hover { background: #f6f8fa; }
+
+/* Kill any accidental nested cards globally (safety net) */
+.card .card {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* Responsive */
+@media (max-width: 720px) {
+  .form-row { grid-template-columns: 1fr; }
+}

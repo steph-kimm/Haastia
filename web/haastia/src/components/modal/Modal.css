@@ -1,0 +1,53 @@
+/* Overlay */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(17, 24, 39, 0.55); /* semi-dark */
+  display: grid; place-items: center;
+  z-index: 1000;
+  padding: 16px; /* breathing room on small screens */
+  animation: fadeIn .15s ease;
+}
+
+/* Card */
+.modal-card {
+  width: 100%;
+  max-width: 720px;          /* nice size for booking */
+  max-height: 90vh;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eef0f3;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  overflow: hidden;          /* keep header pinned */
+  animation: popIn .15s ease;
+  display: flex; flex-direction: column;
+}
+
+/* Header */
+.modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid #eef0f3;
+}
+.modal-title { margin: 0; font-size: 1.1rem; }
+.modal-close {
+  background: transparent; border: 0; font-size: 1.5rem; line-height: 1;
+  cursor: pointer; color: #667085; padding: 4px 8px; border-radius: 8px;
+}
+.modal-close:hover { background: #f2f4f7; }
+
+/* Body scrollable if content tall */
+.modal-body {
+  padding: 14px;
+  overflow: auto;
+}
+
+/* Animations */
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes popIn { from { transform: scale(.98); opacity:.98 } to { transform: scale(1); opacity:1 } }
+
+/* Mobile tweaks */
+@media (max-width: 480px) {
+  .modal-card { max-width: 100%; border-radius: 12px; }
+  .modal-head { padding: 10px 12px; }
+  .modal-body { padding: 12px; }
+}

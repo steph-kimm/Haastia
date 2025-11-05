@@ -1,0 +1,11 @@
+.guest-info-section input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.guest-info-section h3 {
+  margin-bottom: 10px;
+}

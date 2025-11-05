@@ -7,9 +7,14 @@ import cors from "cors";
 import mongoose from "mongoose";
 
 import authRoutes from "./routes/auth.js";
-import postRoutes from './routes/post.js'
-import requestRoutes from './routes/request.js'
+// import postRoutes from './routes/post.js'
+// import requestRoutes from './routes/request.js'
 import supportRoutes from './routes/support.js'
+import availabilityRoutes from "./routes/availability.js";
+import userRoutes from "./routes/user.js";
+import professionalRoutes from "./routes/professional.js";
+import serviceRoutes from "./routes/service.js";
+import bookingRoutes from "./routes/booking.js";
 
 import morgan from "morgan";
 
@@ -35,9 +40,14 @@ app.use(cors());
 app.use(morgan("dev"));
 
 // route middlewares
-app.use("/api", authRoutes);
-app.use("/api", postRoutes);
-app.use("/api", requestRoutes);
+app.use("/api/auth", authRoutes);
+// app.use("/api", postRoutes);
+// app.use("/api", requestRoutes);
 app.use("/api", supportRoutes);
+app.use("/api/availability", availabilityRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/professional", professionalRoutes);
+app.use("/api/services", serviceRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 app.listen(8000, () => console.log("Server running on port 8000"));

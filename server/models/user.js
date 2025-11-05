@@ -1,16 +1,16 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-const availabilitySchema = new Schema({
-    day: {
-        type: String,
-        required: true,
-    },
-    slots: {
-        type: [String], // Array of time slots (e.g., "09:00-11:00", "14:00-17:00")
-        required: true,
-    },
-});
+// const availabilitySchema = new Schema({
+//     day: {
+//         type: String,
+//         required: true,
+//     },
+//     slots: {
+//         type: [String], // Array of time slots (e.g., "09:00-11:00", "14:00-17:00")
+//         required: true,
+//     },
+// });
 
 const userSchema = new Schema(
     {
@@ -31,10 +31,7 @@ const userSchema = new Schema(
             min: 6,
             max: 64,
         },
-        role: {
-            type: String,
-            default: "Customer",
-        },
+        role: { type: String, enum: ['customer', 'professional'], default: 'customer' },
         location: {
             type: String,
         },
@@ -57,10 +54,10 @@ const userSchema = new Schema(
             type: Number,
             default: 0,
         },
-        availability: [availabilitySchema],
+        // availability: [availabilitySchema],
         // resetCode: "",
     },
-    
+
     { timestamps: true }
 );
 export default mongoose.model("User", userSchema);
