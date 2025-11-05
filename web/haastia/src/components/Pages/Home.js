@@ -82,11 +82,18 @@ const Home = () => {
         <h2>Simple Pricing</h2>
         <div className="pricing-card">
           <h3>Launch Plan</h3>
-          <p className="price">$9<span>/month</span></p>
+          <p className="price">$10<span>/month</span></p>
+          <p>All core features included. Cancel anytime.</p>
+          <button className="btn-primary">Start Free</button>
+        </div>
+        <div className="pricing-card">
+          <h3>Annual Plan</h3>
+          <p className="price">$99<span>/year</span></p>
           <p>All core features included. Cancel anytime.</p>
           <button className="btn-primary">Start Free</button>
         </div>
       </section>
+      
 
       {/* FOOTER */}
       <footer className="footer">
