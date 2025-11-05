@@ -1,20 +1,28 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import "./MyServices.css";
+import { getValidToken } from "../../utils/auth";
 
 const MyServices = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
   const [editData, setEditData] = useState({ title: "", price: "", description: "" });
-
-  const token = localStorage.getItem("token");
+  const navigate = useNavigate();
+  const auth = getValidToken();
+  const token = auth?.token;
 
   useEffect(() => {
+    if (!token) {
+      navigate("/login");
+      return;
+    }
     fetchServices();
-  }, []);
+  }, [navigate, token]);
 
   const fetchServices = async () => {
+    if (!token) return;
     try {
       const res = await axios.get("http://localhost:8000/api/services/my-services", {
         headers: { Authorization: `Bearer ${token}` },
@@ -29,6 +37,7 @@ const MyServices = () => {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this service?")) return;
+    if (!token) return;
     try {
       await axios.delete(`http://localhost:8000/api/services/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -53,6 +62,7 @@ const MyServices = () => {
   };
 
   const saveEdit = async (id) => {
+    if (!token) return;
     try {
       const res = await axios.put(
         `http://localhost:8000/api/services/${id}`,

@@ -1,29 +1,24 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
 import { useView } from "../../context/ViewContext";
+import { clearAuthStorage, getValidToken } from "../../utils/auth";
 import "./ProfessionalNavbar.css";
 
 const ProfessionalNavbar = () => {
   const navigate = useNavigate();
   const { setCurrentView } = useView();
+  const auth = getValidToken();
+  const user = auth?.payload ?? null;
+  const userId = user?._id || user?.id || null;
 
-  // Safely decode token
-  let user = null;
-  let userId = null;
-  try {
-    const token = localStorage.getItem("token");
-    if (token) {
-      user = jwtDecode(token);        // payload: { _id, name, role, ... }
-      userId = user?._id || user?.id; // your backend signs with _id
+  useEffect(() => {
+    if (!auth) {
+      navigate("/login");
     }
-  } catch (e) {
-    // bad/expired token; treat as logged out
-  }
+  }, [auth, navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("currentView");
+    clearAuthStorage();
     navigate("/login");
   };
 
