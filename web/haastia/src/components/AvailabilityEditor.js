@@ -11,14 +11,59 @@ const timeSlots = [
   '16:00-17:00', '17:00-18:00', '18:00-19:00', '19:00-20:00',
 ];
 
+const slotToString = (slot) => {
+  if (typeof slot === 'string') {
+    return slot;
+  }
+  if (slot && typeof slot === 'object') {
+    const { start, end } = slot;
+    if (start && end) {
+      return `${start}-${end}`;
+    }
+  }
+  return null;
+};
+
+const stringToSlot = (slot) => {
+  if (slot && typeof slot === 'object' && slot.start && slot.end) {
+    return { start: slot.start, end: slot.end };
+  }
+  if (typeof slot === 'string') {
+    const [start, end] = slot.split('-');
+    if (start && end) {
+      return { start, end };
+    }
+  }
+  return null;
+};
+
 const normalizeAvailability = (rawAvailability = []) => {
+  const source = Array.isArray(rawAvailability)
+    ? rawAvailability
+    : rawAvailability
+    ? [rawAvailability]
+    : [];
+
+  const flattened = source.flatMap((entry) => {
+    if (entry?.day && Array.isArray(entry.slots)) {
+      return [entry];
+    }
+    if (Array.isArray(entry?.availability)) {
+      return entry.availability;
+    }
+    return [];
+  });
+
   const map = new Map(
-    rawAvailability
+    flattened
       .filter((entry) => entry?.day)
       .map((entry) => [
         entry.day,
         Array.isArray(entry.slots)
-          ? [...entry.slots].sort()
+          ? entry.slots
+              .map(slotToString)
+              .filter(Boolean)
+              .sort()
           : [],
       ])
   );
@@ -47,8 +92,8 @@ const AvailabilityEditor = () => {
     const fetchAvailability = async () => {
       try {
         // TODO: do we have to get the user here? More efficient if we dont?
-        const { data } = await axios.get(`http://localhost:8000/api/user/get-user/${userId}`);
-        setAvailability(normalizeAvailability(data.availability));
+        const { data } = await axios.get(`http://localhost:8000/api/availability/${userId}`);
+        setAvailability(normalizeAvailability(data));
       } catch (err) {
         console.error('Error fetching availability', err);
       }
@@ -79,10 +124,15 @@ const AvailabilityEditor = () => {
     try {
     const filteredAvailability = availability
       .filter(({ slots }) => slots.length)
-      .map(({ day, slots }) => ({ day, slots }));
+      .map(({ day, slots }) => ({
+        day,
+        slots: slots
+          .map(stringToSlot)
+          .filter(Boolean),
+      }));
 
-    // This matches backend route PUT /api/availability/:professionalId
-    const res = await axios.put(
+    // This matches backend route POST /api/availability/:professionalId
+    const res = await axios.post(
       `http://localhost:8000/api/availability/${userId}`,
       { availability: filteredAvailability }
     );
