@@ -12,6 +12,7 @@ import ProfessionalHome from "../views/professionalView/ProfessionalHome";
 import MyServices from "../views/professionalView/MyServices";
 import AddServicePage from "../views/professionalView/AddServicePage";
 import ProfessionalRequests from "../views/professionalView/ProfessionalRequests";
+import ProfessionalAvailability from "../views/professionalView/ProfessionalAvailability";
 
 export const customerRouteConfig = [
   { path: "/", component: Home },
@@ -29,6 +30,7 @@ export const professionalRouteConfig = [
   { path: "/add-service", component: AddServicePage },
   { path: "/professional-home", component: ProfessionalHome },
   { path: "/Services", component: MyServices },
+  { path: "/availability", component: ProfessionalAvailability },
   { path: "/bookings", component: ProfessionalRequests },
 ];
 
