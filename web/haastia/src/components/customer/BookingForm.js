@@ -1,8 +1,24 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import axios from "axios";
 import { getValidToken } from "../../utils/auth";
 
-const BookingForm = ({ professionalId, service, availableSlots, onSuccess }) => {
+const DAY_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+const getTodayISODate = () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today.toISOString().split("T")[0];
+};
+
+const BookingForm = ({ professionalId, service, availability = [], onSuccess }) => {
   const [date, setDate] = useState("");
   const [timeSlot, setTimeSlot] = useState("");
   const [name, setName] = useState("");
@@ -14,10 +30,54 @@ const BookingForm = ({ professionalId, service, availableSlots, onSuccess }) => 
   const token = auth?.token || "";
   const isLoggedIn = Boolean(token);
 
+  const availableSlotsForSelectedDate = useMemo(() => {
+    if (!date) return [];
+    const selectedDate = new Date(`${date}T00:00:00`);
+    const dayName = DAY_NAMES[selectedDate.getDay()];
+    const dayAvailability = availability.find(
+      (entry) => entry.day?.toLowerCase() === dayName.toLowerCase()
+    );
+    return dayAvailability?.slots ?? [];
+  }, [availability, date]);
+
+  const handleDateChange = (value) => {
+    setDate(value);
+    setTimeSlot("");
+  };
+
+  const todayISODate = useMemo(getTodayISODate, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!date || !timeSlot) {
       return setFeedback({ type: "error", message: "Please select a date and time." });
+    }
+
+    const selectedDate = new Date(`${date}T00:00:00`);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      return setFeedback({
+        type: "error",
+        message: "Please choose a date that has not already passed.",
+      });
+    }
+
+    const dayName = DAY_NAMES[selectedDate.getDay()];
+    const dayAvailability = availability.find(
+      (entry) => entry.day?.toLowerCase() === dayName.toLowerCase()
+    );
+
+    const isSlotAvailable = dayAvailability?.slots?.some(
+      (slot) => `${slot.start}-${slot.end}` === timeSlot
+    );
+
+    if (!isSlotAvailable) {
+      return setFeedback({
+        type: "error",
+        message: `${service?.title || "This service"} is not available at the selected time.`,
+      });
     }
 
     if (!isLoggedIn && (!name || !email || !phone)) {
@@ -76,7 +136,8 @@ const BookingForm = ({ professionalId, service, availableSlots, onSuccess }) => 
         <input
           type="date"
           value={date}
-          onChange={(e) => setDate(e.target.value)}
+          min={todayISODate}
+          onChange={(e) => handleDateChange(e.target.value)}
         />
       </div>
 
@@ -85,14 +146,18 @@ const BookingForm = ({ professionalId, service, availableSlots, onSuccess }) => 
         <select
           value={timeSlot}
           onChange={(e) => setTimeSlot(e.target.value)}
+          disabled={!date || availableSlotsForSelectedDate.length === 0}
         >
           <option value="">Select a time</option>
-          {availableSlots.map((slot, i) => (
+          {availableSlotsForSelectedDate.map((slot, i) => (
             <option key={i} value={`${slot.start}-${slot.end}`}>
               {slot.start} - {slot.end}
             </option>
           ))}
         </select>
+        {date && availableSlotsForSelectedDate.length === 0 && (
+          <p className="feedback warning">No availability for the selected date.</p>
+        )}
       </div>
 
       {!isLoggedIn && (
