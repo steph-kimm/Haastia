@@ -1,0 +1,155 @@
+/* Page scaffold */
+.professional-profile {
+  max-width: 1100px;
+  margin: 28px auto;
+  padding: 0 16px 32px;
+  font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+/* Header */
+.professional-profile h2 {
+  margin: 0 0 4px;
+  letter-spacing: .2px;
+}
+.professional-profile > p {
+  margin: 0 0 16px;
+  color: #667085;
+}
+
+/* Section title */
+.professional-profile h3 {
+  margin: 18px 0 10px;
+}
+
+/* Services grid (use your existing <ul>) */
+.professional-profile ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 1fr; /* mobile default */
+}
+
+@media (min-width: 560px) {
+  .professional-profile ul {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 960px) {
+  .professional-profile ul {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Each service card (your existing <li>) */
+.professional-profile li {
+  background: #fff;
+  border: 1px solid #eef0f3;
+  border-radius: 14px;
+  box-shadow: 0 4px 18px rgba(16,24,40,.06);
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  min-height: 140px;
+}
+
+.professional-profile li strong {
+  font-size: 1.05rem;
+}
+
+.professional-profile .price-line {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.professional-profile .price {
+  margin: 0;
+  font-weight: 700;
+  color: #0b1217;
+}
+
+.professional-profile .duration {
+  margin: 0;
+  color: #667085;
+  font-size: .92rem;
+}
+
+/* Book button */
+.professional-profile li button {
+  justify-self: start;
+  border: 0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #9dd91e;
+  color: #0b1217;
+  box-shadow: 0 2px 10px rgba(157,217,30,.18);
+  transition: transform .05s ease, filter .15s ease, box-shadow .2s ease;
+}
+.professional-profile li button:hover {
+  filter: brightness(.98);
+}
+.professional-profile li button:active {
+  transform: translateY(1px);
+}
+
+/* Booking form section that appears below the list */
+.professional-profile .booking-panel {
+  margin-top: 18px;
+  background: #fff;
+  border: 1px solid #eef0f3;
+  border-radius: 14px;
+  box-shadow: 0 4px 18px rgba(16,24,40,.06);
+  padding: 14px;
+}
+
+/* Light defaults for any inputs inside the booking form */
+.professional-profile .booking-panel input,
+.professional-profile .booking-panel select,
+.professional-profile .booking-panel textarea {
+  width: 100%;
+  border: 1px solid #d7dde3;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  outline: none;
+  background: #fff;
+  transition: border-color .15s, box-shadow .15s;
+  margin-bottom: 10px;
+}
+.professional-profile .booking-panel input:focus,
+.professional-profile .booking-panel select:focus,
+.professional-profile .booking-panel textarea:focus {
+  border-color: #9dd91e;
+  box-shadow: 0 0 0 3px rgba(157,217,30,.15);
+}
+
+/* Buttons inside booking form */
+.professional-profile .booking-panel button {
+  border: 0;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #9dd91e;
+  color: #0b1217;
+}
+.professional-profile .booking-panel .secondary {
+  background: #fff;
+  color: #101828;
+  border: 1px solid #e6e6e6;
+  margin-left: 8px;
+}
+
+/* Reduce motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .professional-profile li button,
+  .professional-profile .booking-panel button {
+    transition: none;
+  }
+}
