@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./ProfessionalBookingPage.css";
 import { useParams } from "react-router-dom";
-import { getValidToken } from "../../../utils/auth";
+import { jwtDecode } from "jwt-decode";
 
 const ProfessionalBookingPage = () => {
   const { id: professionalId } = useParams();
@@ -15,9 +15,8 @@ const ProfessionalBookingPage = () => {
   const [guestInfo, setGuestInfo] = useState({ name: "", email: "", phone: "" });
   const [message, setMessage] = useState("");
 
-  const auth = getValidToken();
-  const token = auth?.token;
-  const isLoggedIn = Boolean(token);
+  const token = localStorage.getItem("token");
+  const isLoggedIn = !!token;
 
   useEffect(() => {
     fetchProfessional();

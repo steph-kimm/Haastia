@@ -1,31 +1,27 @@
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
 import { useView } from "../context/ViewContext";
 import CustomerRoutes from "./CustomerRoutes";
 import ProfessionalRoutes from "./ProfessionalRoutes";
 import AdminRoutes from "./AdminRoutes";
 import Navbar from "../components/Navbar";
 import ProfessionalNavbar from "../components/professional/ProfessionalNavbar";
-import { getValidToken } from "../utils/auth";
 
 function AppRoutes() {
   const { currentView, setCurrentView } = useView();
-  const navigate = useNavigate();
+  const [userRole, setUserRole] = useState(null);
 
   // Detect role from token and adjust context
   useEffect(() => {
-    const auth = getValidToken();
-    if (!auth) {
-      setCurrentView("customer");
-      navigate("/login");
-      return;
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decoded = jwtDecode(token);
+      setUserRole(decoded.role);
+      if (decoded.role === "professional") {
+        setCurrentView("professional");
+      }
     }
-
-    const role = auth.payload?.role;
-    if (role === "professional") {
-      setCurrentView("professional");
-    }
-  }, [navigate, setCurrentView]);
+  }, [setCurrentView]);
 
   // Only render one section at a time
   if (!currentView) return <div>Loading...</div>;

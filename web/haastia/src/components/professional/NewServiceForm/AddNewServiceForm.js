@@ -1,8 +1,6 @@
 // src/views/professionalView/AddNewServiceForm.jsx
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { getValidToken } from "../../../utils/auth";
 
 const AddNewServiceForm = ({ onSuccess }) => {
   const [title, setTitle] = useState("");
@@ -13,7 +11,6 @@ const AddNewServiceForm = ({ onSuccess }) => {
   const [images, setImages] = useState([]);
   const [preview, setPreview] = useState([]);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   // Convert image files to Base64 for Cloudinary
   const handleImageUpload = (e) => {
@@ -40,14 +37,12 @@ const AddNewServiceForm = ({ onSuccess }) => {
     e.preventDefault();
     setLoading(true);
 
-    const auth = getValidToken();
-    if (!auth) {
-      alert("Your session has expired. Please log in again.");
-      navigate("/login");
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("You must be logged in to add a service.");
       setLoading(false);
       return;
     }
-    const { token } = auth;
 
     try {
       const serviceData = {

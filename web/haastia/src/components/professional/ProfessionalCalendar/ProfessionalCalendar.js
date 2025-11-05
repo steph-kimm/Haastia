@@ -4,8 +4,7 @@ import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { useNavigate } from "react-router-dom";
-import { getValidToken } from "../../../utils/auth";
+import { jwtDecode } from "jwt-decode";
 import "./ProfessionalCalendar.css";
 
 // Map your availability day names -> FullCalendar days (0=Sun ... 6=Sat)
@@ -46,27 +45,24 @@ const mapAvailabilityToBusinessHours = (availability = []) => {
 };
 
 const ProfessionalCalendar = () => {
-  const navigate = useNavigate();
-  const auth = getValidToken();
-  const token = auth?.token ?? null;
+  const token = localStorage.getItem("token");
   const [professionalId, setProfessionalId] = useState(null);
   const [availability, setAvailability] = useState([]);
   const [events, setEvents] = useState([]); // bookings as FC events
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!auth) {
-      navigate("/login");
-      return;
-    }
-
-    const decoded = auth.payload;
-    setProfessionalId(decoded?._id || decoded?.id || null);
-  }, [auth, navigate]);
+    try {
+      if (token) {
+        const decoded = jwtDecode(token);
+        setProfessionalId(decoded?._id || decoded?.id);
+      }
+    } catch {}
+  }, [token]);
 
   useEffect(() => {
     const load = async () => {
-      if (!professionalId || !token) return;
+      if (!professionalId) return;
       setLoading(true);
       try {
         // parallel fetch
