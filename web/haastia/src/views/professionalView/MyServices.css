@@ -14,8 +14,8 @@
   margin: 0 auto 32px;
   padding: 36px 32px;
   border-radius: 28px;
-  background: linear-gradient(135deg, #191d3a 0%, #303867 60%, #4f5fe6 100%);
-  color: #f8fafc;
+  background: linear-gradient(135deg, #ccd2ff 0%, #aab6ff 60%, #8fa0ff 100%);
+  color: #1d2433;
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(25, 29, 58, 0.35);
 }
@@ -50,7 +50,7 @@
 
 .services-hero p {
   margin: 0;
-  color: rgba(248, 250, 252, 0.82);
+  /* color: rgba(248, 250, 252, 0.82); */
   line-height: 1.6;
 }
 

@@ -1,8 +1,8 @@
 .auth-page {
   min-height: 100vh;
-  padding: 64px 16px 96px;
+  padding: 84px 16px 96px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   background:
     radial-gradient(circle at top left, rgba(157, 217, 30, 0.18), transparent 60%),
     radial-gradient(circle at top right, rgba(79, 70, 229, 0.14), transparent 55%),
