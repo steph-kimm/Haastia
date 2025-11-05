@@ -136,7 +136,7 @@ const ProfessionalProfile = () => {
           <BookingForm
             professionalId={id}
             service={selectedService}
-            availableSlots={availability.flatMap((a) => a.slots)}
+            availability={availability}
             onSuccess={() => setSelectedService(null)}
           />
         )}
