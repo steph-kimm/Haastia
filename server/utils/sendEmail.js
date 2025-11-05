@@ -1,24 +1,30 @@
 import nodemailer from "nodemailer";
 
-export async function sendEmail(to, subject, text) {
+export async function sendEmail(to, subject, text, html) {
   try {
     const transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE,
+      host: "smtp.gmail.com",
+      port: 587,          // TLS port
+      secure: false,      // use STARTTLS instead of direct SSL
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      tls: {
+        ciphers: "SSLv3",
+        rejectUnauthorized: false, // 👈 allows Gmail’s cert chain locally
+      },
     });
 
-    const mailOptions = {
+    const info = await transporter.sendMail({
       from: `Haastia <${process.env.EMAIL_USER}>`,
       to,
       subject,
       text,
-    };
+      html,
+    });
 
-    await transporter.sendMail(mailOptions);
-    console.log(`✅ Email sent to ${to}`);
+    console.log(`✅ Email sent: ${info.messageId}`);
   } catch (error) {
     console.error("❌ Error sending email:", error);
   }
