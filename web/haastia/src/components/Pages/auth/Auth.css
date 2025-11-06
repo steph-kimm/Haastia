@@ -212,6 +212,12 @@
   box-shadow: 0 12px 25px -15px rgba(22, 101, 52, 0.45);
 }
 
+.error-text {
+  margin: 0;
+  color: #dc2626;
+  font-weight: 500;
+}
+
 @media (max-width: 640px) {
   .auth-page {
     padding: 48px 12px 72px;
