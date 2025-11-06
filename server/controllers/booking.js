@@ -1,5 +1,7 @@
 import Booking from "../models/booking.js";
 import Availability from "../models/availability.js";
+import { sendEmail } from "../utils/sendEmail.js";
+import User from "../models/user.js"; // (to find the provider’s email)
 
 const DAY_NAMES = [
   "Sunday",
@@ -56,6 +58,70 @@ export const createBooking = async (req, res) => {
     }
 
     const booking = await new Booking(bookingData).save();
+    // Send confirmation emails
+    try {
+      // --- Fetch provider info ---
+      const provider = await User.findById(professional).select("name email");
+
+      // --- Determine client info ---
+      const clientName = req.user?.name || bookingData.guestInfo?.name;
+      const clientEmail = req.user?.email || bookingData.guestInfo?.email;
+
+      // --- Build shared details ---
+      const formattedDate = new Date(date).toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+
+      const timeRange = `${timeSlot.start} - ${timeSlot.end}`;
+
+      // --- Email to Client ---
+      const clientSubject = "Your Haastia Booking Confirmation";
+      const clientMessage = `
+Hi ${clientName},
+
+Your booking with ${provider?.name || "your professional"} has been confirmed!
+
+📅 Date: ${formattedDate}
+⏰ Time: ${timeRange}
+💇‍♀️ Service: ${service}
+
+We look forward to seeing you!
+— The Haastia Team
+`;
+      // TODO: replace the blow for prod
+      // await sendEmail(clientEmail, clientSubject, clientMessage);
+      await sendEmail("team.haastia@gmail.com", clientSubject, clientMessage);
+
+      // --- Email to Provider ---
+      const providerSubject = "New Booking Received on Haastia";
+      const providerMessage = `
+Hi ${provider?.name || "Professional"},
+
+You have a new booking from ${clientName}!
+
+📅 Date: ${formattedDate}
+⏰ Time: ${timeRange}
+📞 Contact: ${clientEmail || "N/A"}
+
+Log in to your dashboard to view details and manage this appointment.
+
+— The Haastia Team
+`;
+
+      if (provider?.email) {
+        // TODO: replace the blow for prod
+        // await sendEmail(provider.email, providerSubject, providerMessage);
+        await sendEmail("team.haastia@gmail.com", providerSubject, providerMessage);
+      }
+
+      console.log("✅ Booking confirmation emails sent.");
+    } catch (emailError) {
+      console.error("❌ Error sending booking confirmation emails:", emailError);
+    }
+
     res.json(booking);
   } catch (err) {
     console.error("Error creating booking:", err);
