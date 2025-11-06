@@ -44,16 +44,38 @@ const ensureAccess = (req, professionalId) => {
 export const listBlockedTimes = async (req, res) => {
   try {
     const { professionalId } = req.params;
+    const { start, end } = req.query || {};
 
     if (!professionalId) {
       return res.status(400).json({ error: "Missing professionalId" });
     }
 
-    if (!ensureAccess(req, professionalId)) {
-      return res.status(403).json({ error: "Not authorized to view blocked times" });
+    const normalizedStart = start ? normalizeDate(start) : null;
+    const normalizedEnd = end ? normalizeDate(end) : null;
+
+    if (start && !normalizedStart) {
+      return res.status(400).json({ error: "Invalid start date" });
     }
 
-    const blockedTimes = await BlockedTime.find({ professionalId })
+    if (end && !normalizedEnd) {
+      return res.status(400).json({ error: "Invalid end date" });
+    }
+
+    const query = { professionalId };
+
+    if (normalizedStart || normalizedEnd) {
+      query.date = {};
+      if (normalizedStart) {
+        query.date.$gte = normalizedStart;
+      }
+      if (normalizedEnd) {
+        const exclusiveEnd = new Date(normalizedEnd);
+        exclusiveEnd.setUTCDate(exclusiveEnd.getUTCDate() + 1);
+        query.date.$lt = exclusiveEnd;
+      }
+    }
+
+    const blockedTimes = await BlockedTime.find(query)
       .sort({ date: 1, start: 1 })
       .lean();
 
