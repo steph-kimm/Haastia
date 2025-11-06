@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import './Auth.css';
 import { useView } from '../../../context/ViewContext';
 import { handleAuthSuccess } from '../../../utils/auth';
+import ProfessionalPaymentSection from './ProfessionalPaymentSection';
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -53,27 +54,35 @@ const Signup = () => {
           })
         }));
 
-      const successUrl = `${window.location.origin}/signup/success`;
-      const cancelUrl = `${window.location.origin}/signup/cancel`;
-
-      const payload = {
+      const basePayload = {
         ...formData,
-        availability: formattedAvailability,
-        successUrl,
-        cancelUrl
+        availability: formattedAvailability
       };
 
-      const response = await axios.post('http://localhost:8000/api/stripe/create-checkout-session', payload);
-      const { url } = response.data || {};
+      if (formData.isProvider) {
+        const successUrl = `${window.location.origin}/signup/success`;
+        const cancelUrl = `${window.location.origin}/signup/cancel`;
 
-      if (!url) throw new Error('No checkout URL received');
+        const response = await axios.post('http://localhost:8000/api/stripe/create-checkout-session', {
+          ...basePayload,
+          successUrl,
+          cancelUrl
+        });
+        const { url } = response.data || {};
 
-      // Redirect the user to Stripe Checkout so they can complete the onboarding/payment step.
-      window.location.href = url;
-      return;
+        if (!url) throw new Error('No checkout URL received');
 
-      // The following logic will run after the checkout session is finalized and a token is issued.
-      // finalizeSignup(tokenFromServer);
+        // Redirect the user to Stripe Checkout so they can complete the onboarding/payment step.
+        window.location.href = url;
+        return;
+      }
+
+      const response = await axios.post('http://localhost:8000/api/auth/signup', basePayload);
+      const { token } = response.data || {};
+
+      if (!token) throw new Error('No token returned from signup');
+
+      finalizeSignup(token);
 
     } catch (error) {
       console.error('Error signing up:', error);
@@ -171,29 +180,32 @@ const Signup = () => {
               </div>
 
               {formData.isProvider && (
-                <div className="availability-card">
-                  <div>
-                    <h3>Weekly availability</h3>
-                    <p>Let clients know when they can book you. Use 24h time ranges separated by commas.</p>
-                  </div>
-                  <div className="availability-grid">
-                    {daysOfWeek.map((day, index) => (
-                      <div className="availability-item" key={day}>
-                        <label htmlFor={`availability-${index}`}>{day}</label>
-                        <div className="input-shell">
-                          <input
-                            id={`availability-${index}`}
-                            type="text"
-                            name={`availability-${index}`}
-                            value={formData.availability[index].slots}
-                            onChange={handleChange}
-                            placeholder="e.g., 09:00-11:00, 14:00-17:00"
-                          />
+                <>
+                  <div className="availability-card">
+                    <div>
+                      <h3>Weekly availability</h3>
+                      <p>Let clients know when they can book you. Use 24h time ranges separated by commas.</p>
+                    </div>
+                    <div className="availability-grid">
+                      {daysOfWeek.map((day, index) => (
+                        <div className="availability-item" key={day}>
+                          <label htmlFor={`availability-${index}`}>{day}</label>
+                          <div className="input-shell">
+                            <input
+                              id={`availability-${index}`}
+                              type="text"
+                              name={`availability-${index}`}
+                              value={formData.availability[index].slots}
+                              onChange={handleChange}
+                              placeholder="e.g., 09:00-11:00, 14:00-17:00"
+                            />
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                  <ProfessionalPaymentSection />
+                </>
               )}
             </div>
 
