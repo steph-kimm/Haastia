@@ -7,6 +7,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 
 import authRoutes from "./routes/auth.js";
+import Stripe from "stripe";
 // import postRoutes from './routes/post.js'
 // import requestRoutes from './routes/request.js'
 import supportRoutes from './routes/support.js'
@@ -21,6 +22,7 @@ import morgan from "morgan";
 
 
 const app = express();
+const stripe = new Stripe('sk_test_51SQHC12KTn444Cl1rbhwuYFXRDArq4LQhjexNxJgzNrGUaBNkt8BERfr7QpOl0PiexvdP8E4QVqZ5SmgiQbtQ9wA00tkO405uk');
 
 // const htpp = require('http').createServer(app); WAS causing erros replaced with below
 
