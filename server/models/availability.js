@@ -22,4 +22,6 @@ const availabilitySchema = new Schema(
   { timestamps: true }
 );
 
+availabilitySchema.index({ professionalId: 1, day: 1 }, { unique: true });
+
 export default mongoose.model("Availability", availabilitySchema);
