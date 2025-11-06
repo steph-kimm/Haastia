@@ -17,11 +17,12 @@ import professionalRoutes from "./routes/professional.js";
 import serviceRoutes from "./routes/service.js";
 import bookingRoutes from "./routes/booking.js";
 import blockedTimeRoutes from "./routes/blockedTime.js";
+import paymentRoutes from "./routes/payment.js";
 
 import morgan from "morgan";
 
-
 const app = express();
+// TODO: hide this key in Prod
 const stripe = new Stripe('sk_test_51SQHC12KTn444Cl1rbhwuYFXRDArq4LQhjexNxJgzNrGUaBNkt8BERfr7QpOl0PiexvdP8E4QVqZ5SmgiQbtQ9wA00tkO405uk');
 
 // const htpp = require('http').createServer(app); WAS causing erros replaced with below
@@ -53,5 +54,6 @@ app.use("/api/professional", professionalRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/blocked-times", blockedTimeRoutes);
+app.use("/api/payment", paymentRoutes);
 
 app.listen(8000, () => console.log("Server running on port 8000"));
