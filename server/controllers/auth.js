@@ -5,6 +5,8 @@ import { nanoid } from "nanoid";
 import cloudinary from "cloudinary";
 import Availability from "../models/availability.js";
 import { sendEmail } from "../utils/sendEmail.js";
+import PendingSignup from "../models/pendingSignup.js";
+import Stripe from "stripe";
 // sendgrid
 // require("dotenv").config();
 import { } from 'dotenv/config'
@@ -23,33 +25,63 @@ import sgMail from "@sendgrid/mail";
 sgMail.setApiKey(process.env.SENDGRID_KEY);
 
 
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+
 export const signup = async (req, res) => {
   try {
-    const { name, email, password, location, isProvider, availability } = req.body;
+    const { sessionId } = req.body;
 
-    // Basic validation
-    if (!name) return res.json({ error: "Name is required" });
-    if (!email) return res.json({ error: "Email is required" });
-    if (!password || password.length < 6)
-      return res.json({ error: "Password must be at least 6 characters long" });
+    if (!sessionId) {
+      return res.status(400).json({ error: "sessionId is required" });
+    }
 
-    // Check if user already exists
-    const exist = await User.findOne({ email });
-    if (exist) return res.json({ error: "Email is already in use" });
+    // Look up the pending signup linked to this Stripe session
+    const pendingSignup = await PendingSignup.findOne({ sessionId });
+    if (!pendingSignup) {
+      return res.status(404).json({ error: "Pending signup not found" });
+    }
 
-    // Hash password
-    const hashedPassword = await hashPassword(password);
+    // Verify the Stripe session and ensure payment succeeded before creating the account
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    if (
+      !session ||
+      session.payment_status !== "paid" ||
+      session.metadata?.pendingSignupId !== pendingSignup._id.toString()
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Payment for this session has not been completed" });
+    }
 
-    // Create user
+    const {
+      name,
+      email,
+      hashedPassword,
+      location,
+      role,
+      isProvider,
+      availability,
+    } = pendingSignup;
+
+    // Guard against a user being created manually before payment finalization
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      await PendingSignup.deleteOne({ _id: pendingSignup._id });
+      return res.status(400).json({ error: "Email is already in use" });
+    }
+
+    // Create the user now that payment is confirmed
     const user = await new User({
       name,
       email,
       password: hashedPassword,
       location,
-      role: isProvider ? "professional" : "customer",
+      role,
+      isSubscribed: true,
     }).save();
 
-    // If provider, create availability record(s)
+    // If provider, create availability record(s) from pending signup payload
     if (isProvider && Array.isArray(availability) && availability.length > 0) {
       const availabilityDocs = availability.map((a) => ({
         professionalId: user._id,
@@ -58,6 +90,9 @@ export const signup = async (req, res) => {
       }));
       await Availability.insertMany(availabilityDocs);
     }
+
+    // Remove the pending signup record once it has been fulfilled
+    await PendingSignup.deleteOne({ _id: pendingSignup._id });
 
     // Create JWT token
     const token = jwt.sign(
