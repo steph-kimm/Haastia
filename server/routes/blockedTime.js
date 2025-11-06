@@ -8,7 +8,7 @@ import { requireSignin } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.get("/:professionalId", requireSignin, listBlockedTimes);
+router.get("/:professionalId", listBlockedTimes);
 router.post("/:professionalId", requireSignin, createBlockedTime);
 router.delete("/:id", requireSignin, deleteBlockedTime);
 

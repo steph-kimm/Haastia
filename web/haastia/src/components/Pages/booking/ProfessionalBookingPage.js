@@ -1,8 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import "./ProfessionalBookingPage.css";
 import { useParams } from "react-router-dom";
 import { getValidToken } from "../../../utils/auth";
+import {
+  getDayAvailabilityForDate,
+  groupBlockedTimesByDate,
+  filterSlotsAgainstBlocks,
+  toISODateString,
+} from "../../../utils/availability";
 
 const ProfessionalBookingPage = () => {
   const { id: professionalId } = useParams();
@@ -11,9 +17,10 @@ const ProfessionalBookingPage = () => {
   const [availability, setAvailability] = useState([]);
   const [selectedService, setSelectedService] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
-  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [selectedSlot, setSelectedSlot] = useState("");
   const [guestInfo, setGuestInfo] = useState({ name: "", email: "", phone: "" });
   const [message, setMessage] = useState("");
+  const [blockedTimes, setBlockedTimes] = useState([]);
 
   const auth = getValidToken();
   const token = auth?.token;
@@ -25,18 +32,57 @@ const ProfessionalBookingPage = () => {
 // TODO: refacter to fetch availability when they press a button?
   const fetchProfessional = async () => {
     try {
-      const [userRes, serviceRes, availRes] = await Promise.all([
+      const rangeStart = new Date();
+      rangeStart.setHours(0, 0, 0, 0);
+      const rangeEnd = new Date(rangeStart);
+      rangeEnd.setDate(rangeEnd.getDate() + 90);
+
+      const [userRes, serviceRes, availRes, blockedRes] = await Promise.all([
         axios.get(`http://localhost:8000/api/user/get-user/${professionalId}`),
         axios.get(`http://localhost:8000/api/services/by-user/${professionalId}`),
-        axios.get(`http://localhost:8000/api/availability/${professionalId}`)
+        axios.get(`http://localhost:8000/api/availability/${professionalId}`),
+        axios.get(`http://localhost:8000/api/blocked-times/${professionalId}`, {
+          params: {
+            start: toISODateString(rangeStart),
+            end: toISODateString(rangeEnd),
+          },
+        }),
       ]);
       setProfessional(userRes.data);
       setServices(serviceRes.data);
       setAvailability(availRes.data);
-      console.log("services",services)
+      setBlockedTimes(Array.isArray(blockedRes.data) ? blockedRes.data : []);
     } catch (err) {
       console.error("Error loading professional data:", err);
     }
+  };
+
+  const blockedByDate = useMemo(
+    () => groupBlockedTimesByDate(blockedTimes),
+    [blockedTimes]
+  );
+
+  const availableSlotsForSelectedDate = useMemo(() => {
+    if (!selectedDate) return [];
+    const dayAvailability = getDayAvailabilityForDate(availability, selectedDate);
+    const baseSlots = dayAvailability?.slots ?? [];
+    const blocks = blockedByDate.get(selectedDate) ?? [];
+    return filterSlotsAgainstBlocks(baseSlots, blocks);
+  }, [availability, selectedDate, blockedByDate]);
+
+  useEffect(() => {
+    if (!selectedSlot) return;
+    const stillAvailable = availableSlotsForSelectedDate.some(
+      (slot) => `${slot.start}-${slot.end}` === selectedSlot
+    );
+    if (!stillAvailable) {
+      setSelectedSlot("");
+    }
+  }, [availableSlotsForSelectedDate, selectedSlot]);
+
+  const handleDateChange = (value) => {
+    setSelectedDate(value);
+    setSelectedSlot("");
   };
 
   const handleBooking = async () => {
@@ -45,22 +91,25 @@ const ProfessionalBookingPage = () => {
       return;
     }
 
+    const [start, end] = selectedSlot.split("-");
+
     const bookingData = {
       professional: professionalId,
       service: selectedService,
       date: selectedDate,
-      timeSlot: selectedSlot,
+      timeSlot: {
+        start,
+        end,
+      },
     };
 
     if (isLoggedIn) {
       // logged-in user
-      console.log(token)
       try {
         const res = await axios.post("http://localhost:8000/api/bookings", bookingData, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMessage("Booking request sent successfully!");
-        console.log("Booking:", res.data);
       } catch (err) {
         console.error("Error booking:", err);
         setMessage("Error sending booking request.");
@@ -72,13 +121,11 @@ const ProfessionalBookingPage = () => {
         return;
       }
       try {
-        console.log(guestInfo);
         const res = await axios.post("http://localhost:8000/api/bookings", {
           ...bookingData,
           guestInfo,
         });
         setMessage("Booking request sent successfully!");
-        console.log("Guest booking:", res.data);
       } catch (err) {
         console.error("Error booking as guest:", err);
         setMessage("Error sending booking request.");
@@ -112,29 +159,35 @@ const ProfessionalBookingPage = () => {
 
       <div className="availability-section">
         <h3>Availability</h3>
-        {availability.map((dayObj) => (
-          <div key={dayObj.day}>
-            <h4>{dayObj.day}</h4>
-            <div className="slots">
-              {dayObj.slots.map((slot, i) => (
-                <button
-                  key={i}
-                  className={`slot-btn ${
-                    selectedSlot?.start === slot.start ? "selected" : ""
-                  }`}
-                  onClick={() => setSelectedSlot(slot)}
-                >
-                  {slot.start} - {slot.end}
-                </button>
-              ))}
-            </div>
+        {!selectedDate && (
+          <p className="availability-note">Select a date to view open time slots.</p>
+        )}
+        {selectedDate && (
+          <div className="slots">
+            {availableSlotsForSelectedDate.length ? (
+              availableSlotsForSelectedDate.map((slot) => {
+                const key = `${slot.start}-${slot.end}`;
+                const isSelected = selectedSlot === key;
+                return (
+                  <button
+                    key={key}
+                    className={`slot-btn ${isSelected ? "selected" : ""}`}
+                    onClick={() => setSelectedSlot(key)}
+                  >
+                    {slot.start} - {slot.end}
+                  </button>
+                );
+              })
+            ) : (
+              <p className="availability-note">No availability for this date.</p>
+            )}
           </div>
-        ))}
+        )}
       </div>
 
       <div className="date-section">
         <h3>Select Date</h3>
-        <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
+        <input type="date" value={selectedDate} onChange={(e) => handleDateChange(e.target.value)} />
       </div>
 
       {!isLoggedIn && (

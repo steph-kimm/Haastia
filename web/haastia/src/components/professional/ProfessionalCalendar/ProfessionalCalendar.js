@@ -6,44 +6,15 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { useNavigate } from "react-router-dom";
 import { getValidToken } from "../../../utils/auth";
+import {
+  buildBusinessHoursWithBlockedTimes,
+  combineDateAndTime,
+  toISODateString,
+} from "../../../utils/availability";
 import "./ProfessionalCalendar.css";
 
-// Map your availability day names -> FullCalendar days (0=Sun ... 6=Sat)
-const DAY_INDEX = {
-  Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6,
-};
-
-// Helper: combine "YYYY-MM-DD" and "HH:mm" into ISO
-const combineDateTime = (dateStr, timeStr) => {
-  // dateStr may be ISO or "YYYY-MM-DD"; timeStr is "HH:mm"
-  const d = new Date(dateStr);
-  // If dateStr has time already, normalize to local Y-M-D
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  const iso = `${y}-${m}-${day}T${timeStr}:00`;
-  return iso;
-};
-
-// Turn your weekly availability into FullCalendar businessHours
-const mapAvailabilityToBusinessHours = (availability = []) => {
-  // availability: [{ day: "Monday", slots: [{start:'09:00', end:'12:00'}, ...] }]
-  const blocks = [];
-  for (const entry of availability) {
-    const dow = DAY_INDEX[entry.day];
-    if (dow === undefined) continue;
-    (entry.slots || []).forEach(slot => {
-      if (slot.start && slot.end) {
-        blocks.push({
-          daysOfWeek: [dow],
-          startTime: slot.start, // "09:00"
-          endTime: slot.end,     // "17:00"
-        });
-      }
-    });
-  }
-  return blocks;
-};
+const LOOK_BACK_DAYS = 30;
+const LOOK_AHEAD_DAYS = 180;
 
 const ProfessionalCalendar = () => {
   const navigate = useNavigate();
@@ -51,7 +22,8 @@ const ProfessionalCalendar = () => {
   const token = auth?.token ?? null;
   const [professionalId, setProfessionalId] = useState(null);
   const [availability, setAvailability] = useState([]);
-  const [events, setEvents] = useState([]); // bookings as FC events
+  const [bookings, setBookings] = useState([]);
+  const [blockedTimes, setBlockedTimes] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -69,43 +41,32 @@ const ProfessionalCalendar = () => {
       if (!professionalId || !token) return;
       setLoading(true);
       try {
-        // parallel fetch
-        const [availRes, bookingsRes] = await Promise.all([
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const rangeStart = new Date(today);
+        rangeStart.setDate(today.getDate() - LOOK_BACK_DAYS);
+        const rangeEnd = new Date(today);
+        rangeEnd.setDate(today.getDate() + LOOK_AHEAD_DAYS);
+
+        const authHeaders = token ? { Authorization: `Bearer ${token}` } : undefined;
+
+        const [availRes, bookingsRes, blockedRes] = await Promise.all([
           axios.get(`http://localhost:8000/api/availability/${professionalId}`),
           axios.get(`http://localhost:8000/api/bookings/professional/${professionalId}`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: authHeaders,
+          }),
+          axios.get(`http://localhost:8000/api/blocked-times/${professionalId}`, {
+            params: {
+              start: toISODateString(rangeStart),
+              end: toISODateString(rangeEnd),
+            },
+            headers: authHeaders,
           }),
         ]);
-        console.log("bookingsRes", bookingsRes)
+
         setAvailability(availRes.data || []);
-
-        // Map bookings -> calendar events
-        const evts = (bookingsRes.data || []).map(b => {
-          const start = combineDateTime(b.date, b.timeSlot?.start);
-          const end = combineDateTime(b.date, b.timeSlot?.end);
-          // Color by status
-          let classNames = ["evt"];
-          if (b.status === "accepted") classNames.push("evt-accepted");
-          else if (b.status === "pending") classNames.push("evt-pending");
-          else if (b.status === "cancelled") classNames.push("evt-cancelled");
-          else if (b.status === "completed") classNames.push("evt-completed");
-
-          const titleParts = [];
-          if (b.service?.title) titleParts.push(b.service.title);
-          if (b.customer?.name) titleParts.push(b.customer.name);
-          else if (b.guestInfo?.name) titleParts.push(b.guestInfo.name);
-
-          return {
-            id: b._id,
-            title: titleParts.join(" · "),
-            start,
-            end,
-            extendedProps: { booking: b },
-            classNames,
-          };
-        });
-
-        setEvents(evts);
+        setBookings(bookingsRes.data || []);
+        setBlockedTimes(blockedRes.data || []);
       } catch (err) {
         console.error("Calendar load error:", err.response?.data || err.message);
       } finally {
@@ -115,9 +76,73 @@ const ProfessionalCalendar = () => {
     load();
   }, [professionalId, token]);
 
+  const bookingEvents = useMemo(
+    () =>
+      (bookings || [])
+        .map((booking) => {
+          const start = combineDateAndTime(booking.date, booking.timeSlot?.start);
+          const end = combineDateAndTime(booking.date, booking.timeSlot?.end);
+          if (!start || !end) return null;
+
+          const classNames = ["evt"];
+          if (booking.status === "accepted") classNames.push("evt-accepted");
+          else if (booking.status === "pending") classNames.push("evt-pending");
+          else if (booking.status === "cancelled") classNames.push("evt-cancelled");
+          else if (booking.status === "completed") classNames.push("evt-completed");
+
+          const titleParts = [];
+          if (booking.service?.title) titleParts.push(booking.service.title);
+          if (booking.customer?.name) titleParts.push(booking.customer.name);
+          else if (booking.guestInfo?.name) titleParts.push(booking.guestInfo.name);
+
+          return {
+            id: booking._id,
+            title: titleParts.join(" · ") || "Booking",
+            start,
+            end,
+            extendedProps: { booking },
+            classNames,
+          };
+        })
+        .filter(Boolean),
+    [bookings]
+  );
+
+  const blockedEvents = useMemo(
+    () =>
+      (blockedTimes || [])
+        .map((block) => {
+          const start = combineDateAndTime(block.date, block.start);
+          const end = combineDateAndTime(block.date, block.end);
+          if (!start || !end) return null;
+          const reason = block.reason?.trim();
+          return {
+            id: block._id ? `blocked-${block._id}` : `blocked-${start}`,
+            title: reason ? `Blocked · ${reason}` : "Blocked",
+            start,
+            end,
+            display: "block",
+            classNames: ["evt", "evt-blocked"],
+            editable: false,
+            extendedProps: { blocked: block },
+          };
+        })
+        .filter(Boolean),
+    [blockedTimes]
+  );
+
+  const events = useMemo(
+    () => [...bookingEvents, ...blockedEvents],
+    [bookingEvents, blockedEvents]
+  );
+
   const businessHours = useMemo(
-    () => mapAvailabilityToBusinessHours(availability),
-    [availability]
+    () =>
+      buildBusinessHoursWithBlockedTimes(availability, blockedTimes, {
+        lookBackDays: LOOK_BACK_DAYS,
+        lookAheadDays: LOOK_AHEAD_DAYS,
+      }),
+    [availability, blockedTimes]
   );
 
   return (
@@ -148,28 +173,36 @@ const ProfessionalCalendar = () => {
 
           events={events}
 
-          /* This is the magic: sets your working hours so FullCalendar
-             visually treats other time as "non-business" (shaded) */
           businessHours={businessHours}
 
-          /* nice UX touches */
           eventTimeFormat={{ hour: "2-digit", minute: "2-digit", meridiem: true }}
-          firstDay={1} // week starts Monday; set 0 for Sunday
+          firstDay={1}
           dayMaxEvents={true}
           expandRows={true}
 
-          /* Tooltips via native title attr */
           eventDidMount={(info) => {
-            const b = info.event.extendedProps.booking;
-            const status = b?.status;
-            const who =
-              b?.customer?.name ||
-              b?.guestInfo?.name ||
-              "Customer";
-            info.el.setAttribute(
-              "title",
-              `${info.event.title}\nStatus: ${status}\n${who}`
-            );
+            const booking = info.event.extendedProps.booking;
+            if (booking) {
+              const status = booking.status;
+              const who =
+                booking?.customer?.name ||
+                booking?.guestInfo?.name ||
+                "Customer";
+              info.el.setAttribute(
+                "title",
+                `${info.event.title}\nStatus: ${status}\n${who}`
+              );
+              return;
+            }
+
+            const blocked = info.event.extendedProps.blocked;
+            if (blocked) {
+              const reason = blocked.reason?.trim();
+              info.el.setAttribute(
+                "title",
+                reason ? `Blocked time\n${reason}` : "Blocked time"
+              );
+            }
           }}
         />
       )}

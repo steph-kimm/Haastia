@@ -1,36 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { getValidToken } from "../../utils/auth";
-
-const DAY_NAMES = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
-
-const getTodayISODate = () => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return today.toISOString().split("T")[0];
-};
-
-const getDayAvailabilityForDate = (availability, isoDate) => {
-  if (!isoDate) return null;
-
-  const selectedDate = new Date(`${isoDate}T00:00:00`);
-  if (Number.isNaN(selectedDate.getTime())) {
-    return null;
-  }
-
-  const dayName = DAY_NAMES[selectedDate.getDay()];
-  return availability.find(
-    (entry) => entry.day?.toLowerCase() === dayName.toLowerCase()
-  );
-};
+import {
+  getDayAvailabilityForDate,
+  groupBlockedTimesByDate,
+  filterSlotsAgainstBlocks,
+  toISODateString,
+} from "../../utils/availability";
 
 const BookingForm = ({ professionalId, service, availability = [], onSuccess }) => {
   const [date, setDate] = useState("");
@@ -39,15 +15,52 @@ const BookingForm = ({ professionalId, service, availability = [], onSuccess }) 
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [feedback, setFeedback] = useState({ type: "", message: "" });
+  const [blockedTimes, setBlockedTimes] = useState([]);
+  const [blockedLoading, setBlockedLoading] = useState(false);
+  const [blockedError, setBlockedError] = useState("");
 
   const auth = getValidToken();
   const token = auth?.token || "";
   const isLoggedIn = Boolean(token);
 
+  useEffect(() => {
+    if (!professionalId) return;
+    const fetchBlockedTimes = async () => {
+      setBlockedLoading(true);
+      try {
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(start);
+        end.setDate(end.getDate() + 90);
+        const { data } = await axios.get(`http://localhost:8000/api/blocked-times/${professionalId}`, {
+          params: {
+            start: toISODateString(start),
+            end: toISODateString(end),
+          },
+        });
+        setBlockedTimes(Array.isArray(data) ? data : []);
+        setBlockedError("");
+      } catch (err) {
+        console.error("Error fetching blocked times:", err);
+        setBlockedError("Some time slots may be unavailable right now.");
+      } finally {
+        setBlockedLoading(false);
+      }
+    };
+    fetchBlockedTimes();
+  }, [professionalId]);
+
+  const blockedByDate = useMemo(
+    () => groupBlockedTimesByDate(blockedTimes),
+    [blockedTimes]
+  );
+
   const availableSlotsForSelectedDate = useMemo(() => {
     const dayAvailability = getDayAvailabilityForDate(availability, date);
-    return dayAvailability?.slots ?? [];
-  }, [availability, date]);
+    const baseSlots = dayAvailability?.slots ?? [];
+    const blocks = date ? blockedByDate.get(date) ?? [] : [];
+    return filterSlotsAgainstBlocks(baseSlots, blocks);
+  }, [availability, date, blockedByDate]);
 
   const handleDateChange = (value) => {
     if (!value) {
@@ -69,6 +82,18 @@ const BookingForm = ({ professionalId, service, availability = [], onSuccess }) 
       return;
     }
 
+    const blocks = blockedByDate.get(value) ?? [];
+    const openSlots = filterSlotsAgainstBlocks(dayAvailability?.slots ?? [], blocks);
+    if (!blockedLoading && openSlots.length === 0) {
+      setFeedback({
+        type: "error",
+        message: "All slots for that day are blocked off. Please choose another date.",
+      });
+      setDate("");
+      setTimeSlot("");
+      return;
+    }
+
     if (feedback.type === "error") {
       setFeedback({ type: "", message: "" });
     }
@@ -77,7 +102,7 @@ const BookingForm = ({ professionalId, service, availability = [], onSuccess }) 
     setTimeSlot("");
   };
 
-  const todayISODate = useMemo(getTodayISODate, []);
+  const todayISODate = useMemo(() => toISODateString(new Date()), []);
 
   useEffect(() => {
     if (!date) return;
@@ -85,11 +110,25 @@ const BookingForm = ({ professionalId, service, availability = [], onSuccess }) 
     const dayAvailability = getDayAvailabilityForDate(availability, date);
     const hasSlots = dayAvailability?.slots?.length;
 
-    if (!hasSlots) {
+    if (!hasSlots || (!blockedLoading && availableSlotsForSelectedDate.length === 0)) {
+      setFeedback({
+        type: "error",
+        message: "No availability on the selected date. Please choose another date.",
+      });
       setDate("");
       setTimeSlot("");
     }
-  }, [availability, date]);
+  }, [availability, date, availableSlotsForSelectedDate, blockedLoading]);
+
+  useEffect(() => {
+    if (!date || !timeSlot) return;
+    const stillAvailable = availableSlotsForSelectedDate.some(
+      (slot) => `${slot.start}-${slot.end}` === timeSlot
+    );
+    if (!stillAvailable) {
+      setTimeSlot("");
+    }
+  }, [availableSlotsForSelectedDate, date, timeSlot]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -108,12 +147,7 @@ const BookingForm = ({ professionalId, service, availability = [], onSuccess }) 
       });
     }
 
-    const dayName = DAY_NAMES[selectedDate.getDay()];
-    const dayAvailability = availability.find(
-      (entry) => entry.day?.toLowerCase() === dayName.toLowerCase()
-    );
-
-    const isSlotAvailable = dayAvailability?.slots?.some(
+    const isSlotAvailable = availableSlotsForSelectedDate.some(
       (slot) => `${slot.start}-${slot.end}` === timeSlot
     );
 
@@ -190,17 +224,23 @@ const BookingForm = ({ professionalId, service, availability = [], onSuccess }) 
         <select
           value={timeSlot}
           onChange={(e) => setTimeSlot(e.target.value)}
-          disabled={!date || availableSlotsForSelectedDate.length === 0}
+          disabled={!date || blockedLoading || availableSlotsForSelectedDate.length === 0}
         >
           <option value="">Select a time</option>
-          {availableSlotsForSelectedDate.map((slot, i) => (
-            <option key={i} value={`${slot.start}-${slot.end}`}>
+          {availableSlotsForSelectedDate.map((slot) => (
+            <option key={`${slot.start}-${slot.end}`} value={`${slot.start}-${slot.end}`}>
               {slot.start} - {slot.end}
             </option>
           ))}
         </select>
-        {date && availableSlotsForSelectedDate.length === 0 && (
+        {blockedLoading && date && (
+          <p className="feedback warning">Checking for recent updates…</p>
+        )}
+        {date && !blockedLoading && availableSlotsForSelectedDate.length === 0 && (
           <p className="feedback warning">No availability for the selected date.</p>
+        )}
+        {!blockedLoading && blockedError && (
+          <p className="feedback warning">{blockedError}</p>
         )}
       </div>
 
