@@ -34,6 +34,28 @@ const Signup = () => {
     }
   };
 
+  // This helper will be reused once the Stripe checkout flow returns with a token.
+  const finalizeSignup = (token) => {
+    if (!token) throw new Error('No token received');
+
+    localStorage.setItem('token', token);
+    const decodedToken = jwtDecode(token);
+    const expirationTime = decodedToken.exp * 1000 - Date.now();
+
+    setTimeout(() => {
+      localStorage.removeItem('token');
+      navigate('/login');
+    }, expirationTime);
+
+    if (decodedToken.role === "professional") {
+      setCurrentView('professional'); // switches context
+      navigate('/add-service');       // goes to their page
+    } else {
+      setCurrentView('customer');
+      navigate('/');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -48,37 +70,32 @@ const Signup = () => {
           })
         }));
 
+      const successUrl = `${window.location.origin}/signup/success`;
+      const cancelUrl = `${window.location.origin}/signup/cancel`;
+
       const payload = {
         ...formData,
         availability: formattedAvailability,
+        successUrl,
+        cancelUrl
       };
 
-      // ✅ Correct endpoint
-      const response = await axios.post('http://localhost:8000/api/auth/signup', payload);
+      const response = await axios.post('http://localhost:8000/api/stripe/create-checkout-session', payload);
+      const { url } = response.data || {};
 
-      const token = response.data.token;
-      if (!token) throw new Error('No token received');
+      if (!url) throw new Error('No checkout URL received');
 
-      localStorage.setItem('token', token);
-      const decodedToken = jwtDecode(token);
-      const expirationTime = decodedToken.exp * 1000 - Date.now();
+      // Redirect the user to Stripe Checkout so they can complete the onboarding/payment step.
+      window.location.href = url;
+      return;
 
-      setTimeout(() => {
-        localStorage.removeItem('token');
-        navigate('/login');
-      }, expirationTime);
-
-      if (decodedToken.role === "professional") {
-        setCurrentView('professional'); // switches context
-        navigate('/add-service');       // goes to their page
-      } else {
-        setCurrentView('customer');
-        navigate('/');
-      }
+      // The following logic will run after the checkout session is finalized and a token is issued.
+      // finalizeSignup(tokenFromServer);
 
     } catch (error) {
       console.error('Error signing up:', error);
-      alert(error.response?.data?.error || 'Signup failed');
+      const friendlyMessage = error.response?.data?.error || error.response?.data?.message;
+      alert(friendlyMessage || 'Signup failed');
     }
   };
 
