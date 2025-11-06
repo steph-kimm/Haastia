@@ -15,6 +15,7 @@ import userRoutes from "./routes/user.js";
 import professionalRoutes from "./routes/professional.js";
 import serviceRoutes from "./routes/service.js";
 import bookingRoutes from "./routes/booking.js";
+import blockedTimeRoutes from "./routes/blockedTime.js";
 
 import morgan from "morgan";
 
@@ -29,7 +30,7 @@ const app = express();
 
 mongoose
     .connect(process.env.DATABASE) //NTD (1)
-    // .connect('mongodb+srv://stephspie31415:6Yen1Vcv2eE2y2iM@cluster0.7xwptmh.mongodb.net/?retryWrites=true&w=majority') // replaced top 
+    // .connect('mongodb+srv://stephspie31415:6Yen1Vcv2eE2y2iM@cluster0.7xwptmh.mongodb.net/?retryWrites=true&w=majority') // replaced top
     .then(() => console.log("DB connected"))
     .catch ((err) => console.log("DB CONNECTION ERROR: ", err));
 
@@ -49,5 +50,6 @@ app.use("/api/user", userRoutes);
 app.use("/api/professional", professionalRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/blocked-times", blockedTimeRoutes);
 
 app.listen(8000, () => console.log("Server running on port 8000"));
