@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
 import './Auth.css';
 import { useView } from '../../../context/ViewContext';
+import { handleAuthSuccess } from '../../../utils/auth';
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -34,26 +34,9 @@ const Signup = () => {
     }
   };
 
-  // This helper will be reused once the Stripe checkout flow returns with a token.
+  // Shared with the Stripe success callback so both paths finalize the account consistently.
   const finalizeSignup = (token) => {
-    if (!token) throw new Error('No token received');
-
-    localStorage.setItem('token', token);
-    const decodedToken = jwtDecode(token);
-    const expirationTime = decodedToken.exp * 1000 - Date.now();
-
-    setTimeout(() => {
-      localStorage.removeItem('token');
-      navigate('/login');
-    }, expirationTime);
-
-    if (decodedToken.role === "professional") {
-      setCurrentView('professional'); // switches context
-      navigate('/add-service');       // goes to their page
-    } else {
-      setCurrentView('customer');
-      navigate('/');
-    }
+    handleAuthSuccess({ token, navigate, setCurrentView });
   };
 
   const handleSubmit = async (e) => {
