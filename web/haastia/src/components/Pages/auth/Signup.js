@@ -8,6 +8,22 @@ import ProfessionalPaymentSection from './ProfessionalPaymentSection';
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
+const ProfessionalActivationNotice = ({ message, onRetry, isRetrying, error }) => (
+  <div className="auth-card activation-notice">
+    <h3>Finish activating your professional account</h3>
+    <p>{message || 'Complete checkout to unlock your professional profile.'}</p>
+    {error && <p className="helper-text error">{error}</p>}
+    <button
+      type="button"
+      className="auth-submit"
+      onClick={onRetry}
+      disabled={isRetrying}
+    >
+      {isRetrying ? 'Launching checkout…' : 'Complete payment'}
+    </button>
+  </div>
+);
+
 const Signup = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -17,6 +33,10 @@ const Signup = () => {
     isProvider: false,
     availability: daysOfWeek.map(day => ({ day, slots: '' }))
   });
+  const [pendingSignup, setPendingSignup] = useState(null);
+  const [isLaunchingCheckout, setIsLaunchingCheckout] = useState(false);
+  const [checkoutError, setCheckoutError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { setCurrentView } = useView();
 
@@ -32,6 +52,11 @@ const Signup = () => {
         ...formData,
         [name]: type === 'checkbox' ? checked : value
       });
+      if (name === 'isProvider' && !checked) {
+        setPendingSignup(null);
+        setCheckoutError('');
+        localStorage.removeItem('haastiaPendingSignupId');
+      }
     }
   };
 
@@ -40,18 +65,53 @@ const Signup = () => {
     handleAuthSuccess({ token, navigate, setCurrentView });
   };
 
+  const launchCheckout = async (pendingSignupId) => {
+    try {
+      setIsLaunchingCheckout(true);
+      setCheckoutError('');
+      const successUrl = `${window.location.origin}/signup/success`;
+      const cancelUrl = `${window.location.origin}/signup/cancel`;
+
+      const response = await axios.post('http://localhost:8000/api/stripe/create-checkout-session', {
+        pendingSignupId,
+        successUrl,
+        cancelUrl,
+      });
+
+      const { url } = response.data || {};
+      if (!url) throw new Error('No checkout URL received');
+
+      window.location.href = url;
+    } catch (error) {
+      console.error('Error launching checkout:', error);
+      const friendlyMessage =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message;
+      setCheckoutError(friendlyMessage || 'Unable to start checkout. Please try again.');
+    } finally {
+      setIsLaunchingCheckout(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      setIsSubmitting(true);
+      setCheckoutError('');
       // ✅ Format availability properly
       const formattedAvailability = formData.availability
         .filter(a => a.slots.trim() !== '')
         .map(a => ({
           day: a.day,
-          slots: a.slots.split(',').map(slot => {
-            const [start, end] = slot.trim().split('-');
-            return { start, end };
-          })
+          slots: a.slots
+            .split(',')
+            .map(slot => {
+              const [start, end] = slot.trim().split('-');
+              if (!start || !end) return null;
+              return { start: start.trim(), end: end.trim() };
+            })
+            .filter(Boolean)
         }));
 
       const basePayload = {
@@ -59,28 +119,32 @@ const Signup = () => {
         availability: formattedAvailability
       };
 
+      const response = await axios.post('http://localhost:8000/api/auth/signup', basePayload);
+      const { token, pendingSignupId, message } = response.data || {};
+
       if (formData.isProvider) {
-        const successUrl = `${window.location.origin}/signup/success`;
-        const cancelUrl = `${window.location.origin}/signup/cancel`;
+        if (!pendingSignupId) {
+          throw new Error('Signup did not return a pending signup identifier');
+        }
 
-        const response = await axios.post('http://localhost:8000/api/stripe/create-checkout-session', {
-          ...basePayload,
-          successUrl,
-          cancelUrl
-        });
-        const { url } = response.data || {};
+        const pendingState = {
+          id: pendingSignupId,
+          message:
+            message ||
+            'Your professional account is pending activation. Complete checkout to go live.',
+        };
 
-        if (!url) throw new Error('No checkout URL received');
+        setPendingSignup(pendingState);
+        localStorage.setItem('haastiaPendingSignupId', pendingSignupId);
 
-        // Redirect the user to Stripe Checkout so they can complete the onboarding/payment step.
-        window.location.href = url;
+        await launchCheckout(pendingSignupId);
         return;
       }
 
-      const response = await axios.post('http://localhost:8000/api/auth/signup', basePayload);
-      const { token } = response.data || {};
-
       if (!token) throw new Error('No token returned from signup');
+
+      setPendingSignup(null);
+      localStorage.removeItem('haastiaPendingSignupId');
 
       finalizeSignup(token);
 
@@ -88,6 +152,8 @@ const Signup = () => {
       console.error('Error signing up:', error);
       const friendlyMessage = error.response?.data?.error || error.response?.data?.message;
       alert(friendlyMessage || 'Signup failed');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -210,10 +276,19 @@ const Signup = () => {
             </div>
 
             <button className="auth-submit" type="submit">
-              Create account
+              {isSubmitting ? 'Submitting…' : 'Create account'}
             </button>
           </form>
         </section>
+
+        {pendingSignup && (
+          <ProfessionalActivationNotice
+            message={pendingSignup.message}
+            onRetry={() => launchCheckout(pendingSignup.id)}
+            isRetrying={isLaunchingCheckout}
+            error={checkoutError}
+          />
+        )}
       </div>
     </div>
   );
