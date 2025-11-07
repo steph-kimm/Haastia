@@ -72,7 +72,7 @@ const Signup = () => {
       const successUrl = `${window.location.origin}/signup/success`;
       const cancelUrl = `${window.location.origin}/signup/cancel`;
 
-      const response = await axios.post('http://localhost:8000/api/stripe/create-checkout-session', {
+      const response = await axios.post('http://localhost:8000/api/payment/create-checkout-session', {
         pendingSignupId,
         successUrl,
         cancelUrl,
