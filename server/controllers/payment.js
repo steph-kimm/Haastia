@@ -6,7 +6,7 @@ import { hashPassword } from "../helpers/auth.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const SUBSCRIPTION_PRICE_ID =
-  process.env.STRIPE_SUBSCRIPTION_PRICE_ID || "price_12345abc";
+  process.env.STRIPE_SUBSCRIPTION_PRICE_ID || "price_1SQHPq2KTn444Cl1CHYtqYqf";
 
 const appendSessionIdPlaceholder = (baseUrl = "") => {
   const trimmed = baseUrl.trim();
