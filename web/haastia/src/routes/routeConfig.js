@@ -1,6 +1,8 @@
 import Home from "../components/Pages/Home";
 import Login from "../components/Pages/auth/Login";
 import Signup from "../components/Pages/auth/Signup";
+import SignupSuccess from "../components/Pages/auth/SignupSuccess";
+import SignupCancel from "../components/Pages/auth/SignupCancel";
 import HelpCenter from "../components/Pages/HelpCenter";
 import ServiceDetail from "../components/Pages/ServiceDetail";
 import UserProfile from "../components/Pages/Profile";
@@ -19,6 +21,8 @@ export const customerRouteConfig = [
   { path: "/profile/:userId", component: UserProfile },
   { path: "/login", component: Login },
   { path: "/signup", component: Signup },
+  { path: "/signup/success", component: SignupSuccess },
+  { path: "/signup/cancel", component: SignupCancel },
   { path: "/service/:id", component: ServiceDetail },
   { path: "/help", component: HelpCenter },
   { path: "/settings", component: SettingsPage },

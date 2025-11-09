@@ -54,6 +54,14 @@ const userSchema = new Schema(
             type: Number,
             default: 0,
         },
+        isSubscribed: {
+            type: Boolean,
+            default: false, // Flipped to true once Stripe confirms payment completion
+        },
+        isActive: {
+            type: Boolean,
+            default: false, // Set to true after payment clears or immediately for direct signups
+        },
         // availability: [availabilitySchema],
         // resetCode: "",
     },

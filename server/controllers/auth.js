@@ -5,6 +5,8 @@ import { nanoid } from "nanoid";
 import cloudinary from "cloudinary";
 import Availability from "../models/availability.js";
 import { sendEmail } from "../utils/sendEmail.js";
+import PendingSignup from "../models/pendingSignup.js";
+import Stripe from "stripe";
 // sendgrid
 // require("dotenv").config();
 import { } from 'dotenv/config'
@@ -23,63 +25,194 @@ import sgMail from "@sendgrid/mail";
 sgMail.setApiKey(process.env.SENDGRID_KEY);
 
 
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+
 export const signup = async (req, res) => {
   try {
-    const { name, email, password, location, isProvider, availability } = req.body;
-
-    // Basic validation
-    if (!name) return res.json({ error: "Name is required" });
-    if (!email) return res.json({ error: "Email is required" });
-    if (!password || password.length < 6)
-      return res.json({ error: "Password must be at least 6 characters long" });
-
-    // Check if user already exists
-    const exist = await User.findOne({ email });
-    if (exist) return res.json({ error: "Email is already in use" });
-
-    // Hash password
-    const hashedPassword = await hashPassword(password);
-
-    // Create user
-    const user = await new User({
+    const {
+      sessionId,
+      pendingSignupId,
       name,
       email,
-      password: hashedPassword,
+      password,
       location,
-      role: isProvider ? "professional" : "customer",
-    }).save();
+      isProvider,
+      availability,
+    } = req.body;
 
-    // If provider, create availability record(s)
-    if (isProvider && Array.isArray(availability) && availability.length > 0) {
-      const availabilityDocs = availability.map((a) => ({
-        professionalId: user._id,
-        day: a.day,
-        slots: a.slots,
-      }));
-      await Availability.insertMany(availabilityDocs);
+    const sendWelcomeEmail = async (targetEmail, targetName) => {
+      try {
+        await sendEmail(
+          targetEmail,
+          "Welcome to Haastia!",
+          `Hi ${targetName},\n\nThanks for joining Haastia! Your account has been successfully created.\n\nEnjoy booking and managing your appointments easily.\n\n— The Haastia Team`
+        );
+        console.log(`Welcome email sent to ${targetEmail}`);
+      } catch (emailError) {
+        console.error("Failed to send welcome email:", emailError);
+        // Best-effort only — the signup should still succeed even if email fails.
+      }
+    };
+
+    if (!sessionId) {
+      if (!name) return res.status(400).json({ error: "Name is required" });
+      if (!email) return res.status(400).json({ error: "Email is required" });
+      if (!password || password.length < 6) {
+        return res
+          .status(400)
+          .json({ error: "Password must be at least 6 characters long" });
+      }
+
+      const normalizedEmail = email.toLowerCase();
+
+      const existingUser = await User.findOne({ email: normalizedEmail });
+      if (existingUser) {
+        return res.status(400).json({ error: "Email is already in use" });
+      }
+
+      if (isProvider) {
+        // Professional signup initiation: store pending record until payment completes.
+        const existingPending = await PendingSignup.findOne({ email: normalizedEmail });
+        if (existingPending) {
+          return res
+            .status(400)
+            .json({ error: "A pending signup already exists for this email" });
+        }
+
+        const hashedPassword = await hashPassword(password);
+
+        const pendingSignup = await PendingSignup.create({
+          name,
+          email: normalizedEmail,
+          hashedPassword,
+          location,
+          role: "professional",
+          isProvider: true,
+          availability: Array.isArray(availability) ? availability : [],
+        });
+
+        return res.status(202).json({
+          message:
+            "Your professional account is pending activation. Complete checkout to go live.",
+          pendingSignupId: pendingSignup._id.toString(),
+        });
+      }
+
+      // Direct customer signup: activate account immediately.
+      const hashedPassword = await hashPassword(password);
+      const user = await new User({
+        name,
+        email: normalizedEmail,
+        password: hashedPassword,
+        location,
+        role: "customer",
+        isSubscribed: false,
+        isActive: true,
+      }).save();
+
+      await sendWelcomeEmail(normalizedEmail, name);
+
+      const token = jwt.sign(
+        { _id: user._id, name: user.name, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+
+      const { password: _, ...userWithoutPassword } = user._doc;
+      return res.json({
+        token,
+        user: userWithoutPassword,
+      });
     }
 
-    // Create JWT token
+    // Professional completion branch: verify Stripe checkout and finalize account.
+    const pendingLookupQuery = pendingSignupId
+      ? { _id: pendingSignupId, sessionId }
+      : { sessionId };
+
+    const pendingSignup = await PendingSignup.findOne(pendingLookupQuery);
+    if (!pendingSignup) {
+      return res.status(404).json({ error: "Pending signup not found" });
+    }
+
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    if (
+      !session ||
+      session.payment_status !== "paid" ||
+      session.metadata?.pendingSignupId !== pendingSignup._id.toString()
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Payment for this session has not been completed" });
+    }
+
+    const {
+      name: pendingName,
+      email: pendingEmail,
+      hashedPassword,
+      location: pendingLocation,
+      role,
+      isProvider: pendingIsProvider,
+      availability: pendingAvailability,
+    } = pendingSignup;
+
+    const existingUser = await User.findOne({ email: pendingEmail });
+    if (existingUser) {
+      await PendingSignup.deleteOne({ _id: pendingSignup._id });
+      return res.status(400).json({ error: "Email is already in use" });
+    }
+
+    const user = await new User({
+      name: pendingName,
+      email: pendingEmail,
+      password: hashedPassword,
+      location: pendingLocation,
+      role,
+      isSubscribed: true,
+      isActive: true,
+    }).save();
+
+    if (
+      pendingIsProvider &&
+      Array.isArray(pendingAvailability) &&
+      pendingAvailability.length > 0
+    ) {
+      const availabilityDocs = pendingAvailability
+        .map((entry) => {
+          if (!entry || !entry.day || !Array.isArray(entry.slots)) {
+            return null;
+          }
+          const sanitizedSlots = entry.slots
+            .map((slot) => {
+              if (!slot || !slot.start || !slot.end) return null;
+              return { start: slot.start, end: slot.end };
+            })
+            .filter(Boolean);
+          if (!sanitizedSlots.length) return null;
+          return {
+            professionalId: user._id,
+            day: entry.day,
+            slots: sanitizedSlots,
+          };
+        })
+        .filter(Boolean);
+
+      if (availabilityDocs.length) {
+        await Availability.insertMany(availabilityDocs);
+      }
+    }
+
+    await PendingSignup.deleteOne({ _id: pendingSignup._id });
+
     const token = jwt.sign(
       { _id: user._id, name: user.name, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    // ✉️ Send welcome email (non-blocking)
-    try {
-      await sendEmail(
-        email,
-        "Welcome to Haastia!",
-        `Hi ${name},\n\nThanks for joining Haastia! Your account has been successfully created.\n\nEnjoy booking and managing your appointments easily.\n\n— The Haastia Team`
-      );
-      console.log(`Welcome email sent to ${email}`);
-    } catch (emailError) {
-      console.error("Failed to send welcome email:", emailError);
-      // Do not return error — user signup should still succeed
-    }
+    await sendWelcomeEmail(pendingEmail, pendingName);
 
-    // Respond
     const { password: _, ...userWithoutPassword } = user._doc;
     return res.json({
       token,
