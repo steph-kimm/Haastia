@@ -12,6 +12,7 @@ const AddNewServiceForm = ({ onSuccess }) => {
   const [duration, setDuration] = useState("");
   const [images, setImages] = useState([]);
   const [preview, setPreview] = useState([]);
+  const [addOns, setAddOns] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -36,6 +37,20 @@ const AddNewServiceForm = ({ onSuccess }) => {
       .catch((err) => console.error("File read error:", err));
   };
 
+  const handleAddAddOn = () => {
+    setAddOns((prev) => [...prev, { title: "", description: "", price: "" }]);
+  };
+
+  const handleRemoveAddOn = (index) => {
+    setAddOns((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const handleAddOnChange = (index, field, value) => {
+    setAddOns((prev) =>
+      prev.map((item, idx) => (idx === index ? { ...item, [field]: value } : item))
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -50,13 +65,48 @@ const AddNewServiceForm = ({ onSuccess }) => {
     const { token } = auth;
 
     try {
+      const hasIncompleteAddOn = addOns.some((addOn) => {
+        const hasAnyValue =
+          addOn.title.trim() !== "" ||
+          addOn.description.trim() !== "" ||
+          addOn.price !== "";
+
+        if (!hasAnyValue) {
+          return false;
+        }
+
+        const priceValue = parseFloat(addOn.price);
+        return addOn.title.trim() === "" || addOn.price === "" || Number.isNaN(priceValue);
+      });
+
+      if (hasIncompleteAddOn) {
+        alert("Please complete or remove any add-ons with missing information.");
+        setLoading(false);
+        return;
+      }
+
+      const normalizedAddOns = addOns
+        .filter((addOn) => addOn.title.trim() !== "" && addOn.price !== "")
+        .map((addOn) => {
+          const titleValue = addOn.title.trim();
+          const descriptionValue = addOn.description.trim();
+          const priceValue = parseFloat(addOn.price);
+
+          return {
+            title: titleValue,
+            price: priceValue,
+            ...(descriptionValue ? { description: descriptionValue } : {}),
+          };
+        });
+
       const serviceData = {
         title,
         description,
-        price,
+        price: price ? parseFloat(price) : undefined,
         category,
-        duration,
+        duration: duration ? parseInt(duration, 10) : undefined,
         images,
+        addOns: normalizedAddOns,
       };
 
       const res = await axios.post("http://localhost:8000/api/services", serviceData, {
@@ -74,6 +124,7 @@ const AddNewServiceForm = ({ onSuccess }) => {
       setDuration("");
       setImages([]);
       setPreview([]);
+      setAddOns([]);
     } catch (err) {
       console.error("Error adding service:", err.response?.data || err.message);
       alert(err.response?.data?.error || "Failed to add service. Please try again.");
@@ -210,6 +261,91 @@ const AddNewServiceForm = ({ onSuccess }) => {
                 ))}
               </div>
             )}
+          </div>
+
+          <div className="form-group addons-section">
+            <div className="addons-header">
+              <p className="addons-title">Add-ons</p>
+              <p className="field-hint">
+                Offer optional upgrades clients can choose when booking this service.
+              </p>
+            </div>
+
+            {addOns.length > 0 && (
+              <div className="addons-list">
+                {addOns.map((addOn, index) => (
+                  <div className="addon-card" key={`addon-${index}`}>
+                    <div className="addon-card-header">
+                      <p className="addon-label">Add-on {index + 1}</p>
+                      <button
+                        type="button"
+                        className="btn-remove-addon"
+                        onClick={() => handleRemoveAddOn(index)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+
+                    <div className="addon-fields">
+                      <div className="addon-row">
+                        <div className="addon-field">
+                          <label htmlFor={`addon-title-${index}`}>Title</label>
+                          <div className="input-shell">
+                            <input
+                              id={`addon-title-${index}`}
+                              type="text"
+                              placeholder="e.g., Deep conditioning treatment"
+                              value={addOn.title}
+                              onChange={(e) => handleAddOnChange(index, "title", e.target.value)}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="addon-field">
+                          <label htmlFor={`addon-price-${index}`}>Price</label>
+                          <div className="input-shell with-prefix">
+                            <span className="input-prefix" aria-hidden="true">
+                              $
+                            </span>
+                            <input
+                              id={`addon-price-${index}`}
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={addOn.price}
+                              onChange={(e) => handleAddOnChange(index, "price", e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="addon-field">
+                        <label htmlFor={`addon-description-${index}`}>Description</label>
+                        <div className="input-shell">
+                          <textarea
+                            id={`addon-description-${index}`}
+                            rows={3}
+                            placeholder="Share what makes this add-on special."
+                            value={addOn.description}
+                            onChange={(e) =>
+                              handleAddOnChange(index, "description", e.target.value)
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button
+              type="button"
+              className="btn-ghost add-addon-btn"
+              onClick={handleAddAddOn}
+            >
+              + Add add-on
+            </button>
           </div>
         </div>
 
