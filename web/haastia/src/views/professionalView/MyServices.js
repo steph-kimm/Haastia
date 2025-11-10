@@ -11,6 +11,7 @@ const MyServices = () => {
   const [editData, setEditData] = useState({
     title: "",
     price: "",
+    deposit: "",
     description: "",
     addOns: [],
   });
@@ -58,6 +59,10 @@ const MyServices = () => {
     setEditData({
       title: service.title || "",
       price: service.price?.toString() || "",
+      deposit:
+        service.deposit !== undefined && service.deposit !== null
+          ? service.deposit.toString()
+          : "",
       description: service.description || "",
       addOns:
         service.addOns?.map((addOn) => ({
@@ -101,7 +106,7 @@ const MyServices = () => {
 
   const resetEditState = () => {
     setEditing(null);
-    setEditData({ title: "", price: "", description: "", addOns: [] });
+    setEditData({ title: "", price: "", deposit: "", description: "", addOns: [] });
   };
 
   const formatCurrency = (value) => {
@@ -117,6 +122,7 @@ const MyServices = () => {
     try {
       const trimmedTitle = editData.title.trim();
       const parsedPrice = parseFloat(editData.price);
+      const parsedDeposit = editData.deposit === "" ? 0 : parseFloat(editData.deposit);
 
       if (!trimmedTitle) {
         alert("Title is required");
@@ -125,6 +131,16 @@ const MyServices = () => {
 
       if (Number.isNaN(parsedPrice) || parsedPrice < 0) {
         alert("Price must be a valid number");
+        return;
+      }
+
+      if (Number.isNaN(parsedDeposit) || parsedDeposit < 0) {
+        alert("Deposit must be zero or a positive number");
+        return;
+      }
+
+      if (parsedDeposit > parsedPrice) {
+        alert("Deposit cannot exceed the total price");
         return;
       }
 
@@ -153,6 +169,7 @@ const MyServices = () => {
         {
           title: trimmedTitle,
           price: parsedPrice,
+          deposit: parsedDeposit,
           description: editData.description.trim(),
           addOns: normalizedAddOns,
         },
@@ -224,6 +241,15 @@ const MyServices = () => {
                       onChange={handleEditChange}
                       placeholder="Price"
                     />
+                    <input
+                      name="deposit"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={editData.deposit}
+                      onChange={handleEditChange}
+                      placeholder="Deposit"
+                    />
                     <textarea
                       name="description"
                       value={editData.description}
@@ -290,7 +316,14 @@ const MyServices = () => {
                   <>
                     <div className="service-heading">
                       <h3>{service.title}</h3>
-                      <p className="price">{formatCurrency(service.price)}</p>
+                      <div className="price-stack">
+                        <p className="price">{formatCurrency(service.price)}</p>
+                        <p className="deposit">
+                          {service.deposit && service.deposit > 0
+                            ? `Deposit ${formatCurrency(service.deposit)}`
+                            : "No deposit required"}
+                        </p>
+                      </div>
                     </div>
                     <p className="category">{service.category}</p>
                     <p className="desc">{service.description}</p>

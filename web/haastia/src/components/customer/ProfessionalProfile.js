@@ -17,6 +17,13 @@ const getRatingValue = (rating) => {
   return null;
 };
 
+const formatCurrency = (value) => {
+  if (value === undefined || value === null) return "$0.00";
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(
+    Number(value)
+  );
+};
+
 const ProfessionalProfile = () => {
   const { id } = useParams();
   const [professional, setProfessional] = useState(null);
@@ -106,7 +113,14 @@ const ProfessionalProfile = () => {
               </div>
               <div className="service-card__footer">
                 <div className="price-line">
-                  <p className="price">${s.price}</p>
+                  <div className="price-breakdown">
+                    <p className="price">{formatCurrency(s.price)}</p>
+                    <p className="deposit">
+                      {s.deposit && s.deposit > 0
+                        ? `${formatCurrency(s.deposit)} deposit`
+                        : "No deposit required"}
+                    </p>
+                  </div>
                   {s.duration && <p className="duration">· {s.duration} min</p>}
                 </div>
                 <button onClick={() => setSelectedService(s)}>Book service</button>
