@@ -6,6 +6,13 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import BookingCalendar from '../booking calendar/BookingCalendar';
 
+const formatCurrency = (value) => {
+  if (value === undefined || value === null) return '$0.00';
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(
+    Number(value)
+  );
+};
+
 function ServiceDetail() {
   const { id } = useParams();
   const [service, setService] = useState(null);
@@ -88,6 +95,8 @@ function ServiceDetail() {
 
   if (!service) return <div>Loading...</div>;
 
+  const depositAmount = Number(service.deposit ?? 0);
+
   return (
     <div className="service-detail-container">
       <div className="image-slider">
@@ -114,7 +123,12 @@ function ServiceDetail() {
           ))}
         </div>
         <div className="total-price">
-          <h3>Total Price: ${totalPrice}</h3>
+          <h3>Total Price: {formatCurrency(totalPrice)}</h3>
+          <p className="deposit-info">
+            {depositAmount > 0
+              ? `${formatCurrency(depositAmount)} deposit due at booking`
+              : 'No deposit required'}
+          </p>
         </div>
         {!showDatePicker && !showConfirmButton && (
                     <button className="book-now-button" onClick={handleBookNowClick}>Book Now</button>
