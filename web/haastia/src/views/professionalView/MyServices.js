@@ -8,7 +8,12 @@ const MyServices = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
-  const [editData, setEditData] = useState({ title: "", price: "", description: "" });
+  const [editData, setEditData] = useState({
+    title: "",
+    price: "",
+    description: "",
+    addOns: [],
+  });
   const navigate = useNavigate();
   const auth = getValidToken();
   const token = auth?.token;
@@ -51,9 +56,16 @@ const MyServices = () => {
   const startEdit = (service) => {
     setEditing(service._id);
     setEditData({
-      title: service.title,
-      price: service.price,
-      description: service.description,
+      title: service.title || "",
+      price: service.price?.toString() || "",
+      description: service.description || "",
+      addOns:
+        service.addOns?.map((addOn) => ({
+          _id: addOn._id,
+          title: addOn.title || "",
+          price: addOn.price !== undefined && addOn.price !== null ? addOn.price.toString() : "",
+          description: addOn.description || "",
+        })) || [],
     });
   };
 
@@ -61,18 +73,96 @@ const MyServices = () => {
     setEditData({ ...editData, [e.target.name]: e.target.value });
   };
 
+  const handleAddOnChange = (index, field, value) => {
+    setEditData((prev) => {
+      const updatedAddOns = prev.addOns.map((addOn, i) =>
+        i === index ? { ...addOn, [field]: value } : addOn
+      );
+      return { ...prev, addOns: updatedAddOns };
+    });
+  };
+
+  const addAddOnRow = () => {
+    setEditData((prev) => ({
+      ...prev,
+      addOns: [
+        ...prev.addOns,
+        { _id: undefined, title: "", price: "", description: "" },
+      ],
+    }));
+  };
+
+  const removeAddOn = (index) => {
+    setEditData((prev) => ({
+      ...prev,
+      addOns: prev.addOns.filter((_, i) => i !== index),
+    }));
+  };
+
+  const resetEditState = () => {
+    setEditing(null);
+    setEditData({ title: "", price: "", description: "", addOns: [] });
+  };
+
+  const formatCurrency = (value) => {
+    if (value === undefined || value === null || value === "") return "$0.00";
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(Number(value));
+  };
+
   const saveEdit = async (id) => {
     if (!token) return;
     try {
+      const trimmedTitle = editData.title.trim();
+      const parsedPrice = parseFloat(editData.price);
+
+      if (!trimmedTitle) {
+        alert("Title is required");
+        return;
+      }
+
+      if (Number.isNaN(parsedPrice) || parsedPrice < 0) {
+        alert("Price must be a valid number");
+        return;
+      }
+
+      const normalizedAddOns = editData.addOns
+        .filter((addOn) => addOn.title.trim() !== "" || addOn.price !== "")
+        .map((addOn) => {
+          const trimmedAddOnTitle = addOn.title.trim();
+          const parsedAddOnPrice = parseFloat(addOn.price);
+
+          if (!trimmedAddOnTitle || Number.isNaN(parsedAddOnPrice) || parsedAddOnPrice < 0) {
+            throw new Error(
+              "Each add-on must include a title and a valid, non-negative price."
+            );
+          }
+
+          return {
+            _id: addOn._id,
+            title: trimmedAddOnTitle,
+            description: addOn.description.trim(),
+            price: parsedAddOnPrice,
+          };
+        });
+
       const res = await axios.put(
         `http://localhost:8000/api/services/${id}`,
-        editData,
+        {
+          title: trimmedTitle,
+          price: parsedPrice,
+          description: editData.description.trim(),
+          addOns: normalizedAddOns,
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setServices(services.map((s) => (s._id === id ? res.data : s)));
-      setEditing(null);
+      resetEditState();
     } catch (err) {
       console.error("Error updating service:", err);
+      alert(err.message || "Error updating service");
     }
   };
 
@@ -140,19 +230,89 @@ const MyServices = () => {
                       onChange={handleEditChange}
                       placeholder="Description"
                     />
+                    <div className="edit-addons">
+                      <div className="edit-addons-header">
+                        <h4>Add-ons</h4>
+                        <button type="button" onClick={addAddOnRow}>
+                          + Add add-on
+                        </button>
+                      </div>
+                      {editData.addOns.length === 0 ? (
+                        <p className="no-addons-inline">No add-ons yet.</p>
+                      ) : (
+                        editData.addOns.map((addOn, index) => (
+                          <div
+                            key={addOn._id || `new-${index}`}
+                            className="edit-addon-row"
+                          >
+                            <input
+                              type="text"
+                              placeholder="Add-on title"
+                              value={addOn.title}
+                              onChange={(e) =>
+                                handleAddOnChange(index, "title", e.target.value)
+                              }
+                            />
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="Price"
+                              value={addOn.price}
+                              onChange={(e) =>
+                                handleAddOnChange(index, "price", e.target.value)
+                              }
+                            />
+                            <textarea
+                              placeholder="Description (optional)"
+                              value={addOn.description}
+                              onChange={(e) =>
+                                handleAddOnChange(index, "description", e.target.value)
+                              }
+                            />
+                            <button
+                              type="button"
+                              className="remove-addon"
+                              onClick={() => removeAddOn(index)}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
                     <div className="edit-actions">
                       <button onClick={() => saveEdit(service._id)}>Save</button>
-                      <button onClick={() => setEditing(null)}>Cancel</button>
+                      <button onClick={resetEditState}>Cancel</button>
                     </div>
                   </div>
                 ) : (
                   <>
                     <div className="service-heading">
                       <h3>{service.title}</h3>
-                      <p className="price">${service.price}</p>
+                      <p className="price">{formatCurrency(service.price)}</p>
                     </div>
                     <p className="category">{service.category}</p>
                     <p className="desc">{service.description}</p>
+
+                    {service.addOns?.length > 0 && (
+                      <div className="addons-display">
+                        <h4>Add-ons</h4>
+                        <ul>
+                          {service.addOns.map((addOn) => (
+                            <li key={addOn._id}>
+                              <div className="addon-header">
+                                <span className="addon-title">{addOn.title}</span>
+                                <span className="addon-price">{formatCurrency(addOn.price)}</span>
+                              </div>
+                              {addOn.description && (
+                                <p className="addon-description">{addOn.description}</p>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
                     <div className="actions">
                       <button onClick={() => startEdit(service)}>Edit</button>
