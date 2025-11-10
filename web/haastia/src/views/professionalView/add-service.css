@@ -197,6 +197,97 @@
   color: #6b7280;
 }
 
+.addons-section {
+  padding-top: 8px;
+  border-top: 1px solid rgba(148, 163, 184, 0.22);
+  gap: 16px;
+}
+
+.addons-header {
+  display: grid;
+  gap: 6px;
+}
+
+.addons-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.addons-list {
+  display: grid;
+  gap: 16px;
+}
+
+.addon-card {
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.9);
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+}
+
+.addon-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.addon-label {
+  margin: 0;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.btn-remove-addon {
+  border: none;
+  background: transparent;
+  color: #ef4444;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.15s ease;
+}
+
+.btn-remove-addon:hover {
+  color: #b91c1c;
+}
+
+.btn-remove-addon:focus {
+  outline: none;
+  color: #991b1b;
+}
+
+.addon-fields {
+  display: grid;
+  gap: 12px;
+}
+
+.addon-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.addon-field {
+  display: grid;
+  gap: 8px;
+}
+
+.add-addon-btn {
+  width: fit-content;
+}
+
+.add-addon-btn:hover {
+  transform: translateY(-1px);
+}
+
+.add-addon-btn:active {
+  transform: translateY(0);
+}
+
 .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -390,5 +481,9 @@
 
   .btn-primary {
     width: 100%;
+  }
+
+  .addon-row {
+    grid-template-columns: 1fr;
   }
 }
