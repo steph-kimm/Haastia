@@ -8,6 +8,7 @@ const AddNewServiceForm = ({ onSuccess }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [deposit, setDeposit] = useState("");
   const [category, setCategory] = useState("");
   const [duration, setDuration] = useState("");
   const [images, setImages] = useState([]);
@@ -99,10 +100,32 @@ const AddNewServiceForm = ({ onSuccess }) => {
           };
         });
 
+      const priceValue = parseFloat(price);
+      const depositValue = deposit !== "" ? parseFloat(deposit) : 0;
+
+      if (Number.isNaN(priceValue) || priceValue < 0) {
+        alert("Price must be a valid number.");
+        setLoading(false);
+        return;
+      }
+
+      if (deposit !== "" && (Number.isNaN(depositValue) || depositValue < 0)) {
+        alert("Deposit must be zero or a positive number.");
+        setLoading(false);
+        return;
+      }
+
+      if (depositValue > priceValue) {
+        alert("Deposit cannot exceed the total price.");
+        setLoading(false);
+        return;
+      }
+
       const serviceData = {
         title,
         description,
-        price: price ? parseFloat(price) : undefined,
+        price: priceValue,
+        deposit: depositValue,
         category,
         duration: duration ? parseInt(duration, 10) : undefined,
         images,
@@ -120,6 +143,7 @@ const AddNewServiceForm = ({ onSuccess }) => {
       setTitle("");
       setDescription("");
       setPrice("");
+      setDeposit("");
       setCategory("");
       setDuration("");
       setImages([]);
@@ -197,6 +221,26 @@ const AddNewServiceForm = ({ onSuccess }) => {
                 />
               </div>
               <p className="field-hint">Clients see this price before they book.</p>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="service-deposit">Deposit</label>
+              <div className="input-shell with-prefix">
+                <span className="input-prefix" aria-hidden="true">
+                  $
+                </span>
+                <input
+                  id="service-deposit"
+                  type="number"
+                  min="0"
+                  max="1000"
+                  step="0.01"
+                  value={deposit}
+                  onChange={(e) => setDeposit(e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+              <p className="field-hint">Optionally require a deposit to secure bookings.</p>
             </div>
 
             <div className="form-group">

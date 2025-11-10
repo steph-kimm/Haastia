@@ -9,17 +9,24 @@ const ProfessionalRouteGuard = ({ children }) => {
   const { currentView } = useView();
   const navigate = useNavigate();
 
+  const isLoading = currentView === null;
   const isAllowed = ALLOWED_VIEWS.has(currentView);
 
   useEffect(() => {
-    if (!isAllowed) {
-      const timeout = setTimeout(() => {
-        navigate("/");
-      }, 2000);
-
-      return () => clearTimeout(timeout);
+    if (isLoading || isAllowed) {
+      return;
     }
-  }, [isAllowed, navigate]);
+
+    const timeout = setTimeout(() => {
+      navigate("/");
+    }, 2000);
+
+    return () => clearTimeout(timeout);
+  }, [isAllowed, isLoading, navigate]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   if (isAllowed) {
     return children ?? null;

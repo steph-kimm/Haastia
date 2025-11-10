@@ -127,7 +127,7 @@ export const getCustomerSummary = async (req, res) => {
     }
 
     const bookings = await Booking.find(match)
-      .populate("service", "title duration price")
+      .populate("service", "title duration price deposit")
       .sort({ date: -1 })
       .lean();
 

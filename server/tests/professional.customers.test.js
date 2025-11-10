@@ -54,6 +54,7 @@ beforeEach(async () => {
     title: "Cleaning",
     description: "Standard cleaning",
     price: 100,
+    deposit: 25,
     duration: 60,
   });
 
@@ -101,6 +102,7 @@ describe("Professional customer routes", () => {
 
     expect(summary.body.customer._id.toString()).toBe(customer._id.toString());
     expect(summary.body.notes).toHaveLength(0);
+    expect(summary.body.bookings[0].service.deposit).toBe(25);
 
     const createRes = await request(app)
       .post(`/api/professional/me/customers/${customer._id}/notes`)
