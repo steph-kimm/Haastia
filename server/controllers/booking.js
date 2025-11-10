@@ -180,7 +180,7 @@ export const getBookingsForProfessional = async (req, res) => {
   try {
     const bookings = await Booking.find({ professional: req.params.id })
       .populate("customer", "name email")
-      .populate("service", "title price")
+      .populate("service", "title price deposit")
       .sort({ createdAt: -1 });
 
     res.json(bookings);
@@ -195,7 +195,7 @@ export const getBookingsForCustomer = async (req, res) => {
   try {
     const bookings = await Booking.find({ customer: req.params.id })
       .populate("professional", "name location")
-      .populate("service", "title price")
+      .populate("service", "title price deposit")
       .sort({ createdAt: -1 });
 
     res.json(bookings);
