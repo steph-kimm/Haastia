@@ -10,6 +10,7 @@ const ProfessionalNavbar = () => {
   const auth = getValidToken();
   const user = auth?.payload ?? null;
   const userId = user?._id || user?.id || null;
+  const userRole = user?.role || null;
 
   useEffect(() => {
     if (!auth) {
@@ -39,6 +40,13 @@ const ProfessionalNavbar = () => {
           <li><NavLink to="/services" className="pro-link">My Services</NavLink></li>
           <li><NavLink to="/availability" className="pro-link">Availability</NavLink></li>
           <li><NavLink to="/bookings" className="pro-link">Appointments</NavLink></li>
+          {userRole === "professional" && (
+            <li>
+              <NavLink to="/customers" className="pro-link">
+                Customers
+              </NavLink>
+            </li>
+          )}
 
           {/* Only show if we have a valid userId */}
           {userId && (
