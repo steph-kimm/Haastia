@@ -1,23 +1,51 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { getValidToken } from '../utils/auth';
 
 // Create a Context for the view
 const ViewContext = createContext();
 
 // Create a provider component
 export const ViewProvider = ({ children }) => {
-  const [currentView, setCurrentView] = useState('customer'); // default view
-
-  // ✅ Load saved view from localStorage when app starts
-  useEffect(() => {
-    const savedView = localStorage.getItem('currentView');
-    if (savedView) {
-      setCurrentView(savedView);
+  const [currentView, setCurrentView] = useState(() => {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return null;
     }
-  }, []);
+
+    const savedView = window.localStorage.getItem('currentView');
+    if (savedView) {
+      return savedView;
+    }
+
+    const auth = getValidToken();
+    const role = auth?.payload?.role;
+
+    if (role === 'professional') {
+      return 'professional';
+    }
+
+    if (role === 'admin') {
+      return 'admin';
+    }
+
+    if (role === 'customer') {
+      return 'customer';
+    }
+
+    return null;
+  });
 
   // ✅ Save view to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('currentView', currentView);
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return;
+    }
+
+    if (currentView === null) {
+      window.localStorage.removeItem('currentView');
+      return;
+    }
+
+    window.localStorage.setItem('currentView', currentView);
   }, [currentView]);
 
   return (
