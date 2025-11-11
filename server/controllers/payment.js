@@ -149,3 +149,25 @@ export const createCheckoutSession = async (req, res) => {
     return res.status(500).json({ error: "Unable to create checkout session" });
   }
 };
+
+export const createExpressAccountLink = async (req, res) => {
+  try {
+    //  Create a connected account for this professional
+    const account = await stripe.accounts.create({ type: "express" });
+
+    // (Save account.id to their User document)
+    // user.stripeAccountId = account.id; await user.save();
+
+    // Generate the onboarding link
+    const accountLink = await stripe.accountLinks.create({
+      account: account.id,
+      refresh_url: "http://localhost:3000/reauth",
+      return_url: "http://localhost:3000/dashboard",
+      type: "account_onboarding",
+    });
+
+    res.json({ url: accountLink.url });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
