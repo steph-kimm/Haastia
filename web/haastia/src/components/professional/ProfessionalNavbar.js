@@ -42,6 +42,13 @@ const ProfessionalNavbar = () => {
           <li><NavLink to="/bookings" className="pro-link">Appointments</NavLink></li>
           {userRole === "professional" && (
             <li>
+              <NavLink to="/payments/connect" className="pro-link">
+                Payouts
+              </NavLink>
+            </li>
+          )}
+          {userRole === "professional" && (
+            <li>
               <NavLink to="/customers" className="pro-link">
                 Customers
               </NavLink>
