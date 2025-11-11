@@ -14,4 +14,17 @@ EASY/ SMALL:
 - Set Up Jak's laptop so that he can see this on it AND write down the steps you took so that he could see it.
 
 
-How to get the user infromation: 
+How to get the user infromation:
+
+## Stripe environment variables
+
+The backend expects the following Stripe Connect URLs to be configured so that
+onboarding and dashboard redirects can be generated dynamically:
+
+- `STRIPE_CONNECT_REFRESH_URL` – where Stripe should send professionals if they
+  abandon onboarding and need to restart the flow.
+- `STRIPE_CONNECT_RETURN_URL` – the destination after onboarding completes or
+  when accessing the Stripe dashboard via a login link.
+
+Set these values to the frontend routes that handle the corresponding flows for
+each deployment environment instead of relying on hard-coded localhost URLs.
