@@ -54,6 +54,37 @@ const userSchema = new Schema(
             type: Number,
             default: 0,
         },
+        stripeAccountId: {
+            type: String,
+            index: true,
+        },
+        stripeAccountCreatedAt: {
+            type: Date,
+        },
+        stripeAccountUpdatedAt: {
+            type: Date,
+        },
+        stripeConnectStatus: {
+            detailsSubmitted: {
+                type: Boolean,
+                default: false,
+            },
+            chargesEnabled: {
+                type: Boolean,
+                default: false,
+            },
+            payoutsEnabled: {
+                type: Boolean,
+                default: false,
+            },
+            requirementsDue: {
+                type: [String],
+                default: [],
+            },
+            lastCheckedAt: {
+                type: Date,
+            },
+        },
         isSubscribed: {
             type: Boolean,
             default: false, // Flipped to true once Stripe confirms payment completion
