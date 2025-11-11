@@ -101,17 +101,17 @@ const ProfessionalNavbar = () => {
           <ul className="pro-nav-links">
             <li>
               <NavLink to="/professional-home" className={linkClassName}>
-                Dashboard
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/add-service" className={linkClassName}>
-                Add Service
+                Calendar
               </NavLink>
             </li>
             <li>
               <NavLink to="/services" className={linkClassName}>
                 My Services
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/add-service" className={linkClassName}>
+                Add Service
               </NavLink>
             </li>
             <li>
