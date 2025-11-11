@@ -6,6 +6,7 @@ import AdminRoutes from "./AdminRoutes";
 import Navbar from "../components/Navbar";
 import ProfessionalNavbar from "../components/professional/ProfessionalNavbar";
 import { getValidToken } from "../utils/auth";
+import "./AppRoutes.css";
 
 function AppRoutes() {
   const { currentView, setCurrentView } = useView();
@@ -37,10 +38,12 @@ function AppRoutes() {
 
   if (currentView === "professional") {
     return (
-      <>
+      <div className="professional-app-shell">
         <ProfessionalNavbar />
-        <ProfessionalRoutes />
-      </>
+        <main className="professional-app-shell__content">
+          <ProfessionalRoutes />
+        </main>
+      </div>
     );
   }
 
