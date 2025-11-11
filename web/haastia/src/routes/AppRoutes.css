@@ -1,0 +1,34 @@
+.professional-app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: #f5f7fb;
+}
+
+.professional-app-shell__content {
+  flex: 1;
+  min-width: 0;
+  padding: 2.5rem 3rem;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1200px) {
+  .professional-app-shell__content {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .professional-app-shell {
+    flex-direction: column;
+  }
+
+  .professional-app-shell__content {
+    padding: 1.5rem 1.25rem 2.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .professional-app-shell__content {
+    padding: 1.25rem 1rem 2.5rem;
+  }
+}
