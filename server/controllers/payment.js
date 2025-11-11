@@ -149,3 +149,176 @@ export const createCheckoutSession = async (req, res) => {
     return res.status(500).json({ error: "Unable to create checkout session" });
   }
 };
+
+const ensureProfessionalUser = async (req, res) => {
+  const userId = req.user?._id;
+  if (!userId) {
+    return { errorResponse: res.status(401).json({ error: "Authentication required" }) };
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return { errorResponse: res.status(404).json({ error: "User not found" }) };
+  }
+
+  if (user.role !== "professional") {
+    return {
+      errorResponse: res
+        .status(403)
+        .json({ error: "Stripe Connect is only available to professionals" }),
+    };
+  }
+
+  return { user };
+};
+
+const ensureAccountCapabilities = async (accountId) => {
+  const desiredCapabilities = {
+    card_payments: { requested: true },
+    transfers: { requested: true },
+  };
+
+  await stripe.accounts.update(accountId, {
+    capabilities: desiredCapabilities,
+  });
+
+  return stripe.accounts.retrieve(accountId);
+};
+
+const buildConnectUrls = () => {
+  const refreshUrl = process.env.STRIPE_CONNECT_REFRESH_URL;
+  const returnUrl = process.env.STRIPE_CONNECT_RETURN_URL;
+
+  if (!refreshUrl || !returnUrl) {
+    throw new Error("Stripe Connect URLs are not configured");
+  }
+
+  return { refreshUrl, returnUrl };
+};
+
+const mapAccountToStatus = (account) => ({
+  detailsSubmitted: Boolean(account?.details_submitted),
+  chargesEnabled: Boolean(account?.charges_enabled),
+  payoutsEnabled: Boolean(account?.payouts_enabled),
+  requirementsDue: account?.requirements?.currently_due || [],
+  lastCheckedAt: new Date(),
+});
+
+export const createExpressAccountLink = async (req, res) => {
+  try {
+    const { user, errorResponse } = await ensureProfessionalUser(req, res);
+    if (!user) return errorResponse;
+
+    const { refreshUrl, returnUrl } = buildConnectUrls();
+
+    let account;
+    if (user.stripeAccountId) {
+      try {
+        account = await stripe.accounts.retrieve(user.stripeAccountId);
+      } catch (retrieveError) {
+        if (retrieveError?.statusCode !== 404) {
+          throw retrieveError;
+        }
+      }
+    }
+
+    if (!account) {
+      account = await stripe.accounts.create({
+        type: "express",
+        email: user.email,
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
+      });
+      user.stripeAccountId = account.id;
+      user.stripeAccountCreatedAt = new Date();
+    } else {
+      account = await ensureAccountCapabilities(account.id);
+    }
+
+    user.stripeAccountUpdatedAt = new Date();
+    user.stripeConnectStatus = mapAccountToStatus(account);
+    await user.save();
+
+    const accountLink = await stripe.accountLinks.create({
+      account: account.id,
+      refresh_url: refreshUrl,
+      return_url: returnUrl,
+      type: "account_onboarding",
+    });
+
+    return res.json({
+      url: accountLink.url,
+      accountId: account.id,
+    });
+  } catch (err) {
+    console.error("Failed to create Stripe Connect onboarding link", err);
+    return res.status(500).json({ error: "Unable to create Stripe Connect link" });
+  }
+};
+
+export const getStripeAccountStatus = async (req, res) => {
+  try {
+    const { user, errorResponse } = await ensureProfessionalUser(req, res);
+    if (!user) return errorResponse;
+
+    if (!user.stripeAccountId) {
+      return res.status(404).json({ error: "Stripe account not linked" });
+    }
+
+    const account = await stripe.accounts.retrieve(user.stripeAccountId);
+    const status = mapAccountToStatus(account);
+
+    user.stripeConnectStatus = status;
+    user.stripeAccountUpdatedAt = new Date();
+    await user.save();
+
+    return res.json({
+      accountId: account.id,
+      status,
+      capabilities: account.capabilities,
+      detailsSubmitted: account.details_submitted,
+      chargesEnabled: account.charges_enabled,
+      payoutsEnabled: account.payouts_enabled,
+      requirementsDue: account.requirements?.currently_due || [],
+    });
+  } catch (err) {
+    console.error("Failed to retrieve Stripe account status", err);
+    return res.status(500).json({ error: "Unable to retrieve Stripe account status" });
+  }
+};
+
+export const createStripeLoginLink = async (req, res) => {
+  try {
+    const { user, errorResponse } = await ensureProfessionalUser(req, res);
+    if (!user) return errorResponse;
+
+    if (!user.stripeAccountId) {
+      return res.status(404).json({ error: "Stripe account not linked" });
+    }
+
+    const account = await stripe.accounts.retrieve(user.stripeAccountId);
+
+    const loginLinkParams = {};
+    if (process.env.STRIPE_CONNECT_RETURN_URL) {
+      loginLinkParams.redirect_url = process.env.STRIPE_CONNECT_RETURN_URL;
+    }
+
+    const loginLink = await stripe.accounts.createLoginLink(
+      account.id,
+      loginLinkParams,
+    );
+
+    user.stripeAccountUpdatedAt = new Date();
+    await user.save();
+
+    return res.json({
+      url: loginLink.url,
+      expiresAt: loginLink.expires_at,
+    });
+  } catch (err) {
+    console.error("Failed to create Stripe login link", err);
+    return res.status(500).json({ error: "Unable to create Stripe login link" });
+  }
+};
