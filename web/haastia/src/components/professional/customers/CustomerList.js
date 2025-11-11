@@ -51,6 +51,9 @@ const CustomerList = ({
   onSelect,
   loading,
   error,
+  searchTerm,
+  onSearchTermChange,
+  hasAnyCustomers,
 }) => {
   if (loading) {
     return (
@@ -70,19 +73,8 @@ const CustomerList = ({
     );
   }
 
-  if (!customers.length) {
-    return (
-      <aside className="customers-sidebar">
-        <div className="customers-sidebar__state">
-          <h3>No customers yet</h3>
-          <p>
-            Once clients book with you, they will appear here for quick access to
-            their history and notes.
-          </p>
-        </div>
-      </aside>
-    );
-  }
+  const anyCustomers = hasAnyCustomers ?? customers.length > 0;
+  const hasCustomers = customers.length > 0;
 
   return (
     <aside className="customers-sidebar">
@@ -90,43 +82,74 @@ const CustomerList = ({
         <h2>Your customers</h2>
         <p>Review recent activity and jump into client details.</p>
       </header>
-      <ul className="customer-list">
-        {customers.map((entry) => {
-          const id = entry.customerId || entry.customerKey;
-          const isActive = id === activeCustomerId;
-          const subtitle = renderSubtitle(entry);
+      <div className="customers-sidebar__search">
+        <span className="customers-sidebar__search-icon" aria-hidden="true">
+          🔍
+        </span>
+        <input
+          type="search"
+          value={searchTerm || ""}
+          onChange={(event) => onSearchTermChange?.(event.target.value)}
+          placeholder="Search by name, email, or phone"
+          aria-label="Search customers"
+        />
+      </div>
+      {hasCustomers ? (
+        <ul className="customer-list">
+          {customers.map((entry) => {
+            const id = entry.customerId || entry.customerKey;
+            const isActive = id === activeCustomerId;
+            const subtitle = renderSubtitle(entry);
 
-          return (
-            <li
-              key={id}
-              className={`customer-list__item ${
-                isActive ? "customer-list__item--active" : ""
-              }`}
-            >
-              <button
-                type="button"
-                className="customer-list__button"
-                onClick={() => onSelect(id)}
+            return (
+              <li
+                key={id}
+                className={`customer-list__item ${
+                  isActive ? "customer-list__item--active" : ""
+                }`}
               >
-                <div className="customer-list__primary">{renderName(entry)}</div>
-                {subtitle ? (
-                  <div className="customer-list__secondary">{subtitle}</div>
-                ) : null}
-                <div className="customer-list__meta">
-                  <span className="customer-list__badge">
-                    {entry.totalBookings} booking{entry.totalBookings === 1 ? "" : "s"}
-                  </span>
-                  {entry.lastBookingDate ? (
-                    <span className="customer-list__date">
-                      Last: {formatDate(entry.lastBookingDate)}
-                    </span>
+                <button
+                  type="button"
+                  className="customer-list__button"
+                  onClick={() => onSelect(id)}
+                >
+                  <div className="customer-list__primary">{renderName(entry)}</div>
+                  {subtitle ? (
+                    <div className="customer-list__secondary">{subtitle}</div>
                   ) : null}
-                </div>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+                  <div className="customer-list__meta">
+                    <span className="customer-list__badge">
+                      {entry.totalBookings} booking{entry.totalBookings === 1 ? "" : "s"}
+                    </span>
+                    {entry.lastBookingDate ? (
+                      <span className="customer-list__date">
+                        Last: {formatDate(entry.lastBookingDate)}
+                      </span>
+                    ) : null}
+                  </div>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <div className="customers-sidebar__state customers-sidebar__state--empty">
+          {anyCustomers ? (
+            <>
+              <h3>No matches found</h3>
+              <p>Try a different name, email, or phone number.</p>
+            </>
+          ) : (
+            <>
+              <h3>No customers yet</h3>
+              <p>
+                Once clients book with you, they will appear here for quick access to
+                their history and notes.
+              </p>
+            </>
+          )}
+        </div>
+      )}
     </aside>
   );
 };

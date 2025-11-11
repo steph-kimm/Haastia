@@ -29,6 +29,40 @@
   font-size: 0.95rem;
 }
 
+.customers-sidebar__search {
+  margin-top: 1rem;
+  position: relative;
+}
+
+.customers-sidebar__search input {
+  width: 100%;
+  padding: 0.65rem 0.75rem 0.65rem 2.5rem;
+  border-radius: 999px;
+  border: 1px solid #d9e2ec;
+  background: #f8fafc;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease,
+    background-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.customers-sidebar__search input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  background: #ffffff;
+}
+
+.customers-sidebar__search-icon {
+  position: absolute;
+  top: 50%;
+  left: 0.95rem;
+  transform: translateY(-50%);
+  color: #5f6b7a;
+  pointer-events: none;
+  font-size: 1rem;
+}
+
 .customers-sidebar__state {
   text-align: center;
   color: #5f6b7a;
@@ -48,6 +82,13 @@
 
 .customers-sidebar__state--error {
   color: #d14343;
+}
+
+.customers-sidebar__state--empty {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(16, 42, 67, 0.03);
+  border-radius: 12px;
 }
 
 .customer-list {

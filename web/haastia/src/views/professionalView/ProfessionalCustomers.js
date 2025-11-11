@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -29,6 +29,29 @@ const ProfessionalCustomers = () => {
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryError, setSummaryError] = useState(null);
   const [notesRequest, setNotesRequest] = useState({ busy: false, error: null });
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredCustomers = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    if (!query) {
+      return customersState.items;
+    }
+
+    return customersState.items.filter((entry) => {
+      const values = [
+        entry.customer?.name,
+        entry.customer?.email,
+        entry.customer?.phone,
+        entry.guestInfo?.name,
+        entry.guestInfo?.email,
+        entry.guestInfo?.phone,
+      ];
+
+      return values.some((value) =>
+        typeof value === "string" ? value.toLowerCase().includes(query) : false
+      );
+    });
+  }, [customersState.items, searchTerm]);
 
   useEffect(() => {
     let isActive = true;
@@ -291,11 +314,14 @@ const ProfessionalCustomers = () => {
   return (
     <div className="professional-customers-layout">
       <CustomerList
-        customers={customersState.items}
+        customers={filteredCustomers}
         activeCustomerId={customerId}
         onSelect={handleSelectCustomer}
         loading={customersState.loading}
         error={customersState.error}
+        searchTerm={searchTerm}
+        onSearchTermChange={setSearchTerm}
+        hasAnyCustomers={customersState.items.length > 0}
       />
       <div className="customers-content">
         <CustomerDetail
