@@ -2,9 +2,9 @@
 .services-page {
   min-height: 100vh;
   padding: 40px 0 64px;
-  background: radial-gradient(circle at 10% 20%, rgba(157, 217, 30, 0.18), transparent 55%),
+  /* background: radial-gradient(circle at 10% 20%, rgba(157, 217, 30, 0.18), transparent 55%),
     radial-gradient(circle at 90% 0%, rgba(104, 51, 255, 0.18), transparent 60%),
-    #f5f7fb;
+    #f5f7fb; */
   font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
 

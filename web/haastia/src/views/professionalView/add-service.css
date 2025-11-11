@@ -1,8 +1,8 @@
 .add-svc-page {
   min-height: 100vh;
   padding: 64px 16px 96px;
-  background: radial-gradient(circle at top left, rgba(157, 217, 30, 0.18), transparent 60%),
-    radial-gradient(circle at top right, rgba(79, 70, 229, 0.14), transparent 55%), #f5f7fb;
+  /* background: radial-gradient(circle at top left, rgba(157, 217, 30, 0.18), transparent 60%),
+    radial-gradient(circle at top right, rgba(79, 70, 229, 0.14), transparent 55%), #f5f7fb; */
 }
 
 .page-inner {
