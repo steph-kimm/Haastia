@@ -159,7 +159,7 @@ const ProfessionalNavbar = () => {
 
           <div className="pro-navbar__actions">
             <button type="button" onClick={switchToCustomer}>
-              Switch to Customer
+              Exit Dashboard
             </button>
             <button type="button" onClick={handleLogout} className="pro-navbar__logout">
               Logout
