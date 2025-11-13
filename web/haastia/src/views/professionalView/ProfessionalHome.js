@@ -8,7 +8,7 @@ const ProfessionalHome = () => {
     <div className="pro-home">
       <header className="pro-home-header">
         <div>
-          <h1>Professional Dashboard</h1>
+          <h1>Calendar</h1>
           <p className="sub">Review upcoming appointments at a glance.</p>
         </div>
 
