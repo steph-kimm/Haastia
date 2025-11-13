@@ -1,110 +1,181 @@
 import React, { useState } from "react";
 import "./HelpPage.css";
 
-const SECTIONS = [
+const FAQ_GROUPS = [
   {
-    title: "For Professionals",
+    title: "Getting started",
     items: [
-      { q: "How do I create a professional account?", a: "Sign up → choose “Professional.” Complete business details, add services, set pricing, and connect payouts via Stripe." },
-      { q: "How do I set/edit my availability?", a: "Dashboard → Availability. Add multiple shifts per day, mark full-day availability, or block specific time ranges." },
-      { q: "How do I manage bookings?", a: "Dashboard → Appointments. Open a booking to approve/confirm, reschedule, or cancel. Clients get automatic email updates." },
-      { q: "How do payments/payouts work?", a: "All payments are processed by Stripe. After a completed appointment, payouts follow Stripe’s schedule to your connected account." },
-      { q: "How do subscriptions work?", a: "Professionals subscribe monthly. Free trial available. Manage/cancel anytime under Dashboard → Billing." },
-      { q: "How do I update services, photos, pricing?", a: "Dashboard → Services for service CRUD. Dashboard → Profile for photos, bio, business details, location." },
+      {
+        q: "How do I create a professional profile?",
+        a: "Select “Sign up” → choose Professional → add your business details, service categories, pricing, and photos. Once you publish, your profile is searchable to all Haastia clients.",
+      },
+      {
+        q: "What should I set up first?",
+        a: "We recommend finishing your profile, connecting Stripe for payouts, and configuring your weekly availability. Those three steps let you accept bookings right away.",
+      },
+      {
+        q: "Can multiple team members log in?",
+        a: "Yes. Invite teammates from Dashboard → Settings → Team. Each teammate gets their own login and permission level for calendar, messaging, and payouts.",
+      },
     ],
   },
   {
-    title: "For Clients",
+    title: "Bookings & payments",
     items: [
-      { q: "How do I book?", a: "Open a professional’s page, pick a service, choose a time, and confirm. You’ll receive an email confirmation." },
-      { q: "Can I reschedule or cancel?", a: "Yes—use the link in your confirmation email or log in → Bookings. Policies depend on each professional." },
-      { q: "Do I need an account?", a: "Booking as a guest is allowed. An account makes rebooking faster and keeps all your appointments in one place." },
-      { q: "When am I charged?", a: "Depends on the pro’s policy (at booking or completion). All transactions are encrypted and handled by Stripe." },
+      {
+        q: "How do clients book my services?",
+        a: "Clients pick a service on your profile, choose an available time, and confirm with their email. They receive instant confirmation plus reminders before the appointment.",
+      },
+      {
+        q: "When are clients charged?",
+        a: "You control the policy. Charge at booking for deposits or in full after the visit. All payments are processed securely through Stripe and deposited to your connected account.",
+      },
+      {
+        q: "Can clients reschedule or cancel?",
+        a: "Yes. They can manage appointments from their confirmation email or by logging into their Haastia account. Your cancellation window and fees apply automatically.",
+      },
+      {
+        q: "How do refunds work?",
+        a: "Initiate refunds from Dashboard → Payments. Full or partial refunds are supported, and clients receive an email notification when the refund is issued.",
+      },
     ],
   },
   {
-    title: "General & Technical",
+    title: "Availability & scheduling",
     items: [
-      { q: "How do I reset my password?", a: "Click “Forgot Password?” on login, then follow instructions sent to your email." },
-      { q: "Is my data secure?", a: "Yes—encryption in transit and at rest, secure auth, and Stripe for PCI-compliant payments. No raw card data stored." },
-      { q: "I didn’t receive an email", a: "Check spam/promotions. Add team.haastia@gmail.com to contacts. Try resending from the relevant screen." },
-      { q: "Supported browsers/devices", a: "Modern Chrome, Edge, Safari, Firefox. Fully responsive on mobile and desktop. Update your browser if needed." },
-      { q: "Roadmap", a: "We’re building marketing tools, analytics, and loyalty features for pros. Suggestions are welcome via support." },
+      {
+        q: "Where do I manage my availability?",
+        a: "Open Dashboard → Availability. Set repeating weekly hours, add one-off openings, or block time for personal events from the same screen.",
+      },
+      {
+        q: "Can I sync with Google or Outlook?",
+        a: "Calendar syncing is available under Dashboard → Integrations. Connect Google Calendar or Outlook to automatically block off conflicts.",
+      },
+      {
+        q: "How are reminders sent?",
+        a: "Email reminders go out 24 hours before an appointment. SMS reminders are optional and can be turned on in Settings → Notifications.",
+      },
+    ],
+  },
+  {
+    title: "Troubleshooting & account",
+    items: [
+      {
+        q: "I didn’t receive a verification or booking email.",
+        a: "Check spam or promotions folders, then add team.haastia@gmail.com to your contacts. You can resend from the relevant page or by re-saving your email address.",
+      },
+      {
+        q: "How do I reset my password?",
+        a: "From the login screen, choose “Forgot password?” and follow the link emailed to you. Password reset links expire after one hour for security.",
+      },
+      {
+        q: "Is my payment data secure?",
+        a: "Yes. Haastia uses Stripe to handle all card information. We never store raw card numbers, and all traffic is encrypted in transit and at rest.",
+      },
+      {
+        q: "How do I suggest a feature?",
+        a: "We love feedback! Email team.haastia@gmail.com with “Feature request” in the subject and include as many details as possible so we can review with our product team.",
+      },
     ],
   },
 ];
 
 export default function HelpPage() {
-  const [open, setOpen] = useState(null);
+  const [openId, setOpenId] = useState(null);
 
-  const toggle = (id) => setOpen((cur) => (cur === id ? null : id));
+  const toggle = (id) => setOpenId((current) => (current === id ? null : id));
 
-  // NOTE: No form, no inputs — just a mailto link with subject preset to "Support:"
-  const mailHref =
-    "mailto:team.haastia@gmail.com?subject=" + encodeURIComponent("Support:");
-
-  let idCounter = 0;
+  let runningId = 0;
 
   return (
-    <main className="hp-wrap">
-      <header className="hp-hero">
-        <h1>Help Center</h1>
-        <p className="hp-sub">
-          Quick answers for professionals and clients. If you still need help, reach out below.
-        </p>
+    <main className="help-page">
+      <header className="help-header">
+        <section className="help-intro">
+          <p className="eyebrow">Help Center</p>
+          <h1>Answers for every step of the Haastia journey</h1>
+          <p className="sub">
+            Whether you’re setting up a professional profile or booking your next visit, these
+            quick answers cover the questions we hear most often from the community.
+          </p>
+          <ul className="help-points">
+            <li>Step-by-step guidance for professionals and clients.</li>
+            <li>Tips for payments, scheduling, and integrations.</li>
+            <li>Direct contact with the Haastia support team when you need it.</li>
+          </ul>
+        </section>
+
+        <aside className="help-support-card" aria-labelledby="support-heading">
+          <h2 id="support-heading">Need a hand from a human?</h2>
+          <p>
+            Our support specialists monitor inboxes throughout the business day. Share screenshots or
+            booking links so we can troubleshoot quickly.
+          </p>
+          <a className="help-contact" href="mailto:team.haastia@gmail.com">
+            team.haastia@gmail.com
+          </a>
+          <p className="help-meta">Average response time: under one business day.</p>
+        </aside>
       </header>
 
-      <section className="hp-grid" aria-label="Help topics">
-        {SECTIONS.map((sec, sIdx) => (
-          <div className="hp-card" key={sIdx}>
-            <h2 className="hp-card-title">{sec.title}</h2>
-            <div className="hp-accordion">
-              {sec.items.map((item) => {
-                const id = `acc-${idCounter++}`;
-                const isOpen = open === id;
-                return (
-                  <article className={`hp-acc ${isOpen ? "open" : ""}`} key={id}>
-                    <h3 className="hp-acc-h">
-                      <button
-                        className="hp-acc-btn"
-                        onClick={() => toggle(id)}
-                        aria-expanded={isOpen}
-                        aria-controls={`${id}-panel`}
-                        id={`${id}-button`}
+      <section className="faq-section" aria-label="Frequently asked questions">
+        <div className="faq-header">
+          <h2>Popular questions</h2>
+          <p>
+            Explore curated answers for the topics customers and professionals ask most. Tap any
+            question to view a concise walkthrough.
+          </p>
+        </div>
+
+        <div className="faq-grid">
+          {FAQ_GROUPS.map((group, groupIndex) => (
+            <div className="faq-group" key={group.title}>
+              <h3>{group.title}</h3>
+              <div className="faq-list">
+                {group.items.map((item) => {
+                  const id = `faq-${runningId++}`;
+                  const isOpen = openId === id;
+
+                  return (
+                    <article className={`faq-item ${isOpen ? "open" : ""}`} key={id}>
+                      <h4>
+                        <button
+                          type="button"
+                          className="faq-toggle"
+                          onClick={() => toggle(id)}
+                          aria-expanded={isOpen}
+                          aria-controls={`${id}-panel`}
+                          id={`${id}-button`}
+                        >
+                          <span className="faq-question">{item.q}</span>
+                          <span className="faq-icon" aria-hidden="true" />
+                        </button>
+                      </h4>
+                      <div
+                        id={`${id}-panel`}
+                        role="region"
+                        aria-labelledby={`${id}-button`}
+                        className="faq-panel"
+                        style={{ maxHeight: isOpen ? "320px" : 0 }}
                       >
-                        <span className="hp-q">{item.q}</span>
-                        <span className="hp-icon" aria-hidden="true" />
-                      </button>
-                    </h3>
-                    <div
-                      id={`${id}-panel`}
-                      role="region"
-                      aria-labelledby={`${id}-button`}
-                      className="hp-acc-panel"
-                      style={{ maxHeight: isOpen ? "320px" : 0 }}
-                    >
-                      <p className="hp-a">{item.a}</p>
-                    </div>
-                  </article>
-                );
-              })}
+                        <p>{item.a}</p>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </section>
 
-      <footer className="hp-support" aria-labelledby="support-heading">
-        <h2 id="support-heading">Need more help?</h2>
+      <section className="help-resources">
+        <h2>Still looking for something else?</h2>
         <p>
-          If you need help, please contact customer service at{" "}
-          <a href="mailto:team.haastia@gmail.com">team.haastia@gmail.com</a>.
+          Reach out to <a href="mailto:team.haastia@gmail.com">team.haastia@gmail.com</a> with a
+          short summary of what you need. We can provide account reviews, fix booking issues, or
+          connect you with onboarding specialists for one-on-one guidance.
         </p>
-        <p className="hp-mailto">
-          <a className="hp-mailto-btn" href={mailHref}>
-            Email Support (subject: “Support:”)
-          </a>
-        </p>
-      </footer>
+      </section>
     </main>
   );
 }
