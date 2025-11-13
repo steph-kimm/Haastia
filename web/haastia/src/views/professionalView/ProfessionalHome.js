@@ -14,7 +14,7 @@ const ProfessionalHome = () => {
 
         {/* Optional quick actions */}
         <div className="quick-actions">
-          <a href="/add-service" className="qa-btn">+ Add Service</a>
+          <a href="/availability" className="qa-btn">Edit Availability</a>
           <a href="/bookings" className="qa-btn outline">View Requests</a>
         </div>
       </header>
