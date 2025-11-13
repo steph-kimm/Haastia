@@ -123,6 +123,64 @@ describe("Professional customer routes", () => {
     expect(updateRes.body.notes[0].content).toBe("Updated note");
   });
 
+  test("returns guest summary and allows guest note CRUD", async () => {
+    const guestEmail = "GuestUser@example.com";
+    const guestBooking = await Booking.create({
+      professional: professional._id,
+      service: service._id,
+      guestInfo: {
+        name: "Walk-in Guest",
+        email: guestEmail,
+        phone: "123-456-7890",
+      },
+      date: new Date("2023-02-01T12:00:00.000Z"),
+      timeSlot: { start: "12:00", end: "13:00" },
+      status: "completed",
+    });
+
+    expect(guestBooking).toBeTruthy();
+
+    const guestKey = `guest:email:${guestEmail.trim().toLowerCase()}`;
+
+    const summary = await request(app)
+      .get(`/api/professional/me/customers/${guestKey}`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .expect(200);
+
+    expect(summary.body.customer).toBeNull();
+    expect(summary.body.guestInfo.email.toLowerCase()).toBe(guestEmail.toLowerCase());
+    expect(summary.body.notes).toHaveLength(0);
+
+    const createRes = await request(app)
+      .post(`/api/professional/me/customers/${guestKey}/notes`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({ content: "Guest note" })
+      .expect(201);
+
+    expect(createRes.body.notes).toHaveLength(1);
+    expect(createRes.body.notes[0].guestKey).toBe(guestKey);
+
+    const [guestNote] = createRes.body.notes;
+
+    const updateRes = await request(app)
+      .put(`/api/professional/me/customers/${guestKey}/notes/${guestNote._id}`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .send({ content: "Updated guest note" })
+      .expect(200);
+
+    expect(updateRes.body.notes).toHaveLength(1);
+    expect(updateRes.body.notes[0].content).toBe("Updated guest note");
+    expect(updateRes.body.notes[0].guestKey).toBe(guestKey);
+
+    const refreshed = await request(app)
+      .get(`/api/professional/me/customers/${guestKey}`)
+      .set("Authorization", `Bearer ${authToken}`)
+      .expect(200);
+
+    expect(refreshed.body.notes).toHaveLength(1);
+    expect(refreshed.body.notes[0].content).toBe("Updated guest note");
+  });
+
   test("prevents customers from creating notes", async () => {
     await request(app)
       .post(`/api/professional/me/customers/${customer._id}/notes`)
