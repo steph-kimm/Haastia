@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 import './Auth.css';
 import { useView } from '../../../context/ViewContext';
 import { handleAuthSuccess } from '../../../utils/auth';
 import ProfessionalPaymentSection from './ProfessionalPaymentSection';
 
+const stripePromise = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY)
+  : null;
+
 const ProfessionalActivationNotice = ({ message, onRetry, isRetrying, error }) => (
   <div className="auth-card activation-notice">
     <h3>Finish activating your professional account</h3>
-    <p>{message || 'Complete checkout to unlock your professional profile.'}</p>
+    <p>{message || 'Complete checkout below to unlock your professional profile.'}</p>
     {error && <p className="helper-text error">{error}</p>}
     <button
       type="button"
@@ -17,10 +23,28 @@ const ProfessionalActivationNotice = ({ message, onRetry, isRetrying, error }) =
       onClick={onRetry}
       disabled={isRetrying}
     >
-      {isRetrying ? 'Launching checkout…' : 'Complete payment'}
+      {isRetrying ? 'Refreshing checkout...' : 'Reload checkout'}
     </button>
   </div>
 );
+
+const EmbeddedCheckoutCard = ({ clientSecret }) => {
+  if (!clientSecret || !stripePromise) {
+    return null;
+  }
+
+  return (
+    <section className="auth-card embedded-checkout-card">
+      <h3>Secure checkout</h3>
+      <p className="helper-text">
+        Enter your payment details below to activate your professional plan.
+      </p>
+      <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>
+        <EmbeddedCheckout />
+      </EmbeddedCheckoutProvider>
+    </section>
+  );
+};
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -33,6 +57,7 @@ const Signup = () => {
   const [pendingSignup, setPendingSignup] = useState(null);
   const [isLaunchingCheckout, setIsLaunchingCheckout] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
+  const [embeddedClientSecret, setEmbeddedClientSecret] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { setCurrentView } = useView();
@@ -54,6 +79,10 @@ const Signup = () => {
     try {
       setIsLaunchingCheckout(true);
       setCheckoutError('');
+      setEmbeddedClientSecret('');
+      if (!stripePromise) {
+        throw new Error('Stripe is not configured for embedded checkout.');
+      }
       const successUrl = `${window.location.origin}/signup/success`;
       const cancelUrl = `${window.location.origin}/signup/cancel`;
 
@@ -63,10 +92,10 @@ const Signup = () => {
         cancelUrl,
       });
 
-      const { url } = response.data || {};
-      if (!url) throw new Error('No checkout URL received');
+      const { embeddedClientSecret: clientSecret } = response.data || {};
+      if (!clientSecret) throw new Error('No embedded checkout client secret received');
 
-      window.location.href = url;
+      setEmbeddedClientSecret(clientSecret);
     } catch (error) {
       console.error('Error launching checkout:', error);
       const friendlyMessage =
@@ -212,18 +241,21 @@ const Signup = () => {
             </div>
 
             <button className="auth-submit" type="submit">
-              {isSubmitting ? 'Submitting…' : 'Create account'}
+              {isSubmitting ? 'Submitting...' : 'Create account'}
             </button>
           </form>
         </section>
 
         {pendingSignup && (
-          <ProfessionalActivationNotice
-            message={pendingSignup.message}
-            onRetry={() => launchCheckout(pendingSignup.id)}
-            isRetrying={isLaunchingCheckout}
-            error={checkoutError}
-          />
+          <>
+            <ProfessionalActivationNotice
+              message={pendingSignup.message}
+              onRetry={() => launchCheckout(pendingSignup.id)}
+              isRetrying={isLaunchingCheckout}
+              error={checkoutError}
+            />
+            <EmbeddedCheckoutCard clientSecret={embeddedClientSecret} />
+          </>
         )}
       </div>
     </div>
