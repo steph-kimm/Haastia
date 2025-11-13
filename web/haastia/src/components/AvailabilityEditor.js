@@ -12,27 +12,149 @@ const timeSlots = [
   '16:00-17:00', '17:00-18:00', '18:00-19:00', '19:00-20:00',
 ];
 
-const slotToString = (slot) => {
-  if (typeof slot === 'string') {
-    return slot;
+const TIME_PATTERN = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/;
+
+const parseTimeValue = (value) => {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const match = trimmed.match(TIME_PATTERN);
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (
+    Number.isNaN(hours) ||
+    Number.isNaN(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
+    return null;
   }
-  if (slot && typeof slot === 'object') {
-    const { start, end } = slot;
-    if (start && end) {
-      return `${start}-${end}`;
+  return hours * 60 + minutes;
+};
+
+const formatTimeValue = (minutes) => {
+  if (!Number.isFinite(minutes)) return null;
+  const hrs = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+};
+
+const normalizeTimeString = (value) => {
+  const minutes = parseTimeValue(value);
+  if (minutes === null) return null;
+  return formatTimeValue(minutes);
+};
+
+const slotDefinitions = timeSlots.map((slot) => {
+  const [startRaw, endRaw] = slot.split('-');
+  return {
+    slot,
+    startMinutes: parseTimeValue(startRaw),
+    endMinutes: parseTimeValue(endRaw),
+  };
+});
+
+const slotOrder = new Map(slotDefinitions.map(({ slot }, index) => [slot, index]));
+
+const sortSlots = (slots = []) =>
+  [...slots].sort((a, b) => {
+    const orderA = slotOrder.get(a) ?? Number.MAX_SAFE_INTEGER;
+    const orderB = slotOrder.get(b) ?? Number.MAX_SAFE_INTEGER;
+    if (orderA === orderB) {
+      return a.localeCompare(b);
     }
+    return orderA - orderB;
+  });
+
+const slotToInterval = (slot) => {
+  if (!slot) return null;
+  if (typeof slot === 'string') {
+    const [startRaw, endRaw] = slot.split('-');
+    const startMinutes = parseTimeValue(startRaw);
+    const endMinutes = parseTimeValue(endRaw);
+    if (startMinutes === null || endMinutes === null || endMinutes <= startMinutes) {
+      return null;
+    }
+    return { startMinutes, endMinutes };
+  }
+  if (typeof slot === 'object') {
+    const startMinutes =
+      parseTimeValue(slot.start) ??
+      parseTimeValue(slot.begin) ??
+      parseTimeValue(slot.from) ??
+      parseTimeValue(slot.startTime);
+    const endMinutes =
+      parseTimeValue(slot.end) ??
+      parseTimeValue(slot.finish) ??
+      parseTimeValue(slot.to) ??
+      parseTimeValue(slot.endTime);
+    if (startMinutes === null || endMinutes === null || endMinutes <= startMinutes) {
+      return null;
+    }
+    return { startMinutes, endMinutes };
   }
   return null;
 };
 
+const expandSlotsToGrid = (slots = []) => {
+  if (!Array.isArray(slots)) return [];
+  const selected = new Set();
+  slots.forEach((slot) => {
+    const interval = slotToInterval(slot);
+    if (!interval) return;
+    slotDefinitions.forEach((definition) => {
+      if (definition.startMinutes === null || definition.endMinutes === null) {
+        return;
+      }
+      if (
+        definition.startMinutes >= interval.startMinutes &&
+        definition.endMinutes <= interval.endMinutes
+      ) {
+        selected.add(definition.slot);
+      }
+    });
+  });
+  return sortSlots(Array.from(selected));
+};
+
+const consolidateSlots = (slots = []) => {
+  if (!Array.isArray(slots) || !slots.length) return [];
+  const sorted = sortSlots(slots);
+  const ranges = [];
+  sorted.forEach((slot) => {
+    const [start, end] = slot.split('-');
+    if (!ranges.length) {
+      ranges.push({ start, end });
+      return;
+    }
+    const last = ranges[ranges.length - 1];
+    if (last.end === start) {
+      last.end = end;
+    } else {
+      ranges.push({ start, end });
+    }
+  });
+  return ranges.map(({ start, end }) => `${start}-${end}`);
+};
+
 const stringToSlot = (slot) => {
   if (slot && typeof slot === 'object' && slot.start && slot.end) {
-    return { start: slot.start, end: slot.end };
+    const start = normalizeTimeString(slot.start);
+    const end = normalizeTimeString(slot.end);
+    if (start && end) {
+      return { start, end };
+    }
+    return null;
   }
   if (typeof slot === 'string') {
     const [start, end] = slot.split('-');
-    if (start && end) {
-      return { start, end };
+    const normalizedStart = normalizeTimeString(start);
+    const normalizedEnd = normalizeTimeString(end);
+    if (normalizedStart && normalizedEnd) {
+      return { start: normalizedStart, end: normalizedEnd };
     }
   }
   return null;
@@ -60,12 +182,7 @@ const normalizeAvailability = (rawAvailability = []) => {
       .filter((entry) => entry?.day)
       .map((entry) => [
         entry.day,
-        Array.isArray(entry.slots)
-          ? entry.slots
-              .map(slotToString)
-              .filter(Boolean)
-              .sort()
-          : [],
+        Array.isArray(entry.slots) ? expandSlotsToGrid(entry.slots) : [],
       ])
   );
 
@@ -180,8 +297,8 @@ const AvailabilityEditor = () => {
 
         const isSelected = entry.slots.includes(slot);
         const updatedSlots = isSelected
-          ? entry.slots.filter((s) => s !== slot)
-          : [...entry.slots, slot].sort();
+          ? sortSlots(entry.slots.filter((s) => s !== slot))
+          : sortSlots([...entry.slots, slot]);
 
         return { ...entry, slots: updatedSlots };
       })
@@ -343,7 +460,13 @@ const AvailabilityEditor = () => {
   };
 
   const selectedSummary = useMemo(
-    () => availability.filter(({ slots }) => slots.length > 0),
+    () =>
+      availability
+        .map(({ day, slots }) => ({
+          day,
+          slots: consolidateSlots(slots),
+        }))
+        .filter(({ slots }) => slots.length > 0),
     [availability]
   );
 
