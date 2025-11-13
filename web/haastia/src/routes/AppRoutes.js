@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useView } from "../context/ViewContext";
 import CustomerRoutes from "./CustomerRoutes";
 import ProfessionalRoutes from "./ProfessionalRoutes";
@@ -10,6 +11,12 @@ import "./AppRoutes.css";
 
 function AppRoutes() {
   const { currentView, setCurrentView } = useView();
+  const location = useLocation();
+  const isPublicProfileRoute = /^\/professional\/[^/]+$/.test(location.pathname);
+  const authLayoutPrefixes = ["/login", "/signup", "/phone"];
+  const isAuthLayoutRoute = authLayoutPrefixes.some((prefix) =>
+    location.pathname === prefix || location.pathname.startsWith(`${prefix}/`)
+  );
 
   // Detect role from token and adjust context
   useEffect(() => {
@@ -36,7 +43,26 @@ function AppRoutes() {
   // Only render one section at a time
   if (!currentView) return <div>Loading...</div>;
 
+  if (isAuthLayoutRoute) {
+    return (
+      <>
+        <Navbar />
+        <CustomerRoutes />
+      </>
+    );
+  }
+
   if (currentView === "professional") {
+    if (isPublicProfileRoute) {
+      return (
+        <div className="professional-app-shell professional-app-shell--no-nav">
+          <main className="professional-app-shell__content professional-app-shell__content--no-nav">
+            <ProfessionalRoutes />
+          </main>
+        </div>
+      );
+    }
+
     return (
       <div className="professional-app-shell">
         <ProfessionalNavbar />
@@ -57,6 +83,10 @@ function AppRoutes() {
   }
 
   // Default (customer)
+  if (isPublicProfileRoute) {
+    return <CustomerRoutes />;
+  }
+
   return (
     <>
       <Navbar />

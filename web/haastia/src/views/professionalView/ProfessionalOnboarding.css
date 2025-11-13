@@ -1,0 +1,48 @@
+.pro-onboarding-page {
+  padding: 2.5rem clamp(1.25rem, 4vw, 3rem);
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.pro-onboarding-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pro-onboarding-page__eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  color: #2563eb;
+  font-size: 0.85rem;
+}
+
+.pro-onboarding-page__header h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  color: #0f172a;
+}
+
+.pro-onboarding-page__lead {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #475569;
+  max-width: 52ch;
+}
+
+.pro-onboarding-page__body {
+  display: grid;
+  gap: 2rem;
+}
+
+@media (max-width: 640px) {
+  .pro-onboarding-page {
+    padding: 1.75rem 1.25rem 3rem;
+    gap: 1.5rem;
+  }
+}

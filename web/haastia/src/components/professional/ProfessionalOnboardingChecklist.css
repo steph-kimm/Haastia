@@ -1,0 +1,201 @@
+.pro-onboarding-card {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  box-shadow: none;
+}
+
+.pro-onboarding-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.pro-onboarding-card__header h3 {
+  margin: 0;
+  font-size: clamp(1.3rem, 2.5vw, 1.6rem);
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.pro-onboarding-card__header p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #475569;
+}
+
+.pro-onboarding-card__progress {
+  width: 100%;
+  height: 4px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.pro-onboarding-card__progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb 0%, #38bdf8 100%);
+  transition: width 0.3s ease;
+}
+
+.pro-onboarding-card__hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.pro-onboarding-card__alert {
+  border: 1px solid rgba(194, 65, 12, 0.16);
+  background: #fff7ed;
+  color: #9a3412;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+}
+
+.pro-onboarding-card__retry {
+  border: none;
+  background: #e2e8f0;
+  color: #0f172a;
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.pro-onboarding-card__retry:hover,
+.pro-onboarding-card__retry:focus {
+  background: #cbd5f5;
+  outline: none;
+}
+
+.pro-onboarding-card__loading {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+.pro-onboarding-card__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pro-onboarding-card__step {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem clamp(1rem, 3vw, 1.35rem);
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pro-onboarding-card__step.is-complete {
+  border-color: rgba(22, 163, 74, 0.4);
+  box-shadow: 0 0 0 1px rgba(22, 163, 74, 0.1);
+}
+
+.pro-onboarding-card__step-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.pro-onboarding-card__step-status {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid #cbd5f5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #475569;
+  background: #f8fafc;
+}
+
+.pro-onboarding-card__step.is-complete .pro-onboarding-card__step-status {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #ffffff;
+}
+
+.pro-onboarding-card__step-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.pro-onboarding-card__step-description {
+  margin: 0.2rem 0 0;
+  font-size: 0.92rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.pro-onboarding-card__step-action {
+  align-self: flex-start;
+  border: 1px solid #2563eb;
+  border-radius: 999px;
+  padding: 0.5rem 1.1rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  background: transparent;
+  color: #1d4ed8;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.pro-onboarding-card__step-action:hover,
+.pro-onboarding-card__step-action:focus {
+  background: rgba(37, 99, 235, 0.08);
+  color: #1d4ed8;
+  outline: none;
+}
+
+.pro-onboarding-card__step-action:disabled {
+  background: #f1f5f9;
+  color: #64748b;
+  border-color: #e2e8f0;
+  cursor: default;
+}
+
+@media (max-width: 960px) {
+  .pro-onboarding-card {
+    border-radius: 16px;
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .pro-onboarding-card {
+    padding: 1.25rem;
+    border-radius: 14px;
+  }
+
+  .pro-onboarding-card__step-action {
+    width: 100%;
+    text-align: center;
+  }
+}

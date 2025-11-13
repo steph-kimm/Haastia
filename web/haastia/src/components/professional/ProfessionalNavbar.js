@@ -26,6 +26,7 @@ const ProfessionalNavbar = () => {
 
   const handleLogout = () => {
     clearAuthStorage();
+    setCurrentView("customer");
     navigate("/login");
   };
 
@@ -84,7 +85,7 @@ const ProfessionalNavbar = () => {
               }
             }}
           >
-            Haastia Pro
+            Haastia Pro <br></br>Dashboard
           </h2>
           <button
             type="button"
@@ -99,6 +100,11 @@ const ProfessionalNavbar = () => {
         <div className="pro-navbar__menu">
           <p className="pro-navbar__section-label">Overview</p>
           <ul className="pro-nav-links">
+            <li>
+              <NavLink to="/onboarding" className={linkClassName}>
+                Onboarding
+              </NavLink>
+            </li>
             <li>
               <NavLink to="/professional-home" className={linkClassName}>
                 Calendar
@@ -141,8 +147,19 @@ const ProfessionalNavbar = () => {
 
             {userId && (
               <li>
-                <NavLink to={`/professional/${userId}`} className={linkClassName}>
-                  View Public Profile
+                <NavLink
+                  to={`/professional/${userId}`}
+                  className={linkClassName}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span className="pro-link__content">
+                    <span className="pro-link__label">View Public Profile</span>
+                    <span className="pro-link__icon" aria-hidden="true">
+                      ↗
+                    </span>
+                  </span>
+                  <span className="sr-only">Opens in a new tab</span>
                 </NavLink>
               </li>
             )}

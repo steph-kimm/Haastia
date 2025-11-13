@@ -4,11 +4,19 @@
   background: #f5f7fb;
 }
 
+.professional-app-shell--no-nav {
+  display: block;
+}
+
 .professional-app-shell__content {
   flex: 1;
   min-width: 0;
   padding: 2.5rem 3rem;
   box-sizing: border-box;
+}
+
+.professional-app-shell__content--no-nav {
+  padding: 0;
 }
 
 @media (max-width: 1200px) {
