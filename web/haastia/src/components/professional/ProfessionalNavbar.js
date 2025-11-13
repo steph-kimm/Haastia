@@ -141,8 +141,19 @@ const ProfessionalNavbar = () => {
 
             {userId && (
               <li>
-                <NavLink to={`/professional/${userId}`} className={linkClassName}>
-                  View Public Profile
+                <NavLink
+                  to={`/professional/${userId}`}
+                  className={linkClassName}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span className="pro-link__content">
+                    <span className="pro-link__label">View Public Profile</span>
+                    <span className="pro-link__icon" aria-hidden="true">
+                      ↗
+                    </span>
+                  </span>
+                  <span className="sr-only">Opens in a new tab</span>
                 </NavLink>
               </li>
             )}
