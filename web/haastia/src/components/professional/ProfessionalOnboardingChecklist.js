@@ -44,6 +44,8 @@ const ProfessionalOnboardingChecklist = ({ userId, onNavigate }) => {
     shareProfile: getStoredShareCompletion(),
   });
 
+  const isReadOnly = !userId;
+
   const completedCount = useMemo(() => {
     return Object.values(steps).filter(Boolean).length;
   }, [steps]);
@@ -247,10 +249,6 @@ const ProfessionalOnboardingChecklist = ({ userId, onNavigate }) => {
     [handleNavigate, handleShareProfile, steps.availability, steps.payouts, steps.services, steps.shareProfile]
   );
 
-  if (!userId) {
-    return null;
-  }
-
   return (
     <section className="pro-onboarding-card" aria-live="polite">
       <div className="pro-onboarding-card__header">
@@ -261,6 +259,12 @@ const ProfessionalOnboardingChecklist = ({ userId, onNavigate }) => {
       <div className="pro-onboarding-card__progress" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
         <div className="pro-onboarding-card__progress-bar" style={{ width: `${progress}%` }} />
       </div>
+
+      {isReadOnly && (
+        <p className="pro-onboarding-card__hint">
+          Sign in to track these tasks automatically.
+        </p>
+      )}
 
       {error && (
         <div className="pro-onboarding-card__alert" role="alert">

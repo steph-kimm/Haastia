@@ -69,14 +69,6 @@
   gap: 1.25rem;
 }
 
-.pro-navbar__menu > .pro-onboarding-card {
-  margin-bottom: 0.25rem;
-}
-
-.pro-navbar__menu > .pro-onboarding-card + .pro-navbar__section-label {
-  padding-top: 0.25rem;
-}
-
 .pro-navbar__section-label {
   margin: 0;
   font-size: 0.85rem;
