@@ -13,6 +13,10 @@ function AppRoutes() {
   const { currentView, setCurrentView } = useView();
   const location = useLocation();
   const isPublicProfileRoute = /^\/professional\/[^/]+$/.test(location.pathname);
+  const authLayoutPrefixes = ["/login", "/signup", "/phone"];
+  const isAuthLayoutRoute = authLayoutPrefixes.some((prefix) =>
+    location.pathname === prefix || location.pathname.startsWith(`${prefix}/`)
+  );
 
   // Detect role from token and adjust context
   useEffect(() => {
@@ -38,6 +42,15 @@ function AppRoutes() {
 
   // Only render one section at a time
   if (!currentView) return <div>Loading...</div>;
+
+  if (isAuthLayoutRoute) {
+    return (
+      <>
+        <Navbar />
+        <CustomerRoutes />
+      </>
+    );
+  }
 
   if (currentView === "professional") {
     if (isPublicProfileRoute) {
