@@ -96,6 +96,24 @@
   transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
+.pro-link__content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pro-link__icon {
+  font-size: 0.85em;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.pro-link:hover .pro-link__icon,
+.pro-link:focus .pro-link__icon,
+.pro-link--active .pro-link__icon {
+  transform: translateY(-1px);
+}
+
 .pro-link:hover,
 .pro-link:focus {
   background: rgba(37, 99, 235, 0.08);
