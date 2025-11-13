@@ -6,8 +6,6 @@ import { useView } from '../../../context/ViewContext';
 import { handleAuthSuccess } from '../../../utils/auth';
 import ProfessionalPaymentSection from './ProfessionalPaymentSection';
 
-const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
 const ProfessionalActivationNotice = ({ message, onRetry, isRetrying, error }) => (
   <div className="auth-card activation-notice">
     <h3>Finish activating your professional account</h3>
@@ -31,7 +29,6 @@ const Signup = () => {
     password: '',
     location: '',
     isProvider: true,
-    availability: daysOfWeek.map(day => ({ day, slots: '' }))
   });
   const [pendingSignup, setPendingSignup] = useState(null);
   const [isLaunchingCheckout, setIsLaunchingCheckout] = useState(false);
@@ -42,22 +39,15 @@ const Signup = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    if (name.includes('availability')) {
-      const index = parseInt(name.split('-')[1]);
-      const newAvailability = [...formData.availability];
-      newAvailability[index].slots = value;
-      setFormData({ ...formData, availability: newAvailability });
-    } else {
-      setFormData({
-        ...formData,
-        [name]: type === 'checkbox' ? checked : value
-      });
-    }
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
   };
 
   // Shared with the Stripe success callback so both paths finalize the account consistently.
   const finalizeSignup = (token) => {
-    handleAuthSuccess({ token, navigate, setCurrentView });
+    handleAuthSuccess({ token, navigate, setCurrentView, redirectPath: '/onboarding' });
   };
 
   const launchCheckout = async (pendingSignupId) => {
@@ -94,24 +84,8 @@ const Signup = () => {
     try {
       setIsSubmitting(true);
       setCheckoutError('');
-      // ✅ Format availability properly
-      const formattedAvailability = formData.availability
-        .filter(a => a.slots.trim() !== '')
-        .map(a => ({
-          day: a.day,
-          slots: a.slots
-            .split(',')
-            .map(slot => {
-              const [start, end] = slot.trim().split('-');
-              if (!start || !end) return null;
-              return { start: start.trim(), end: end.trim() };
-            })
-            .filter(Boolean)
-        }));
-
       const basePayload = {
         ...formData,
-        availability: formattedAvailability
       };
 
       const response = await axios.post('http://localhost:8000/api/auth/signup', basePayload);
@@ -229,29 +203,9 @@ const Signup = () => {
 
               {formData.isProvider && (
                 <>
-                  <div className="availability-card">
-                    <div>
-                      <h3>Weekly availability</h3>
-                      <p>Let clients know when they can book you. Use 24h time ranges separated by commas.</p>
-                    </div>
-                    <div className="availability-grid">
-                      {daysOfWeek.map((day, index) => (
-                        <div className="availability-item" key={day}>
-                          <label htmlFor={`availability-${index}`}>{day}</label>
-                          <div className="input-shell">
-                            <input
-                              id={`availability-${index}`}
-                              type="text"
-                              name={`availability-${index}`}
-                              value={formData.availability[index].slots}
-                              onChange={handleChange}
-                              placeholder="e.g., 09:00-11:00, 14:00-17:00"
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <p className="helper-text">
+                    You&apos;ll set your weekly availability during onboarding after signup.
+                  </p>
                   <ProfessionalPaymentSection />
                 </>
               )}
