@@ -101,6 +101,11 @@ const ProfessionalNavbar = () => {
           <p className="pro-navbar__section-label">Overview</p>
           <ul className="pro-nav-links">
             <li>
+              <NavLink to="/onboarding" className={linkClassName}>
+                Onboarding
+              </NavLink>
+            </li>
+            <li>
               <NavLink to="/professional-home" className={linkClassName}>
                 Calendar
               </NavLink>
