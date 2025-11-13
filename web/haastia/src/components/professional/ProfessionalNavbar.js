@@ -84,7 +84,7 @@ const ProfessionalNavbar = () => {
               }
             }}
           >
-            Haastia Pro
+            Haastia Pro <br></br>Dashboard
           </h2>
           <button
             type="button"
