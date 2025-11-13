@@ -26,6 +26,7 @@ const ProfessionalNavbar = () => {
 
   const handleLogout = () => {
     clearAuthStorage();
+    setCurrentView("customer");
     navigate("/login");
   };
 
