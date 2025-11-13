@@ -3,6 +3,7 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useView } from "../../context/ViewContext";
 import { clearAuthStorage, getValidToken } from "../../utils/auth";
 import "./ProfessionalNavbar.css";
+import ProfessionalOnboardingChecklist from "./ProfessionalOnboardingChecklist";
 
 const ProfessionalNavbar = () => {
   const navigate = useNavigate();
@@ -41,6 +42,13 @@ const ProfessionalNavbar = () => {
 
   const closeMobileNav = () => {
     setIsMobileNavOpen(false);
+  };
+
+  const handleChecklistNavigate = (path) => {
+    closeMobileNav();
+    if (path) {
+      navigate(path);
+    }
   };
 
   const linkClassName = ({ isActive }) =>
@@ -98,6 +106,10 @@ const ProfessionalNavbar = () => {
         </div>
 
         <div className="pro-navbar__menu">
+          <ProfessionalOnboardingChecklist
+            userId={userId}
+            onNavigate={handleChecklistNavigate}
+          />
           <p className="pro-navbar__section-label">Overview</p>
           <ul className="pro-nav-links">
             <li>
