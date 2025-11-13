@@ -146,11 +146,11 @@ export const getCustomerSummary = async (req, res) => {
 
     const guestInfo = isGuest ? filteredBookings[0].guestInfo : null;
 
-    const notes = isGuest
-      ? []
-      : await ClientNote.find({ professional: req.user._id, customer: customerId })
-          .sort({ createdAt: -1 })
-          .lean();
+    const notesQuery = isGuest
+      ? { professional: req.user._id, guestKey: customerId }
+      : { professional: req.user._id, customer: customerId };
+
+    const notes = await ClientNote.find(notesQuery).sort({ createdAt: -1 }).lean();
 
     return res.json({
       customer: customerProfile,
@@ -175,24 +175,34 @@ export const createCustomerNote = async (req, res) => {
       return res.status(400).json({ error: "Note content is required" });
     }
 
-    if (!isValidObjectId(customerId)) {
-      return res.status(400).json({ error: "Invalid customer id" });
-    }
-
-    const customerExists = await User.exists({ _id: customerId });
-    if (!customerExists) {
-      return res.status(404).json({ error: "Customer not found" });
-    }
-
-    await ClientNote.create({
+    const isGuest = customerId.startsWith("guest:");
+    const notePayload = {
       professional: req.user._id,
-      customer: customerId,
       content: content.trim(),
-    });
+    };
 
-    const notes = await ClientNote.find({ professional: req.user._id, customer: customerId })
-      .sort({ createdAt: -1 })
-      .lean();
+    let notesQuery;
+
+    if (isGuest) {
+      notePayload.guestKey = customerId;
+      notesQuery = { professional: req.user._id, guestKey: customerId };
+    } else {
+      if (!isValidObjectId(customerId)) {
+        return res.status(400).json({ error: "Invalid customer id" });
+      }
+
+      const customerExists = await User.exists({ _id: customerId });
+      if (!customerExists) {
+        return res.status(404).json({ error: "Customer not found" });
+      }
+
+      notePayload.customer = customerId;
+      notesQuery = { professional: req.user._id, customer: customerId };
+    }
+
+    await ClientNote.create(notePayload);
+
+    const notes = await ClientNote.find(notesQuery).sort({ createdAt: -1 }).lean();
 
     return res.status(201).json({ notes });
   } catch (error) {
@@ -212,15 +222,31 @@ export const updateCustomerNote = async (req, res) => {
       return res.status(400).json({ error: "Note content is required" });
     }
 
-    if (!isValidObjectId(customerId) || !isValidObjectId(noteId)) {
+    if (!isValidObjectId(noteId)) {
       return res.status(400).json({ error: "Invalid identifiers" });
     }
 
-    const note = await ClientNote.findOne({
+    const isGuest = customerId.startsWith("guest:");
+
+    const noteMatch = {
       _id: noteId,
       professional: req.user._id,
-      customer: customerId,
-    });
+    };
+
+    let notesQuery;
+
+    if (isGuest) {
+      noteMatch.guestKey = customerId;
+      notesQuery = { professional: req.user._id, guestKey: customerId };
+    } else {
+      if (!isValidObjectId(customerId)) {
+        return res.status(400).json({ error: "Invalid identifiers" });
+      }
+      noteMatch.customer = customerId;
+      notesQuery = { professional: req.user._id, customer: customerId };
+    }
+
+    const note = await ClientNote.findOne(noteMatch);
 
     if (!note) {
       return res.status(404).json({ error: "Note not found" });
@@ -229,9 +255,7 @@ export const updateCustomerNote = async (req, res) => {
     note.content = content.trim();
     await note.save();
 
-    const notes = await ClientNote.find({ professional: req.user._id, customer: customerId })
-      .sort({ createdAt: -1 })
-      .lean();
+    const notes = await ClientNote.find(notesQuery).sort({ createdAt: -1 }).lean();
 
     return res.json({ notes });
   } catch (error) {

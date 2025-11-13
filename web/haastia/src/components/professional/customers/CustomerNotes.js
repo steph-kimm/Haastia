@@ -68,7 +68,9 @@ const CustomerNotes = ({
       <div className="customer-notes__header">
         <h2>Customer notes</h2>
         {!canEdit ? (
-          <span className="customer-notes__badge">Guests cannot be noted</span>
+          <span className="customer-notes__badge">
+            Select a profile to add private notes
+          </span>
         ) : null}
       </div>
 
@@ -100,7 +102,7 @@ const CustomerNotes = ({
           <p>
             {canEdit
               ? "Capture personal preferences, reminders, or follow-up tasks to deliver memorable service."
-              : "Notes will unlock once this guest signs up and becomes a customer."}
+              : "Notes appear here once you select a customer or guest with booking history."}
           </p>
         </div>
       ) : (

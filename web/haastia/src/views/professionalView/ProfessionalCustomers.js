@@ -197,7 +197,7 @@ const ProfessionalCustomers = () => {
     };
   }, [customerId, customersState.items]);
 
-  const canManageNotes = Boolean(summary.customer?._id);
+  const canManageNotes = Boolean(summary.customer?._id || summary.guestInfo);
 
   const handleSelectCustomer = (id) => {
     if (!id || id === customerId) return;
