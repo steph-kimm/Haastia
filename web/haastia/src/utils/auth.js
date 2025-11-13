@@ -45,9 +45,10 @@ export const getValidToken = () => {
 /**
  * Persist an auth token, configure logout-on-expiry, and move the app to the
  * correct view/route. This is shared by the email+password login flow and the
- * Stripe checkout completion flow so both experiences stay consistent.
+ * Stripe checkout completion flow so both experiences stay consistent. Pass an
+ * optional redirectPath to override the default landing page for the user.
  */
-export const handleAuthSuccess = ({ token, navigate, setCurrentView }) => {
+export const handleAuthSuccess = ({ token, navigate, setCurrentView, redirectPath }) => {
   if (!token) {
     throw new Error('No token provided');
   }
@@ -75,20 +76,22 @@ export const handleAuthSuccess = ({ token, navigate, setCurrentView }) => {
   }, expirationTime);
 
   const role = decodedToken.role;
+  let destination;
+
   if (role === 'professional') {
     if (setCurrentView) {
       setCurrentView('professional');
     }
-    if (navigate) {
-      navigate('/add-service');
-    }
+    destination = redirectPath || '/add-service';
   } else {
     if (setCurrentView) {
       setCurrentView('customer');
     }
-    if (navigate) {
-      navigate('/');
-    }
+    destination = redirectPath || '/';
+  }
+
+  if (navigate && destination) {
+    navigate(destination);
   }
 
   return decodedToken;

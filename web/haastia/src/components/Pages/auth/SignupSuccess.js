@@ -38,7 +38,7 @@ const SignupSuccess = () => {
 
         if (!isMounted) return;
 
-        handleAuthSuccess({ token, navigate, setCurrentView });
+        handleAuthSuccess({ token, navigate, setCurrentView, redirectPath: '/onboarding' });
         setStatus('success');
       } catch (err) {
         if (!isMounted) return;
