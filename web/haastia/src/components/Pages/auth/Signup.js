@@ -30,7 +30,7 @@ const Signup = () => {
     email: '',
     password: '',
     location: '',
-    isProvider: false,
+    isProvider: true,
     availability: daysOfWeek.map(day => ({ day, slots: '' }))
   });
   const [pendingSignup, setPendingSignup] = useState(null);
@@ -52,11 +52,6 @@ const Signup = () => {
         ...formData,
         [name]: type === 'checkbox' ? checked : value
       });
-      if (name === 'isProvider' && !checked) {
-        setPendingSignup(null);
-        setCheckoutError('');
-        localStorage.removeItem('haastiaPendingSignupId');
-      }
     }
   };
 
@@ -230,19 +225,6 @@ const Signup = () => {
                     required
                   />
                 </div>
-              </div>
-
-              <div className="checkbox-card">
-                <input
-                  type="checkbox"
-                  id="signup-provider"
-                  name="isProvider"
-                  checked={formData.isProvider}
-                  onChange={handleChange}
-                />
-                <span>
-                  I want to offer services on Haastia.
-                </span>
               </div>
 
               {formData.isProvider && (
