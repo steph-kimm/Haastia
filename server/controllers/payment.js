@@ -132,8 +132,8 @@ export const createCheckoutSession = async (req, res) => {
       metadata: {
         pendingSignupId: pendingSignup._id.toString(),
       },
-      success_url: appendSessionIdPlaceholder(successUrl),
-      cancel_url: appendSessionIdPlaceholder(cancelUrl),
+      // success_url: appendSessionIdPlaceholder(successUrl),
+      // cancel_url: appendSessionIdPlaceholder(cancelUrl),
       return_url: appendSessionIdPlaceholder(successUrl),
     });
 
