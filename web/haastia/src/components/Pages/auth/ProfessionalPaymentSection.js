@@ -33,9 +33,9 @@ const ProfessionalPaymentSection = () => {
       <div className="provider-payment-footer">
         <div className="provider-payment-cta" role="note">
           <span className="cta-icon" aria-hidden="true">⚡</span>
-          <span>You'll be redirected to Stripe to enter your payment details and activate your plan.</span>
+          <span>Checkout loads securely below so you can enter your payment details without leaving Haastia.</span>
         </div>
-        <p className="provider-payment-copy">Complete checkout to finalize your $10/month professional subscription and start accepting bookings.</p>
+        <p className="provider-payment-copy">Complete checkout below to finalize your $10/month professional subscription and start accepting bookings.</p>
       </div>
     </section>
   );
