@@ -122,6 +122,7 @@ export const createCheckoutSession = async (req, res) => {
     // Create Stripe Checkout session that references the pending signup metadata
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
+      ui_mode: "embedded",
       line_items: [
         {
           price: SUBSCRIPTION_PRICE_ID,
@@ -133,7 +134,15 @@ export const createCheckoutSession = async (req, res) => {
       },
       success_url: appendSessionIdPlaceholder(successUrl),
       cancel_url: appendSessionIdPlaceholder(cancelUrl),
+      return_url: appendSessionIdPlaceholder(successUrl),
     });
+
+    if (!session.client_secret) {
+      console.error("Stripe session missing client secret for embedded checkout", session.id);
+      return res
+        .status(500)
+        .json({ error: "Unable to initialize embedded checkout. Please try again." });
+    }
 
     // Store the Stripe session ID on the pending signup for later verification
     pendingSignup.sessionId = session.id;
@@ -143,6 +152,7 @@ export const createCheckoutSession = async (req, res) => {
       url: session.url,
       sessionId: session.id,
       pendingSignupId: pendingSignup._id.toString(),
+      embeddedClientSecret: session.client_secret,
     });
   } catch (err) {
     console.error("Stripe session creation failed:", err.message);
