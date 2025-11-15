@@ -50,8 +50,10 @@ const userSchema = new Schema(
             type: mongoose.Decimal128,
             default: 0,
         },
-        profileGuidelines : {
+        profileGuidelines: {
+            // Professional "before you book" guidelines surfaced on public profiles (trimmed, <= 2000 chars)
             type: String,
+            trim: true,
             default: "",
         },
         jobs_done: {
