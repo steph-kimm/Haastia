@@ -180,6 +180,14 @@ const ProfessionalCalendar = () => {
           dayMaxEvents={true}
           expandRows={true}
 
+          eventClick={(info) => {
+            const booking = info.event.extendedProps.booking;
+            if (booking) {
+              info.jsEvent.preventDefault();
+              navigate(`/bookings/${booking._id}`, { state: { booking } });
+            }
+          }}
+
           eventDidMount={(info) => {
             const booking = info.event.extendedProps.booking;
             if (booking) {
