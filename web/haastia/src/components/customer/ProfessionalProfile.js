@@ -61,6 +61,20 @@ const ProfessionalProfile = () => {
   const profileImage = professional?.image?.url || FALLBACK_AVATAR;
   const locationLabel = professional.location?.trim() || "Location TBD";
   const firstName = professional.name?.split(" ")[0] || "This professional";
+  const hasCustomName = firstName !== "This professional";
+  const rawGuidelines = professional.profileGuidelines;
+  const profileGuidelines =
+    typeof rawGuidelines === "string"
+      ? rawGuidelines.trim()
+      : rawGuidelines
+      ? String(rawGuidelines).trim()
+      : "";
+  const guidelineParagraphs = profileGuidelines
+    ? profileGuidelines
+        .split(/\n{2,}/)
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean)
+    : [];
 
   return (
     <div className="professional-profile">
@@ -94,6 +108,35 @@ const ProfessionalProfile = () => {
           </div>
         </div>
       </section>
+
+      {guidelineParagraphs.length > 0 && (
+        <section className="guidelines-section">
+          <div className="section-heading">
+            <div>
+              <h3>Before you book</h3>
+              <p className="section-subtitle">
+                A few helpful notes from {hasCustomName ? firstName : "this professional"} to
+                make sure everything goes smoothly.
+              </p>
+            </div>
+          </div>
+          <div className="guidelines-content">
+            {guidelineParagraphs.map((paragraph, index) => {
+              const lines = paragraph.split(/\n+/);
+              return (
+                <p key={`guideline-${index}`}>
+                  {lines.map((line, lineIndex) => (
+                    <React.Fragment key={`guideline-${index}-line-${lineIndex}`}>
+                      {line}
+                      {lineIndex < lines.length - 1 && <br />}
+                    </React.Fragment>
+                  ))}
+                </p>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <section className="services-section">
         <div className="section-heading">
