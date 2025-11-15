@@ -50,6 +50,10 @@ const userSchema = new Schema(
             type: mongoose.Decimal128,
             default: 0,
         },
+        profileGuidelines : {
+            type: String,
+            default: "",
+        },
         jobs_done: {
             type: Number,
             default: 0,
