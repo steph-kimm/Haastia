@@ -34,6 +34,74 @@ const ensureProfessional = (req, res) => {
   return true;
 };
 
+const MAX_PROFILE_GUIDELINES_LENGTH = 2000;
+
+const fetchProfessionalProfilePayload = async (professionalId) => {
+  const professional = await User.findById(professionalId).select("-password");
+  if (!professional) {
+    return null;
+  }
+
+  const availability = await Availability.find({ professionalId }).sort({ day: 1 });
+  return { professional, availability };
+};
+
+export const getMyProfessionalProfile = async (req, res) => {
+  if (!ensureProfessional(req, res)) return;
+
+  try {
+    const payload = await fetchProfessionalProfilePayload(req.user._id);
+    if (!payload) {
+      return res.status(404).json({ error: "Professional not found" });
+    }
+
+    return res.json(payload);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to fetch profile" });
+  }
+};
+
+export const updateProfessionalProfile = async (req, res) => {
+  if (!ensureProfessional(req, res)) return;
+
+  try {
+    const { profileGuidelines } = req.body;
+
+    if (typeof profileGuidelines !== "string") {
+      return res.status(400).json({ error: "Profile guidelines must be a string" });
+    }
+
+    const trimmedGuidelines = profileGuidelines.trim();
+
+    if (trimmedGuidelines.length > MAX_PROFILE_GUIDELINES_LENGTH) {
+      return res.status(400).json({
+        error: `Profile guidelines must be ${MAX_PROFILE_GUIDELINES_LENGTH} characters or fewer`,
+      });
+    }
+
+    const professional = await User.findByIdAndUpdate(
+      req.user._id,
+      { profileGuidelines: trimmedGuidelines },
+      { new: true }
+    ).select("-password");
+
+    if (!professional) {
+      return res.status(404).json({ error: "Professional not found" });
+    }
+
+    const availability = await Availability.find({ professionalId: req.user._id }).sort({ day: 1 });
+
+    return res.json({
+      professional,
+      availability,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to update profile" });
+  }
+};
+
 export const getProfessionalProfile = async (req, res) => {
   try {
     const { id } = req.params; // professionalId
