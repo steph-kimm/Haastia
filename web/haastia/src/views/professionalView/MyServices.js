@@ -203,7 +203,7 @@ const MyServices = () => {
 
       <div className="services-container">
         <header className="services-header">
-          <div>
+          <div className="services-intro">
             <h2>Service catalogue</h2>
             <p className="services-subhead">
               {serviceCount === 0
@@ -211,9 +211,18 @@ const MyServices = () => {
                 : "Review your live services and fine-tune details in real time."}
             </p>
           </div>
-          <span className="service-count" aria-live="polite">
-            {serviceCount} {serviceCount === 1 ? "service" : "services"}
-          </span>
+          <div className="services-controls">
+            <span className="service-count" aria-live="polite">
+              {serviceCount} {serviceCount === 1 ? "service" : "services"}
+            </span>
+            <button
+              type="button"
+              className="add-service-btn"
+              onClick={() => navigate("/add-service")}
+            >
+              Add service
+            </button>
+          </div>
         </header>
 
         {serviceCount === 0 ? (

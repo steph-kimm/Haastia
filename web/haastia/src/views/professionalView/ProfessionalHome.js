@@ -21,10 +21,10 @@ const ProfessionalHome = () => {
 
       {/* Status legend */}
       <div className="legend">
-        <span className="dot accepted" /> Accepted
-        <span className="dot pending" /> Pending
-        <span className="dot cancelled" /> Cancelled
-        <span className="dot completed" /> Completed
+        <div><span className="dot accepted" /> Accepted</div>
+        <div><span className="dot pending" /> Pending</div>
+        <div><span className="dot cancelled" /> Cancelled</div>
+        <div><span className="dot completed" /> Completed</div>
       </div>
 
       {/* Calendar embedded directly */}

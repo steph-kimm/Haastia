@@ -1,53 +1,78 @@
 .pro-home {
-  max-width: 1100px;
-  margin: 28px auto;
-  padding: 0 16px;
-  font-family: 'Poppins', sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem clamp(1rem, 3vw, 3rem);
+  font-family: "Poppins", sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  /* background: linear-gradient(135deg, rgba(46, 134, 171, 0.08), rgba(15, 29, 43, 0.08)); */
+  border-radius: 24px;
 }
 
 .pro-home-header {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 10px;
+  gap: 1.5rem;
 }
 
-.pro-home-header h1 { margin: 0; }
-.pro-home-header .sub { margin: 4px 0 0; color: #666; }
+.pro-home-header h1 {
+  margin: 0 0 0.25rem;
+  color: #0f1d2b;
+  font-size: clamp(1.75rem, 3vw, 2.4rem);
+}
+.pro-home-header .sub {
+  margin: 0;
+  color: #475467;
+}
 
 .quick-actions {
   display: flex;
-  gap: 10px;
+  gap: 0.75rem;
   align-items: center;
 }
 .qa-btn {
-  background: #9dd91e;
+  background: #2e86ab;
   color: #fff;
-  border-radius: 10px;
+  border-radius: 999px;
   font-weight: 600;
-  padding: 8px 12px;
+  padding: 0.75rem 1.25rem;
   text-decoration: none;
+  box-shadow: 0 10px 30px rgba(46, 134, 171, 0.25);
+  border: none;
+  transition: all 0.2s ease;
+}
+.qa-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px rgba(15, 29, 43, 0.18);
 }
 .qa-btn.outline {
-  background: #fff;
-  color: #1b1b1b;
-  border: 1px solid #e6e6e6;
+  background: transparent;
+  color: #2e86ab;
+  border: 1.5px solid rgba(46, 134, 171, 0.35);
+  box-shadow: none;
+}
+.qa-btn.outline:hover {
+  background: rgba(46, 134, 171, 0.08);
 }
 
 .legend {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin: 8px 0 12px;
-  color: #555;
+  gap: 1.25rem;
+  margin: 0;
+  color: #475467;
   font-size: 0.95rem;
 }
 .legend .dot {
-  width: 12px; height: 12px; border-radius: 50%;
-  display: inline-block; margin-right: 6px;
-  border: 1px solid rgba(0,0,0,.1);
-  vertical-align: -1px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+  border: 1px solid rgba(15, 29, 43, 0.1);
+  /* vertical-align: -1px; */
 }
 .legend .accepted  { background: #cfeec0; border-color: #b4e3a2; }
 .legend .pending   { background: #ffe7b8; border-color: #ffd489; }
@@ -55,9 +80,31 @@
 .legend .completed { background: #cfe8ff; border-color: #a8d2ff; }
 
 .pro-home-calendar {
+  margin-top: 20px;
   background: #fff;
-  border: 1px solid #eee;
-  border-radius: 12px;
-  padding: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  border-radius: 18px;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  box-shadow: 0 18px 60px rgba(15, 29, 43, 0.08);
+  border: none;
+}
+
+@media (max-width: 768px) {
+  .pro-home {
+    padding: 1.5rem;
+  }
+
+  .pro-home-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .quick-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .qa-btn {
+    flex: 1;
+    text-align: center;
+  }
 }
