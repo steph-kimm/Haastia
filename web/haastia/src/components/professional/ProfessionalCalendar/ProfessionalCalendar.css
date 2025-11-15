@@ -49,5 +49,5 @@
   border-color: #eee;
 }
 .fc .fc-timegrid-slot {
-  height: 44px; /* roomy slots */
+  height: 26px; /* slightly condensed to shorten day/week view */
 }
