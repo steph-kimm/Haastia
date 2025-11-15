@@ -213,7 +213,7 @@ const AddNewServiceForm = ({ onSuccess }) => {
                 <input
                   id="service-price"
                   type="number"
-                  min="20"
+                  min="0"
                   max="1000"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
