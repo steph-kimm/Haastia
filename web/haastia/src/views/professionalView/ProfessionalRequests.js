@@ -155,6 +155,10 @@ const ProfessionalRequests = () => {
     });
   }, [requests, activeFilter, searchTerm]);
 
+  const viewDetails = (booking) => {
+    navigate(`/bookings/${booking._id}`, { state: { booking } });
+  };
+
   if (loading) {
     return <div className="pro-requests-loading">Loading booking requests...</div>;
   }
@@ -249,7 +253,19 @@ const ProfessionalRequests = () => {
             const customerPhone = req.customer?.phone || req.guestInfo?.phone || "N/A";
 
             return (
-              <article key={req._id} className={`request-card ${status}`}>
+              <article
+                key={req._id}
+                className={`request-card ${status}`}
+                role="button"
+                tabIndex={0}
+                onClick={() => viewDetails(req)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    viewDetails(req);
+                  }
+                }}
+              >
                 <header className="request-card__header">
                   <div>
                     <p className="service-name">{req.service?.title || "Custom service"}</p>
@@ -293,14 +309,20 @@ const ProfessionalRequests = () => {
                       <button
                         type="button"
                         className="btn btn-primary"
-                        onClick={() => updateStatus(req._id, "accepted")}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateStatus(req._id, "accepted");
+                        }}
                       >
                         Accept
                       </button>
                       <button
                         type="button"
                         className="btn btn-outline"
-                        onClick={() => updateStatus(req._id, "declined")}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          updateStatus(req._id, "declined");
+                        }}
                       >
                         Decline
                       </button>
@@ -309,13 +331,23 @@ const ProfessionalRequests = () => {
 
                   {status === "accepted" && (
                     <>
-                      <button type="button" className="btn btn-danger" onClick={() => cancel(req)}>
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          cancel(req);
+                        }}
+                      >
                         Cancel
                       </button>
                       <button
                         type="button"
                         className="btn btn-primary"
-                        onClick={() => complete(req._id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          complete(req._id);
+                        }}
                       >
                         Mark completed
                       </button>
