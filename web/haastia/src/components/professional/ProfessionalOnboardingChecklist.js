@@ -5,7 +5,7 @@ import authorizedRequest from "../../utils/api";
 import "./ProfessionalOnboardingChecklist.css";
 
 const STORAGE_KEY = "haastia.pro.onboarding.shareProfile";
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 const getStoredShareCompletion = () => {
   if (typeof window === "undefined") {
@@ -33,6 +33,24 @@ const storeShareCompletion = (value) => {
 
 const normalizeBoolean = (value) => Boolean(value === true || value === "true" || value === 1);
 
+const normalizeGuidelinesValue = (data) => {
+  const rawValue =
+    data?.profileGuidelines ??
+    data?.data?.profileGuidelines ??
+    data?.profile?.profileGuidelines ??
+    "";
+
+  if (typeof rawValue === "string") {
+    return rawValue.trim();
+  }
+
+  if (rawValue === null || rawValue === undefined) {
+    return "";
+  }
+
+  return String(rawValue).trim();
+};
+
 const ProfessionalOnboardingChecklist = ({ userId, onNavigate }) => {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
@@ -42,6 +60,7 @@ const ProfessionalOnboardingChecklist = ({ userId, onNavigate }) => {
     availability: false,
     payouts: false,
     shareProfile: getStoredShareCompletion(),
+    profileGuidelines: false,
   });
 
   const isReadOnly = !userId;
@@ -140,6 +159,7 @@ const ProfessionalOnboardingChecklist = ({ userId, onNavigate }) => {
         services: false,
         availability: false,
         payouts: false,
+        profileGuidelines: false,
       }));
       setLoading(false);
       return;
@@ -149,17 +169,21 @@ const ProfessionalOnboardingChecklist = ({ userId, onNavigate }) => {
       setLoading(true);
       setError("");
 
-      const [servicesResponse, availabilityResponse, stripeResponse] = await Promise.all([
+      const [servicesResponse, availabilityResponse, stripeResponse, profileResponse] = await Promise.all([
         authorizedRequest({ url: "/api/services/my-services" }),
         authorizedRequest({ url: `/api/availability/${userId}` }),
         authorizedRequest({ url: "/api/payment/connect/account-status" }),
+        authorizedRequest({ url: "/api/professional/me/profile" }),
       ]);
+
+      const guidelinesValue = normalizeGuidelinesValue(profileResponse);
 
       setSteps((prev) => ({
         ...prev,
         services: hasServices(servicesResponse),
         availability: hasAvailability(availabilityResponse),
         payouts: isStripeComplete(stripeResponse),
+        profileGuidelines: guidelinesValue.length > 0,
       }));
     } catch (err) {
       setError(err.message || "We couldn\'t load your onboarding progress. Please try again.");
@@ -222,6 +246,14 @@ const ProfessionalOnboardingChecklist = ({ userId, onNavigate }) => {
         completed: steps.services,
       },
       {
+        id: "profileGuidelines",
+        title: "Add house rules",
+        description: "Share expectations or prep steps on your public profile.",
+        cta: "Add house rules",
+        onClick: () => handleNavigate("/profile-guidelines"),
+        completed: steps.profileGuidelines,
+      },
+      {
         id: "availability",
         title: "Set your availability",
         description: "Choose when clients can book time with you.",
@@ -246,7 +278,15 @@ const ProfessionalOnboardingChecklist = ({ userId, onNavigate }) => {
         completed: steps.shareProfile,
       },
     ],
-    [handleNavigate, handleShareProfile, steps.availability, steps.payouts, steps.services, steps.shareProfile]
+    [
+      handleNavigate,
+      handleShareProfile,
+      steps.availability,
+      steps.payouts,
+      steps.profileGuidelines,
+      steps.services,
+      steps.shareProfile,
+    ]
   );
 
   return (

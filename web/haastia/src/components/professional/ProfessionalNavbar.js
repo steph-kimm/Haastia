@@ -106,6 +106,11 @@ const ProfessionalNavbar = () => {
               </NavLink>
             </li>
             <li>
+              <NavLink to="/profile-guidelines" className={linkClassName}>
+                House rules
+              </NavLink>
+            </li>
+            <li>
               <NavLink to="/professional-home" className={linkClassName}>
                 Calendar
               </NavLink>

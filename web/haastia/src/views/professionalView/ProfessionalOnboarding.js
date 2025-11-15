@@ -27,8 +27,9 @@ const ProfessionalOnboarding = () => {
         <span className="pro-onboarding-page__eyebrow">Get set up</span>
         <h1>Finish getting your account ready</h1>
         <p className="pro-onboarding-page__lead">
-          Work through the checklist below to make your profile discoverable,
-          open your calendar to clients, and accept payments without delay.
+          Work through the checklist below to add house rules to your profile,
+          list a service, open your calendar to clients, and accept payments
+          without delay.
         </p>
       </header>
 
