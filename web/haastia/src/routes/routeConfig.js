@@ -40,7 +40,7 @@ export const professionalRouteConfig = [
   { path: "/onboarding", component: ProfessionalOnboarding },
   { path: "/profile-guidelines", component: ProfessionalGuidelines },
   { path: "/add-service", component: AddServicePage },
-  { path: "/professional-home", component: ProfessionalHome },
+  { path: "/calendar", component: ProfessionalHome },
   { path: "/customers", component: ProfessionalCustomers },
   { path: "/customers/:customerId", component: ProfessionalCustomers },
   { path: "/Services", component: MyServices },

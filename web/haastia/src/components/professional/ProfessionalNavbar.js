@@ -74,14 +74,14 @@ const ProfessionalNavbar = () => {
             className="pro-brand"
             onClick={() => {
               closeMobileNav();
-              navigate("/professional-home");
+              navigate("/calendar");
             }}
             role="button"
             tabIndex={0}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
                 closeMobileNav();
-                navigate("/professional-home");
+                navigate("/calendar");
               }
             }}
           >
@@ -106,12 +106,7 @@ const ProfessionalNavbar = () => {
               </NavLink>
             </li>
             <li>
-              <NavLink to="/profile-guidelines" className={linkClassName}>
-                House rules
-              </NavLink>
-            </li>
-            <li>
-              <NavLink to="/professional-home" className={linkClassName}>
+              <NavLink to="/calendar" className={linkClassName}>
                 Calendar
               </NavLink>
             </li>

@@ -38,7 +38,7 @@ const AddServicePage = () => {
             </p>
 
             <div className="cta-row">
-              <button className="btn-primary" onClick={() => navigate("/professional-home")}>
+              <button className="btn-primary" onClick={() => navigate("/calendar")}>
                 Go to Dashboard
               </button>
               <button className="btn-ghost" onClick={resetForAnother}>

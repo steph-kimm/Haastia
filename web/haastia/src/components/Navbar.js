@@ -48,7 +48,7 @@ function Navbar() {
                   <button
                     onClick={() => {
                       setCurrentView('professional');
-                      navigate('/professional-home');
+                      navigate('/calendar');
                     }}
                   >
                     Switch to Professional View
