@@ -2,6 +2,7 @@ import Booking from "../models/booking.js";
 import Availability from "../models/availability.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import User from "../models/user.js"; // (to find the provider’s email)
+import Service from "../models/service.js";
 
 const DAY_NAMES = [
   "Sunday",
@@ -30,10 +31,41 @@ const dayNameFromDate = (value) => {
 // Create a new booking request
 export const createBooking = async (req, res) => {
   try {
-    const { professional, service, date, timeSlot, guestInfo, name, email, phone } = req.body;
+    const {
+      professional,
+      service,
+      date,
+      timeSlot,
+      guestInfo,
+      name,
+      email,
+      phone,
+      paymentOption = "deposit",
+    } = req.body;
 
     if (!professional || !service || !date || !timeSlot?.start || !timeSlot?.end) {
       return res.status(400).json({ error: "Missing required booking fields" });
+    }
+
+    if (!["deposit", "full"].includes(paymentOption)) {
+      return res.status(400).json({ error: "Invalid payment option" });
+    }
+
+    const serviceDoc = await Service.findById(service).select("price deposit professional");
+    if (!serviceDoc) {
+      return res.status(404).json({ error: "Service not found" });
+    }
+
+    if (String(serviceDoc.professional) !== String(professional)) {
+      return res.status(400).json({ error: "Service does not belong to the selected professional" });
+    }
+
+    let amountDue = 0;
+    if (paymentOption === "full") {
+      amountDue = serviceDoc.price;
+    } else {
+      const depositAmount = serviceDoc.deposit ?? 0;
+      amountDue = depositAmount > 0 ? depositAmount : serviceDoc.price;
     }
 
     const bookingData = {
@@ -42,6 +74,10 @@ export const createBooking = async (req, res) => {
       date,
       timeSlot,
       status: "pending",
+      paymentOption,
+      amountDue,
+      amountPaid: 0,
+      paymentStatus: "requires_payment",
     };
 
     if (req.user?._id) {
@@ -223,6 +259,10 @@ export const updateBookingStatus = async (req, res) => {
       return res.status(400).json({ error: "Only pending bookings can be updated" });
     }
 
+    if (status === "accepted" && booking.paymentStatus !== "paid") {
+      return res.status(400).json({ error: "Cannot accept booking until payment is completed" });
+    }
+
     booking.status = status;
     await booking.save();
 
@@ -278,6 +318,10 @@ export const completeBooking = async (req, res) => {
 
     if (booking.status !== "accepted") {
       return res.status(400).json({ error: "Only accepted bookings can be completed" });
+    }
+
+    if (booking.paymentStatus !== "paid") {
+      return res.status(400).json({ error: "Cannot complete booking until payment is collected" });
     }
 
     booking.status = "completed";

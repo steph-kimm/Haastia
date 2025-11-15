@@ -24,6 +24,23 @@ const bookingSchema = new Schema(
       end:   { type: String, required: true },
     },
 
+    paymentOption: {
+      type: String,
+      enum: ["deposit", "full"],
+      default: "deposit",
+    },
+    amountDue: { type: Number, min: 0, default: 0 },
+    amountPaid: { type: Number, min: 0, default: 0 },
+    paymentStatus: {
+      type: String,
+      enum: ["requires_payment", "processing", "paid", "failed", "refunded"],
+      default: "requires_payment",
+    },
+    stripePaymentIntentId: { type: String },
+    stripeChargeId: { type: String },
+    stripeTransferId: { type: String },
+    paidAt: { type: Date },
+
     // Lifecycle state
     status: {
       type: String,
