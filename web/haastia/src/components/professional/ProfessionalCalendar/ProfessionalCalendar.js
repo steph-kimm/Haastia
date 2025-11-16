@@ -70,11 +70,11 @@ const ProfessionalCalendar = () => {
         const authHeaders = token ? { Authorization: `Bearer ${token}` } : undefined;
 
         const [availRes, bookingsRes, blockedRes] = await Promise.all([
-          axios.get(`http://localhost:8000/api/availability/${professionalId}`),
-          axios.get(`http://localhost:8000/api/bookings/professional/${professionalId}`, {
+          axios.get(`/api/availability/${professionalId}`),
+          axios.get(`/api/bookings/professional/${professionalId}`, {
             headers: authHeaders,
           }),
-          axios.get(`http://localhost:8000/api/blocked-times/${professionalId}`, {
+          axios.get(`/api/blocked-times/${professionalId}`, {
             params: {
               start: toISODateString(rangeStart),
               end: toISODateString(rangeEnd),

@@ -58,7 +58,7 @@ const AppointmentDetails = () => {
       setError(null);
       try {
         const res = await axios.get(
-          `http://localhost:8000/api/bookings/professional/${professionalId}`,
+          `/api/bookings/professional/${professionalId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const match = res.data.find((item) => item._id === bookingId);
@@ -98,7 +98,7 @@ const AppointmentDetails = () => {
     if (!confirmed) return;
     try {
       const res = await axios.put(
-        `http://localhost:8000/api/bookings/${booking._id}/cancel`,
+        `/api/bookings/${booking._id}/cancel`,
         { reason: "Cancelled by professional" },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -115,7 +115,7 @@ const AppointmentDetails = () => {
     if (!confirmed) return;
     try {
       const res = await axios.put(
-        `http://localhost:8000/api/bookings/${booking._id}/complete`,
+        `/api/bookings/${booking._id}/complete`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

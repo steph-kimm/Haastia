@@ -60,7 +60,7 @@ const ProfessionalRequests = () => {
     const fetchRequests = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:8000/api/bookings/professional/${professionalId}`,
+          `/api/bookings/professional/${professionalId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const sorted = res.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -83,7 +83,7 @@ const ProfessionalRequests = () => {
 
     try {
       const res = await axios.put(
-        `http://localhost:8000/api/bookings/${booking._id}/cancel`,
+        `/api/bookings/${booking._id}/cancel`,
         { reason: "Provider cancelled via dashboard" },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -100,7 +100,7 @@ const ProfessionalRequests = () => {
 
     try {
       const res = await axios.put(
-        `http://localhost:8000/api/bookings/${bookingId}/complete`,
+        `/api/bookings/${bookingId}/complete`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

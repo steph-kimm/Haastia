@@ -20,7 +20,7 @@ const SignupCancel = () => {
     // If the user aborts Stripe checkout we let the backend discard any pending record.
     const cancelPendingSignup = async () => {
       try {
-        await axios.delete(`http://localhost:8000/api/auth/signup/pending/${sessionId}`);
+        await axios.delete(`/api/auth/signup/pending/${sessionId}`);
       } catch (err) {
         if (!isMounted) return;
         // Surface a friendly error but do not block the user from retrying signup.

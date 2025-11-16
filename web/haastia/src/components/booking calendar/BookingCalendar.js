@@ -11,7 +11,7 @@ const BookingDatePicker = ({ providerId }) => {
         const fetchAvailableSlots = async () => {
             if (!providerId) return;
             try {
-                const response = await axios.get(`http://localhost:8000/api/bookings/professional/${providerId}/available-slots`);
+                const response = await axios.get(`/api/bookings/professional/${providerId}/available-slots`);
                 setAvailableSlots(response.data || []);
             } catch (error) {
                 console.error('Error fetching available slots:', error);

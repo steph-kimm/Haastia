@@ -38,10 +38,10 @@ const ProfessionalBookingPage = () => {
       rangeEnd.setDate(rangeEnd.getDate() + 90);
 
       const [userRes, serviceRes, availRes, blockedRes] = await Promise.all([
-        axios.get(`http://localhost:8000/api/user/get-user/${professionalId}`),
-        axios.get(`http://localhost:8000/api/services/by-user/${professionalId}`),
-        axios.get(`http://localhost:8000/api/availability/${professionalId}`),
-        axios.get(`http://localhost:8000/api/blocked-times/${professionalId}`, {
+        axios.get(`/api/user/get-user/${professionalId}`),
+        axios.get(`/api/services/by-user/${professionalId}`),
+        axios.get(`/api/availability/${professionalId}`),
+        axios.get(`/api/blocked-times/${professionalId}`, {
           params: {
             start: toISODateString(rangeStart),
             end: toISODateString(rangeEnd),
@@ -106,7 +106,7 @@ const ProfessionalBookingPage = () => {
     if (isLoggedIn) {
       // logged-in user
       try {
-        const res = await axios.post("http://localhost:8000/api/bookings", bookingData, {
+        const res = await axios.post("/api/bookings", bookingData, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setMessage("Booking request sent successfully!");
@@ -121,7 +121,7 @@ const ProfessionalBookingPage = () => {
         return;
       }
       try {
-        const res = await axios.post("http://localhost:8000/api/bookings", {
+        const res = await axios.post("/api/bookings", {
           ...bookingData,
           guestInfo,
         });

@@ -72,7 +72,7 @@ const ProfessionalCustomers = () => {
       }
 
       try {
-        const { data } = await axios.get("http://localhost:8000/api/professional/me/customers", {
+        const { data } = await axios.get("/api/professional/me/customers", {
           headers: {
             Authorization: `Bearer ${auth.token}`,
           },
@@ -160,7 +160,7 @@ const ProfessionalCustomers = () => {
 
       try {
         const { data } = await axios.get(
-          `http://localhost:8000/api/professional/me/customers/${customerId}`,
+          `/api/professional/me/customers/${customerId}`,
           {
             headers: {
               Authorization: `Bearer ${auth.token}`,

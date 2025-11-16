@@ -27,8 +27,8 @@ const ProfessionalProfile = () => {
     const fetchData = async () => {
       try {
         const [proRes, serviceRes] = await Promise.all([
-          axios.get(`http://localhost:8000/api/professional/${id}`),
-          axios.get(`http://localhost:8000/api/services/by-user/${id}`),
+          axios.get(`/api/professional/${id}`),
+          axios.get(`/api/services/by-user/${id}`),
         ]);
 
         setProfessional(proRes.data.professional);

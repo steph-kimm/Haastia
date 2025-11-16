@@ -132,7 +132,7 @@ const AddNewServiceForm = ({ onSuccess }) => {
         addOns: normalizedAddOns,
       };
 
-      const res = await axios.post("http://localhost:8000/api/services", serviceData, {
+      const res = await axios.post("/api/services", serviceData, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

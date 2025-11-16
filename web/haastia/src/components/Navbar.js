@@ -10,8 +10,6 @@ function Navbar() {
   const auth = getValidToken();
 
   const userName = auth?.payload?.name ?? null;
-  const userRole = auth?.payload?.role ?? null;
-
   const handleLogout = () => {
     clearAuthStorage();
     navigate('/login');
@@ -29,35 +27,25 @@ function Navbar() {
           <div className="user-menu">
             <span className="user-name">{userName || 'name'}</span>
             <div className="dropdown-content">
-              <Link to="/profile" className="dropdown-item">
-                Account
-              </Link>
+              <button
+                className="dropdown-item"
+                onClick={() => {
+                  setCurrentView('professional');
+                  navigate('/calendar');
+                }}
+              >
+                Professional Dashboard
+              </button>
 
-              {/* ✅ Toggle view buttons */}
-              {currentView === 'professional' ? (
-                <button
-                  onClick={() => {
-                    setCurrentView('customer');
-                    navigate('/');
-                  }}
-                >
-                  Switch to Customer View
-                </button>
-              ) : (
-                userRole === 'professional' && (
-                  <button
-                    onClick={() => {
-                      setCurrentView('professional');
-                      navigate('/calendar');
-                    }}
-                  >
-                    Switch to Professional View
-                  </button>
-                )
-              )}
+              <button
+                className="dropdown-item"
+                onClick={() => navigate('/settings')}
+              >
+                Settings
+              </button>
 
               <button onClick={handleLogout} className="dropdown-item">
-                Logout
+                Login
               </button>
             </div>
           </div>

@@ -86,7 +86,7 @@ const Signup = () => {
       const successUrl = `${window.location.origin}/signup/success`;
       const cancelUrl = `${window.location.origin}/signup/cancel`;
 
-      const response = await axios.post('http://localhost:8000/api/payment/create-checkout-session', {
+      const response = await axios.post('/api/payment/create-checkout-session', {
         pendingSignupId,
         successUrl,
         cancelUrl,
@@ -117,7 +117,7 @@ const Signup = () => {
         ...formData,
       };
 
-      const response = await axios.post('http://localhost:8000/api/auth/signup', basePayload);
+      const response = await axios.post('/api/auth/signup', basePayload);
       const { token, pendingSignupId, message } = response.data || {};
 
       if (formData.isProvider) {

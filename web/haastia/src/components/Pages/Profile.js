@@ -14,7 +14,7 @@ const UserProfile = () => {
         console.log('userId', userId)
         const fetchUserProfile = async () => {
             try {
-                const response = await axios.get(`http://localhost:8000/api/get-user/${userId}`);
+                const response = await axios.get(`/api/get-user/${userId}`);
                 setUser(response.data);
             } catch (error) {
                 console.error('Error fetching user profile:', error);
@@ -23,7 +23,7 @@ const UserProfile = () => {
 
         const fetchUserServices = async () => {
             try {
-                const response = await axios.get(`http://localhost:8000/api/get-posts-by-user/${userId}`);
+                const response = await axios.get(`/api/get-posts-by-user/${userId}`);
                 setServices(response.data);
             } catch (error) {
                 console.error('Error fetching user services:', error);
@@ -32,7 +32,7 @@ const UserProfile = () => {
 
         const fetchUserReviews = async () => {
             try {
-                const response = await axios.get(`http://localhost:8000/api/get-reviews-by-user/${userId}`);
+                const response = await axios.get(`/api/get-reviews-by-user/${userId}`);
                 setReviews(response.data);
             } catch (error) {
                 console.error('Error fetching user reviews:', error);

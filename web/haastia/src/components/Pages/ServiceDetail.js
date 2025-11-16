@@ -25,7 +25,7 @@ function ServiceDetail() {
   useEffect(() => {
     const fetchService = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/api/get-post/${id}`);
+        const response = await axios.get(`/api/get-post/${id}`);
         setService(response.data);
         console.log("service", service)
         setTotalPrice(response.data.price);

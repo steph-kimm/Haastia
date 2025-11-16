@@ -30,7 +30,7 @@ const MyServices = () => {
   const fetchServices = async () => {
     if (!token) return;
     try {
-      const res = await axios.get("http://localhost:8000/api/services/my-services", {
+      const res = await axios.get("/api/services/my-services", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setServices(res.data);
@@ -45,7 +45,7 @@ const MyServices = () => {
     if (!window.confirm("Are you sure you want to delete this service?")) return;
     if (!token) return;
     try {
-      await axios.delete(`http://localhost:8000/api/services/${id}`, {
+      await axios.delete(`/api/services/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setServices(services.filter((s) => s._id !== id));
@@ -165,7 +165,7 @@ const MyServices = () => {
         });
 
       const res = await axios.put(
-        `http://localhost:8000/api/services/${id}`,
+        `/api/services/${id}`,
         {
           title: trimmedTitle,
           price: parsedPrice,

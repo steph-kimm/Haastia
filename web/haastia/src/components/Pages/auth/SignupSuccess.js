@@ -27,7 +27,7 @@ const SignupSuccess = () => {
     // We exchange it for an application token so the rest of the auth flow can run.
     const finalizeSignup = async () => {
       try {
-        const response = await axios.post('http://localhost:8000/api/auth/signup', {
+        const response = await axios.post('/api/auth/signup', {
           sessionId,
         });
 

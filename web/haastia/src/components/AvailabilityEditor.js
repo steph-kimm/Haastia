@@ -242,7 +242,7 @@ const AvailabilityEditor = () => {
 
     const fetchAvailability = async () => {
       try {
-        const { data } = await axios.get(`http://localhost:8000/api/availability/${userId}`);
+        const { data } = await axios.get(`/api/availability/${userId}`);
         if (!isActive) return;
         setAvailability(normalizeAvailability(data));
       } catch (err) {
@@ -266,7 +266,7 @@ const AvailabilityEditor = () => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const params = { start: toISODateString(today) };
-        const { data } = await axios.get(`http://localhost:8000/api/blocked-times/${userId}`, {
+        const { data } = await axios.get(`/api/blocked-times/${userId}`, {
           params,
           headers: authHeaders,
         });
@@ -321,7 +321,7 @@ const AvailabilityEditor = () => {
         }));
 
       const res = await axios.post(
-        `http://localhost:8000/api/availability/${userId}`,
+        `/api/availability/${userId}`,
         { availability: filteredAvailability }
       );
 
@@ -420,7 +420,7 @@ const AvailabilityEditor = () => {
 
     try {
       await axios.post(
-        `http://localhost:8000/api/blocked-times/${userId}`,
+        `/api/blocked-times/${userId}`,
         {
           date,
           start,
@@ -446,7 +446,7 @@ const AvailabilityEditor = () => {
     if (!id || !token) return;
     setDeletingBlockId(id);
     try {
-      await axios.delete(`http://localhost:8000/api/blocked-times/${id}`, {
+      await axios.delete(`/api/blocked-times/${id}`, {
         headers: authHeaders,
       });
       await loadBlockedTimes(false);

@@ -27,7 +27,7 @@ const SubmitTicketForm = () => {
 
         try {
             
-            const response = await axios.post('http://localhost:8000/api/submit-ticket', {
+            const response = await axios.post('/api/submit-ticket', {
                 category,
                 serviceNumber,
                 description,

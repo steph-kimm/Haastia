@@ -91,7 +91,7 @@ const BookingFormFields = ({
         const end = new Date(start);
         end.setDate(end.getDate() + 90);
         const { data } = await axios.get(
-          `http://localhost:8000/api/blocked-times/${professionalId}`,
+          `/api/blocked-times/${professionalId}`,
           {
             params: {
               start: toISODateString(start),
@@ -343,7 +343,7 @@ const BookingFormFields = ({
         : undefined;
 
       const { data } = await axios.post(
-        "http://localhost:8000/api/payment/service-booking-intent",
+        "/api/payment/service-booking-intent",
         payload,
         config
       );
