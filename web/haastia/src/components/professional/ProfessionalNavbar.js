@@ -144,6 +144,11 @@ const ProfessionalNavbar = () => {
                 </NavLink>
               </li>
             )}
+            <li>
+              <NavLink to="/pro/settings" className={linkClassName}>
+                Settings
+              </NavLink>
+            </li>
 
             {userId && (
               <li>

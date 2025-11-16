@@ -35,6 +35,31 @@ const userSchema = new Schema(
         location: {
             type: String,
         },
+        tagline: {
+            type: String,
+            trim: true,
+            default: "",
+        },
+        bio: {
+            type: String,
+            trim: true,
+            default: "",
+        },
+        businessAddress: {
+            type: String,
+            trim: true,
+            default: "",
+        },
+        contactPhone: {
+            type: String,
+            trim: true,
+            default: "",
+        },
+        website: {
+            type: String,
+            trim: true,
+            default: "",
+        },
         image: {
             public_id: {
                 type: String,

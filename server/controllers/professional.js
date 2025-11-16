@@ -35,6 +35,12 @@ const ensureProfessional = (req, res) => {
 };
 
 const MAX_PROFILE_GUIDELINES_LENGTH = 2000;
+const MAX_BIO_LENGTH = 2000;
+const MAX_TAGLINE_LENGTH = 120;
+const MAX_BUSINESS_ADDRESS_LENGTH = 200;
+const MAX_LOCATION_LENGTH = 120;
+const MAX_CONTACT_PHONE_LENGTH = 32;
+const MAX_WEBSITE_LENGTH = 200;
 
 const fetchProfessionalProfilePayload = async (professionalId) => {
   const professional = await User.findById(professionalId).select("-password");
@@ -62,29 +68,118 @@ export const getMyProfessionalProfile = async (req, res) => {
   }
 };
 
+const sanitizeContactPhone = (value) => value.replace(/[^\d+().-\s]/g, "").trim();
+
+const normalizeWebsiteValue = (value) => {
+  if (!value) return "";
+  const hasProtocol = /^[a-zA-Z]+:\/\//.test(value);
+  if (hasProtocol && !/^https?:\/\//i.test(value)) {
+    return null;
+  }
+  const normalized = hasProtocol ? value : `https://${value}`;
+  try {
+    const url = new URL(normalized);
+    if (!["http:", "https:"].includes(url.protocol)) {
+      return null;
+    }
+    return url.toString();
+  } catch (err) {
+    return null;
+  }
+};
+
 export const updateProfessionalProfile = async (req, res) => {
   if (!ensureProfessional(req, res)) return;
 
   try {
-    const { profileGuidelines } = req.body;
+    const updates = {};
+    const errors = [];
 
-    if (typeof profileGuidelines !== "string") {
-      return res.status(400).json({ error: "Profile guidelines must be a string" });
+    const processField = ({ field, label, maxLength, sanitizer }) => {
+      if (!Object.prototype.hasOwnProperty.call(req.body, field)) {
+        return;
+      }
+      const value = req.body[field];
+      if (typeof value !== "string") {
+        errors.push(`${label} must be a string`);
+        return;
+      }
+      const trimmed = value.trim();
+      if (maxLength && trimmed.length > maxLength) {
+        errors.push(`${label} must be ${maxLength} characters or fewer`);
+        return;
+      }
+      if (sanitizer) {
+        const sanitized = sanitizer(trimmed);
+        if (sanitized === null) {
+          errors.push(`Please enter a valid ${label.toLowerCase()}`);
+          return;
+        }
+        if (maxLength && sanitized.length > maxLength) {
+          errors.push(`${label} must be ${maxLength} characters or fewer`);
+          return;
+        }
+        updates[field] = sanitized;
+        return;
+      }
+      updates[field] = trimmed;
+    };
+
+    processField({
+      field: "profileGuidelines",
+      label: "Profile guidelines",
+      maxLength: MAX_PROFILE_GUIDELINES_LENGTH,
+    });
+
+    processField({
+      field: "bio",
+      label: "About / bio",
+      maxLength: MAX_BIO_LENGTH,
+    });
+
+    processField({
+      field: "tagline",
+      label: "Headline",
+      maxLength: MAX_TAGLINE_LENGTH,
+    });
+
+    processField({
+      field: "businessAddress",
+      label: "Business address",
+      maxLength: MAX_BUSINESS_ADDRESS_LENGTH,
+    });
+
+    processField({
+      field: "location",
+      label: "Service area",
+      maxLength: MAX_LOCATION_LENGTH,
+    });
+
+    processField({
+      field: "contactPhone",
+      label: "Contact phone",
+      maxLength: MAX_CONTACT_PHONE_LENGTH,
+      sanitizer: (value) => sanitizeContactPhone(value),
+    });
+
+    processField({
+      field: "website",
+      label: "Website",
+      maxLength: MAX_WEBSITE_LENGTH,
+      sanitizer: normalizeWebsiteValue,
+    });
+
+    if (errors.length > 0) {
+      return res.status(400).json({ error: errors[0] });
     }
 
-    const trimmedGuidelines = profileGuidelines.trim();
-
-    if (trimmedGuidelines.length > MAX_PROFILE_GUIDELINES_LENGTH) {
-      return res.status(400).json({
-        error: `Profile guidelines must be ${MAX_PROFILE_GUIDELINES_LENGTH} characters or fewer`,
-      });
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: "No valid profile fields provided" });
     }
 
-    const professional = await User.findByIdAndUpdate(
-      req.user._id,
-      { profileGuidelines: trimmedGuidelines },
-      { new: true }
-    ).select("-password");
+    const professional = await User.findByIdAndUpdate(req.user._id, updates, {
+      new: true,
+    }).select("-password");
 
     if (!professional) {
       return res.status(404).json({ error: "Professional not found" });
