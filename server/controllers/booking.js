@@ -73,7 +73,8 @@ export const createBooking = async (req, res) => {
       service,
       date,
       timeSlot,
-      status: "pending",
+      status: "accepted",
+      acceptedAt: new Date(),
       paymentOption,
       amountDue,
       amountPaid: 0,
@@ -255,15 +256,16 @@ export const updateBookingStatus = async (req, res) => {
     const booking = await Booking.findOne({ _id: id, professional: req.user._id });
     if (!booking) return res.status(404).json({ error: "Booking not found or unauthorized" });
 
-    if (booking.status !== "pending") {
-      return res.status(400).json({ error: "Only pending bookings can be updated" });
-    }
-
     if (status === "accepted" && booking.paymentStatus !== "paid") {
       return res.status(400).json({ error: "Cannot accept booking until payment is completed" });
     }
 
+    if (booking.status !== "pending" && booking.status !== status) {
+      return res.status(400).json({ error: "Only pending bookings can be updated" });
+    }
+
     booking.status = status;
+    booking.acceptedAt = status === "accepted" ? new Date() : undefined;
     await booking.save();
 
     res.json(booking);

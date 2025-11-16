@@ -48,6 +48,7 @@ const bookingSchema = new Schema(
       enum: ["pending", "accepted", "declined", "cancelled", "completed"],
       default: "pending",
     },
+    acceptedAt: { type: Date },
 
     // Cancellation details (optional)
     cancellation: { type: cancellationSchema, default: null },

@@ -547,6 +547,7 @@ export const createServiceBookingIntent = async (req, res) => {
     booking.amountPaid = 0;
     booking.paymentStatus = "requires_payment";
     booking.status = "pending";
+    booking.acceptedAt = undefined;
     booking.paidAt = undefined;
     booking.stripePaymentIntentId = undefined;
     booking.stripePaymentIntentClientSecret = undefined;
@@ -630,7 +631,8 @@ const handlePaymentIntentSucceeded = async (paymentIntent) => {
   booking.amountPaid = centsToCurrencyUnits(
     paymentIntent.amount_received ?? paymentIntent.amount,
   );
-  booking.status = "pending";
+  booking.status = "accepted";
+  booking.acceptedAt = booking.acceptedAt ?? new Date();
   booking.paidAt = new Date();
   booking.stripePaymentIntentId = paymentIntent.id;
   await booking.save();
@@ -649,6 +651,8 @@ const handlePaymentIntentFailed = async (paymentIntent) => {
   booking.paymentStatus = "failed";
   booking.amountPaid = 0;
   booking.paidAt = undefined;
+  booking.status = "pending";
+  booking.acceptedAt = undefined;
   booking.stripePaymentIntentId = paymentIntent.id;
   await booking.save();
 };
