@@ -3,6 +3,12 @@ import Availability from "../models/availability.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import User from "../models/user.js"; // (to find the provider’s email)
 import Service from "../models/service.js";
+import {
+  INACTIVE_BOOKING_STATUSES,
+  findSlotConflicts,
+  normalizeDateOnly,
+  normalizeTimeSlot,
+} from "../utils/scheduling.js";
 
 const DAY_NAMES = [
   "Sunday",
@@ -68,11 +74,33 @@ export const createBooking = async (req, res) => {
       amountDue = depositAmount > 0 ? depositAmount : serviceDoc.price;
     }
 
+    const normalizedDate = normalizeDateOnly(date);
+    if (!normalizedDate) {
+      return res.status(400).json({ error: "Invalid booking date" });
+    }
+
+    const normalizedSlot = normalizeTimeSlot(timeSlot);
+    if (!normalizedSlot) {
+      return res.status(400).json({ error: "Invalid time slot" });
+    }
+
+    const conflict = await findSlotConflicts({
+      professionalId: professional,
+      date: normalizedDate,
+      timeSlot: normalizedSlot,
+    });
+
+    if (conflict) {
+      return res.status(409).json({
+        error: "Selected time slot is no longer available. Please choose another time.",
+      });
+    }
+
     const bookingData = {
       professional,
       service,
-      date,
-      timeSlot,
+      date: normalizedDate,
+      timeSlot: normalizedSlot,
       status: "accepted",
       acceptedAt: new Date(),
       paymentOption,
@@ -172,14 +200,17 @@ export const getAvailableSlotsForProfessional = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const [availabilityDocs, acceptedBookings] = await Promise.all([
+    const [availabilityDocs, activeBookings] = await Promise.all([
       Availability.find({ professionalId: id }),
-      Booking.find({ professional: id, status: "accepted" }),
+      Booking.find({
+        professional: id,
+        status: { $nin: INACTIVE_BOOKING_STATUSES },
+      }),
     ]);
 
     const bookedByDay = new Map();
 
-    for (const booking of acceptedBookings) {
+    for (const booking of activeBookings) {
       const start = booking?.timeSlot?.start;
       const end = booking?.timeSlot?.end;
       if (!start || !end) continue;

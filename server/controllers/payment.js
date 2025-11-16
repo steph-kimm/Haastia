@@ -4,6 +4,11 @@ import PendingSignup from "../models/pendingSignup.js";
 import User from "../models/user.js";
 import Service from "../models/service.js";
 import Booking from "../models/booking.js";
+import {
+  findSlotConflicts,
+  normalizeDateOnly,
+  normalizeTimeSlot,
+} from "../utils/scheduling.js";
 import { hashPassword } from "../helpers/auth.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -492,17 +497,27 @@ export const createServiceBookingIntent = async (req, res) => {
       return res.status(400).json({ error: "Unable to determine a valid charge amount" });
     }
 
-    const normalizedDate = new Date(date);
-    if (Number.isNaN(normalizedDate.getTime())) {
+    const normalizedDate = normalizeDateOnly(date);
+    if (!normalizedDate) {
       return res.status(400).json({ error: "Invalid booking date" });
     }
 
-    const normalizedSlot = {
-      start: String(timeSlot.start).trim(),
-      end: String(timeSlot.end).trim(),
-    };
-    if (!normalizedSlot.start || !normalizedSlot.end) {
+    const normalizedSlot = normalizeTimeSlot(timeSlot);
+    if (!normalizedSlot) {
       return res.status(400).json({ error: "Invalid time slot" });
+    }
+
+    const conflict = await findSlotConflicts({
+      professionalId,
+      date: normalizedDate,
+      timeSlot: normalizedSlot,
+      excludeBookingId: bookingId,
+    });
+
+    if (conflict) {
+      return res.status(409).json({
+        error: "Selected time slot is no longer available. Please choose another time.",
+      });
     }
 
     const derivedGuestInfo = normalizeGuestInfo(guestInfo, {
