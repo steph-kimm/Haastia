@@ -1,11 +1,12 @@
 import React, { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { matchPath, useLocation } from "react-router-dom";
 import { useView } from "../context/ViewContext";
 import CustomerRoutes from "./CustomerRoutes";
 import ProfessionalRoutes from "./ProfessionalRoutes";
 import AdminRoutes from "./AdminRoutes";
 import Navbar from "../components/Navbar";
 import ProfessionalNavbar from "../components/professional/ProfessionalNavbar";
+import { professionalRouteConfig } from "./routeConfig";
 import { getValidToken } from "../utils/auth";
 import "./AppRoutes.css";
 
@@ -16,6 +17,9 @@ function AppRoutes() {
   const authLayoutPrefixes = ["/login", "/signup", "/phone"];
   const isAuthLayoutRoute = authLayoutPrefixes.some((prefix) =>
     location.pathname === prefix || location.pathname.startsWith(`${prefix}/`)
+  );
+  const isProfessionalDashboardRoute = professionalRouteConfig.some(({ path }) =>
+    matchPath({ path, end: true }, location.pathname)
   );
 
   // Detect role from token and adjust context
@@ -63,13 +67,22 @@ function AppRoutes() {
       );
     }
 
+    if (isProfessionalDashboardRoute) {
+      return (
+        <div className="professional-app-shell">
+          <ProfessionalNavbar />
+          <main className="professional-app-shell__content">
+            <ProfessionalRoutes />
+          </main>
+        </div>
+      );
+    }
+
     return (
-      <div className="professional-app-shell">
-        <ProfessionalNavbar />
-        <main className="professional-app-shell__content">
-          <ProfessionalRoutes />
-        </main>
-      </div>
+      <>
+        <Navbar />
+        <ProfessionalRoutes />
+      </>
     );
   }
 
