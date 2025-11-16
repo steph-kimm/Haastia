@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { loadStripe } from "@stripe/stripe-js";
 import { CardElement, Elements, useElements, useStripe } from "@stripe/react-stripe-js";
@@ -14,6 +14,8 @@ import "./booking-form.css";
 const stripePromise = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY)
   : null;
+
+const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 const formatCurrency = (value) => {
   const amount = Number(value);
@@ -34,6 +36,7 @@ const BookingFormFields = ({
   const stripe = useStripe();
   const elements = useElements();
   const [date, setDate] = useState("");
+  const [dateInputValue, setDateInputValue] = useState("");
   const [timeSlot, setTimeSlot] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -59,6 +62,14 @@ const BookingFormFields = ({
   const servicePrice = Number(service?.price ?? 0);
   const depositAmount = depositAvailable ? Number(service?.deposit ?? 0) : 0;
   const amountDue = paymentOption === "full" ? servicePrice : depositAmount;
+
+  const syncDateState = useCallback(
+    (value) => {
+      setDate(value);
+      setDateInputValue(value);
+    },
+    [setDate, setDateInputValue]
+  );
 
   useEffect(() => {
     setPaymentOption(service?.deposit > 0 ? "deposit" : "full");
@@ -113,13 +124,29 @@ const BookingFormFields = ({
   }, [availability, date, blockedByDate]);
 
   const handleDateChange = (value) => {
+    setDateInputValue(value);
+
     if (!value) {
-      setDate("");
+      syncDateState("");
       setTimeSlot("");
       return;
     }
 
-    const dayAvailability = getDayAvailabilityForDate(availability, value);
+    let normalizedValue = null;
+    if (ISO_DATE_PATTERN.test(value)) {
+      normalizedValue = value;
+    } else if (value.length >= 8) {
+      const isoFromFallback = toISODateString(value);
+      if (isoFromFallback) {
+        normalizedValue = isoFromFallback;
+      }
+    }
+
+    if (!normalizedValue) {
+      return;
+    }
+
+    const dayAvailability = getDayAvailabilityForDate(availability, normalizedValue);
     const hasSlots = dayAvailability?.slots?.length;
 
     if (!hasSlots) {
@@ -127,19 +154,19 @@ const BookingFormFields = ({
         type: "error",
         message: "No availability on the selected date. Please choose another date.",
       });
-      setDate("");
+      syncDateState("");
       setTimeSlot("");
       return;
     }
 
-    const blocks = blockedByDate.get(value) ?? [];
+    const blocks = blockedByDate.get(normalizedValue) ?? [];
     const openSlots = filterSlotsAgainstBlocks(dayAvailability?.slots ?? [], blocks);
     if (!blockedLoading && openSlots.length === 0) {
       setFeedback({
         type: "error",
         message: "All slots for that day are blocked off. Please choose another date.",
       });
-      setDate("");
+      syncDateState("");
       setTimeSlot("");
       return;
     }
@@ -148,7 +175,7 @@ const BookingFormFields = ({
       setFeedback({ type: "", message: "" });
     }
 
-    setDate(value);
+    syncDateState(normalizedValue);
     setTimeSlot("");
   };
 
@@ -165,10 +192,10 @@ const BookingFormFields = ({
         type: "error",
         message: "No availability on the selected date. Please choose another date.",
       });
-      setDate("");
+      syncDateState("");
       setTimeSlot("");
     }
-  }, [availability, date, availableSlotsForSelectedDate, blockedLoading]);
+  }, [availability, date, availableSlotsForSelectedDate, blockedLoading, syncDateState]);
 
   useEffect(() => {
     if (!date || !timeSlot) return;
@@ -201,7 +228,7 @@ const BookingFormFields = ({
   );
 
   const resetForm = () => {
-    setDate("");
+    syncDateState("");
     setTimeSlot("");
     if (!isLoggedIn) {
       setName("");
@@ -411,7 +438,7 @@ const BookingFormFields = ({
               <input
                 id="booking-date"
                 type="date"
-                value={date}
+                value={dateInputValue}
                 min={todayISODate}
                 onChange={(e) => handleDateChange(e.target.value)}
               />
