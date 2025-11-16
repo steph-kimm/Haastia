@@ -4,8 +4,11 @@ import {
   createExpressAccountLink,
   getStripeAccountStatus,
   createStripeLoginLink,
+  createServiceBookingIntent,
+  handleStripeWebhook,
 } from "../controllers/payment.js";
 import { requireSignin } from "../middlewares/auth.js";
+import { optionalAuth } from "../middlewares/optionalAuth.js";
 
 const router = express.Router();
 
@@ -20,6 +23,17 @@ const ensureProfessional = (req, res, next) => {
 
 // POST /api/stripe/create-checkout-session
 router.post("/create-checkout-session", createCheckoutSession);
+
+// POST /api/payment/service-booking-intent
+// Optional auth since guests can book, but JWT is honored when present.
+router.post(
+  "/service-booking-intent",
+  optionalAuth,
+  createServiceBookingIntent,
+);
+
+// POST /api/payment/webhook - Stripe sends events here, no auth header.
+router.post("/webhook", handleStripeWebhook);
 
 router.post(
   "/connect/account-link",

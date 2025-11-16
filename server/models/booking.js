@@ -37,6 +37,7 @@ const bookingSchema = new Schema(
       default: "requires_payment",
     },
     stripePaymentIntentId: { type: String },
+    stripePaymentIntentClientSecret: { type: String },
     stripeChargeId: { type: String },
     stripeTransferId: { type: String },
     paidAt: { type: Date },
