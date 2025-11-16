@@ -134,6 +134,9 @@ const StripeConnectPage = () => {
       (chargesEnabled ?? false) &&
       requirements.length === 0
   );
+  const outstandingLabel =
+    requirements.length === 0 ? "None" : `${requirements.length} remaining`;
+  const isConnected = Boolean(detailsSubmitted);
 
   return (
     <div className="stripe-connect-page">
@@ -165,12 +168,12 @@ const StripeConnectPage = () => {
                 <strong>{mapBooleanToStatus(detailsSubmitted)}</strong>
               </li>
               <li>
-                <span>Charges enabled</span>
-                <strong>{mapBooleanToStatus(chargesEnabled)}</strong>
+                <span>Outstanding requirements</span>
+                <strong>{outstandingLabel}</strong>
               </li>
               <li>
-                <span>Payouts enabled</span>
-                <strong>{mapBooleanToStatus(payoutsEnabled)}</strong>
+                <span>Setup status</span>
+                <strong>{onboardingComplete ? "Ready for payouts" : "Action needed"}</strong>
               </li>
             </ul>
 
@@ -216,22 +219,26 @@ const StripeConnectPage = () => {
               Stripe dashboard.
             </p>
             <div className="stripe-connect-buttons">
-              <button
-                type="button"
-                className="stripe-connect-primary"
-                onClick={handleAccountLink}
-                disabled={connectLoading || loading}
-              >
-                {connectLoading ? "Opening Stripe..." : "Connect with Stripe"}
-              </button>
-              <button
-                type="button"
-                className="stripe-connect-secondary"
-                onClick={handleDashboardLink}
-                disabled={dashboardLoading || loading}
-              >
-                {dashboardLoading ? "Preparing dashboard..." : "Open Stripe Dashboard"}
-              </button>
+              {!isConnected && (
+                <button
+                  type="button"
+                  className="stripe-connect-primary"
+                  onClick={handleAccountLink}
+                  disabled={connectLoading || loading}
+                >
+                  {connectLoading ? "Opening Stripe..." : "Connect with Stripe"}
+                </button>
+              )}
+              {isConnected && (
+                <button
+                  type="button"
+                  className="stripe-connect-secondary"
+                  onClick={handleDashboardLink}
+                  disabled={dashboardLoading || loading}
+                >
+                  {dashboardLoading ? "Preparing dashboard..." : "Open Stripe Dashboard"}
+                </button>
+              )}
             </div>
           </section>
         </div>
