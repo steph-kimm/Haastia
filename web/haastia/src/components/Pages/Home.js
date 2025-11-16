@@ -232,7 +232,8 @@ const Home = () => {
 
       <footer className="footer">
         <p>© {new Date().getFullYear()} Haastia</p>
-        <a href="mailto:team.haastia@ggmail.com">team.haastia@ggmail.com</a>
+        <a href="mailto:team.haastia@gmail.com">team.haastia@gmail.com</a>
+        <p>FAQ</p>
       </footer>
     </div>
   );
