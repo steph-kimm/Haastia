@@ -62,6 +62,9 @@ const ProfessionalProfile = () => {
   const locationLabel = professional.location?.trim() || "Location TBD";
   const firstName = professional.name?.split(" ")[0] || "This professional";
   const hasCustomName = firstName !== "This professional";
+  const canAcceptPayments = Boolean(
+    professional?.stripeConnectStatus?.chargesEnabled
+  );
   const rawGuidelines = professional.profileGuidelines;
   const profileGuidelines =
     typeof rawGuidelines === "string"
@@ -166,7 +169,17 @@ const ProfessionalProfile = () => {
                   </div>
                   {s.duration && <p className="duration">· {s.duration} min</p>}
                 </div>
-                <button onClick={() => setSelectedService(s)}>Book service</button>
+                <button
+                  onClick={() => canAcceptPayments && setSelectedService(s)}
+                  disabled={!canAcceptPayments}
+                  title={
+                    canAcceptPayments
+                      ? undefined
+                      : "This professional can't accept payments yet."
+                  }
+                >
+                  {canAcceptPayments ? "Book service" : "Payments unavailable"}
+                </button>
               </div>
             </li>
           ))}
@@ -195,6 +208,7 @@ const ProfessionalProfile = () => {
             service={selectedService}
             availability={availability}
             onSuccess={() => setSelectedService(null)}
+            canAcceptPayments={canAcceptPayments}
           />
         )}
       </Modal>
