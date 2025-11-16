@@ -9,6 +9,7 @@ import {
   filterSlotsAgainstBlocks,
   toISODateString,
 } from "../../utils/availability";
+import "./booking-form.css";
 
 const stripePromise = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY)
@@ -372,140 +373,201 @@ const BookingFormFields = ({
     }
   };
 
+  const dateFieldError = !blockedLoading && blockedError;
+
   return (
     <form onSubmit={handleSubmit} className="booking-form">
-      <h3>Book {service?.title || "this service"}</h3>
-      {!canAcceptPayments && (
-        <p className="feedback warning">
-          This professional can't accept payments yet. Please check back soon.
-        </p>
-      )}
-      {feedback.message && (
-        <p className={`feedback ${feedback.type}`}>{feedback.message}</p>
-      )}
-      <div>
-        <label>Date:</label>
-        <input
-          type="date"
-          value={date}
-          min={todayISODate}
-          onChange={(e) => handleDateChange(e.target.value)}
-        />
-      </div>
-
-      <div>
-        <label>Available Time Slots:</label>
-        <select
-          value={timeSlot}
-          onChange={(e) => setTimeSlot(e.target.value)}
-          disabled={!date || blockedLoading || availableSlotsForSelectedDate.length === 0}
-        >
-          <option value="">Select a time</option>
-          {availableSlotsForSelectedDate.map((slot) => (
-            <option key={`${slot.start}-${slot.end}`} value={`${slot.start}-${slot.end}`}>
-              {slot.start} - {slot.end}
-            </option>
-          ))}
-        </select>
-        {blockedLoading && date && (
-          <p className="feedback warning">Checking for recent updates…</p>
-        )}
-        {date && !blockedLoading && availableSlotsForSelectedDate.length === 0 && (
-          <p className="feedback warning">No availability for the selected date.</p>
-        )}
-        {!blockedLoading && blockedError && (
-          <p className="feedback warning">{blockedError}</p>
-        )}
-      </div>
-
-      {!isLoggedIn && (
-        <>
-          <div>
-            <label>Name:</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your name"
-            />
+      <div className="booking-card">
+        <div className="booking-header">
+          <span className="booking-badge">Secure booking</span>
+          <h3>Reserve {service?.title || "this service"}</h3>
+          <p className="booking-lede">
+            Choose a time, share your details, and submit payment to lock in your visit.
+          </p>
+          <div className="booking-price-chip" aria-live="polite">
+            <span>Due today</span>
+            <strong>{formatCurrency(amountDue)}</strong>
           </div>
-          <div>
-            <label>Email:</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-            />
-          </div>
-          <div>
-            <label>Phone:</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="Your phone number"
-            />
-          </div>
-        </>
-      )}
+        </div>
 
-      <div className="payment-summary">
-        <h4>Payment options</h4>
-        <div className="payment-option-list">
-          {depositAvailable && (
-            <label>
-              <input
-                type="radio"
-                name="paymentOption"
-                value="deposit"
-                checked={paymentOption === "deposit"}
-                onChange={(e) => setPaymentOption(e.target.value)}
-              />
-              Pay deposit ({formatCurrency(depositAmount)})
+        {!canAcceptPayments && (
+          <div className="booking-feedback warning">
+            This professional can't accept payments yet. Please check back soon.
+          </div>
+        )}
+
+        {feedback.message && (
+          <div className={`booking-feedback ${feedback.type}`}>
+            {feedback.message}
+          </div>
+        )}
+
+        <div className="booking-form-grid">
+          <div className="booking-field">
+            <label htmlFor="booking-date">
+              Date <span aria-hidden="true">*</span>
             </label>
+            <div className="booking-input-shell">
+              <input
+                id="booking-date"
+                type="date"
+                value={date}
+                min={todayISODate}
+                onChange={(e) => handleDateChange(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="booking-field">
+            <label htmlFor="booking-slot">
+              Time slot <span aria-hidden="true">*</span>
+            </label>
+            <div className="booking-input-shell">
+              <select
+                id="booking-slot"
+                value={timeSlot}
+                onChange={(e) => setTimeSlot(e.target.value)}
+                disabled={!date || blockedLoading || availableSlotsForSelectedDate.length === 0}
+              >
+                <option value="">Select a time</option>
+                {availableSlotsForSelectedDate.map((slot) => (
+                  <option key={`${slot.start}-${slot.end}`} value={`${slot.start}-${slot.end}`}>
+                    {slot.start} – {slot.end}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {blockedLoading && date && (
+              <p className="booking-footnote muted">Checking for recent updates…</p>
+            )}
+            {date && !blockedLoading && availableSlotsForSelectedDate.length === 0 && (
+              <p className="booking-footnote warning">No availability for the selected date.</p>
+            )}
+            {dateFieldError && <p className="booking-footnote warning">{blockedError}</p>}
+          </div>
+
+          {!isLoggedIn && (
+            <>
+              <div className="booking-field">
+                <label htmlFor="guest-name">
+                  Full name <span aria-hidden="true">*</span>
+                </label>
+                <div className="booking-input-shell">
+                  <input
+                    id="guest-name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your name"
+                  />
+                </div>
+              </div>
+
+              <div className="booking-field">
+                <label htmlFor="guest-email">
+                  Email <span aria-hidden="true">*</span>
+                </label>
+                <div className="booking-input-shell">
+                  <input
+                    id="guest-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                  />
+                </div>
+              </div>
+
+              <div className="booking-field">
+                <label htmlFor="guest-phone">
+                  Phone <span aria-hidden="true">*</span>
+                </label>
+                <div className="booking-input-shell">
+                  <input
+                    id="guest-phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="Your phone number"
+                  />
+                </div>
+              </div>
+            </>
           )}
-          <label>
-            <input
-              type="radio"
-              name="paymentOption"
-              value="full"
-              checked={paymentOption === "full"}
-              onChange={(e) => setPaymentOption(e.target.value)}
-            />
-            Pay in full ({formatCurrency(servicePrice)})
-          </label>
-        </div>
-        <p className="due-today">
-          <strong>Due today:</strong> {formatCurrency(amountDue)}
-        </p>
-      </div>
 
-      <div className="card-element-group">
-        <label>Payment details</label>
-        <div className="card-element-shell">
-          <CardElement
-            options={cardElementOptions}
-            onChange={(event) => setCardMessage(event.error?.message || "")}
-          />
-        </div>
-        {cardMessage && <p className="feedback error">{cardMessage}</p>}
-      </div>
+          <div className="booking-field">
+            <div className="booking-section-header">
+              <div>
+                <label>Payment preference</label>
+                <p className="booking-footnote muted">
+                  Choose to pay a deposit now or settle the full balance.
+                </p>
+              </div>
+            </div>
+            <div className="payment-option-grid" role="radiogroup">
+              {depositAvailable && (
+                <label
+                  className={`payment-option-card ${
+                    paymentOption === "deposit" ? "active" : ""
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="paymentOption"
+                    value="deposit"
+                    checked={paymentOption === "deposit"}
+                    onChange={(e) => setPaymentOption(e.target.value)}
+                  />
+                  <span className="option-label">Pay deposit</span>
+                  <span className="option-amount">{formatCurrency(depositAmount)}</span>
+                  <p className="booking-footnote muted">We'll charge the rest later.</p>
+                </label>
+              )}
+              <label
+                className={`payment-option-card ${paymentOption === "full" ? "active" : ""}`}
+              >
+                <input
+                  type="radio"
+                  name="paymentOption"
+                  value="full"
+                  checked={paymentOption === "full"}
+                  onChange={(e) => setPaymentOption(e.target.value)}
+                />
+                <span className="option-label">Pay in full</span>
+                <span className="option-amount">{formatCurrency(servicePrice)}</span>
+                <p className="booking-footnote muted">Nothing else due after today.</p>
+              </label>
+            </div>
+          </div>
 
-      <button
-        type="submit"
-        disabled={
-          isProcessingPayment ||
-          !stripe ||
-          !elements ||
-          !canAcceptPayments ||
-          !date ||
-          !timeSlot ||
-          (!!cardMessage && cardMessage.length > 0)
-        }
-      >
-        {isProcessingPayment ? "Processing payment…" : "Confirm and pay"}
-      </button>
+          <div className="booking-field">
+            <label>Payment details</label>
+            <div className="booking-input-shell card-shell">
+              <CardElement
+                options={cardElementOptions}
+                onChange={(event) => setCardMessage(event.error?.message || "")}
+              />
+            </div>
+            {cardMessage && <p className="booking-footnote error">{cardMessage}</p>}
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          className="booking-submit"
+          disabled={
+            isProcessingPayment ||
+            !stripe ||
+            !elements ||
+            !canAcceptPayments ||
+            !date ||
+            !timeSlot ||
+            (!!cardMessage && cardMessage.length > 0)
+          }
+        >
+          {isProcessingPayment ? "Processing payment…" : "Confirm and pay"}
+        </button>
+      </div>
     </form>
   );
 };
@@ -514,10 +576,18 @@ const BookingForm = (props) => {
   if (!stripePromise) {
     return (
       <div className="booking-form">
-        <h3>Book {props?.service?.title || "this service"}</h3>
-        <p className="feedback error">
-          Payments are unavailable because Stripe is not configured. Please contact support.
-        </p>
+        <div className="booking-card">
+          <div className="booking-header">
+            <span className="booking-badge">Secure booking</span>
+            <h3>Reserve {props?.service?.title || "this service"}</h3>
+            <p className="booking-lede">
+              Payments are unavailable because Stripe is not configured. Please contact support.
+            </p>
+          </div>
+          <div className="booking-feedback error">
+            Payments are unavailable right now. Please contact support.
+          </div>
+        </div>
       </div>
     );
   }
