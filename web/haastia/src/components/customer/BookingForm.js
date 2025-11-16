@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { loadStripe } from "@stripe/stripe-js";
+import { CardElement, Elements, useElements, useStripe } from "@stripe/react-stripe-js";
 import { getValidToken } from "../../utils/auth";
 import {
   getDayAvailabilityForDate,
@@ -8,7 +10,28 @@ import {
   toISODateString,
 } from "../../utils/availability";
 
-const BookingForm = ({ professionalId, service, availability = [], onSuccess }) => {
+const stripePromise = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY)
+  : null;
+
+const formatCurrency = (value) => {
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return "$0.00";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(amount);
+};
+
+const BookingFormFields = ({
+  professionalId,
+  service,
+  availability = [],
+  onSuccess,
+  canAcceptPayments = true,
+}) => {
+  const stripe = useStripe();
+  const elements = useElements();
   const [date, setDate] = useState("");
   const [timeSlot, setTimeSlot] = useState("");
   const [name, setName] = useState("");
@@ -18,10 +41,33 @@ const BookingForm = ({ professionalId, service, availability = [], onSuccess }) 
   const [blockedTimes, setBlockedTimes] = useState([]);
   const [blockedLoading, setBlockedLoading] = useState(false);
   const [blockedError, setBlockedError] = useState("");
+  const [cardMessage, setCardMessage] = useState("");
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentOption, setPaymentOption] = useState(
+    service?.deposit > 0 ? "deposit" : "full"
+  );
 
   const auth = getValidToken();
   const token = auth?.token || "";
   const isLoggedIn = Boolean(token);
+  const loggedInName = auth?.payload?.name;
+  const loggedInEmail = auth?.payload?.email;
+  const loggedInPhone = auth?.payload?.phone;
+
+  const depositAvailable = Number(service?.deposit ?? 0) > 0;
+  const servicePrice = Number(service?.price ?? 0);
+  const depositAmount = depositAvailable ? Number(service?.deposit ?? 0) : 0;
+  const amountDue = paymentOption === "full" ? servicePrice : depositAmount;
+
+  useEffect(() => {
+    setPaymentOption(service?.deposit > 0 ? "deposit" : "full");
+  }, [service?._id, service?.deposit]);
+
+  useEffect(() => {
+    if (!depositAvailable && paymentOption === "deposit") {
+      setPaymentOption("full");
+    }
+  }, [depositAvailable, paymentOption]);
 
   useEffect(() => {
     if (!professionalId) return;
@@ -32,12 +78,15 @@ const BookingForm = ({ professionalId, service, availability = [], onSuccess }) 
         start.setHours(0, 0, 0, 0);
         const end = new Date(start);
         end.setDate(end.getDate() + 90);
-        const { data } = await axios.get(`http://localhost:8000/api/blocked-times/${professionalId}`, {
-          params: {
-            start: toISODateString(start),
-            end: toISODateString(end),
-          },
-        });
+        const { data } = await axios.get(
+          `http://localhost:8000/api/blocked-times/${professionalId}`,
+          {
+            params: {
+              start: toISODateString(start),
+              end: toISODateString(end),
+            },
+          }
+        );
         setBlockedTimes(Array.isArray(data) ? data : []);
         setBlockedError("");
       } catch (err) {
@@ -130,8 +179,48 @@ const BookingForm = ({ professionalId, service, availability = [], onSuccess }) 
     }
   }, [availableSlotsForSelectedDate, date, timeSlot]);
 
+  const cardElementOptions = useMemo(
+    () => ({
+      style: {
+        base: {
+          fontSize: "16px",
+          color: "#1f2933",
+          fontFamily: "'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont",
+          "::placeholder": {
+            color: "#9aa5b1",
+          },
+        },
+        invalid: {
+          color: "#ef4444",
+        },
+      },
+      hidePostalCode: true,
+    }),
+    []
+  );
+
+  const resetForm = () => {
+    setDate("");
+    setTimeSlot("");
+    if (!isLoggedIn) {
+      setName("");
+      setEmail("");
+      setPhone("");
+    }
+    setCardMessage("");
+    setPaymentOption(service?.deposit > 0 ? "deposit" : "full");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!service?._id || !professionalId) {
+      return setFeedback({
+        type: "error",
+        message: "This service is unavailable for booking right now.",
+      });
+    }
+
     if (!date || !timeSlot) {
       return setFeedback({ type: "error", message: "Please select a date and time." });
     }
@@ -159,26 +248,62 @@ const BookingForm = ({ professionalId, service, availability = [], onSuccess }) 
     }
 
     if (!isLoggedIn && (!name || !email || !phone)) {
-      return setFeedback({ type: "error", message: "Please provide your name, email, and phone number." });
+      return setFeedback({
+        type: "error",
+        message: "Please provide your name, email, and phone number.",
+      });
+    }
+
+    if (!canAcceptPayments) {
+      return setFeedback({
+        type: "error",
+        message: "This professional can't accept payments yet. Please try again later.",
+      });
+    }
+
+    if (!stripe || !elements) {
+      return setFeedback({
+        type: "error",
+        message: "Payment details are still loading. Please wait a moment and try again.",
+      });
+    }
+
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) {
+      return setFeedback({
+        type: "error",
+        message: "Payment details are unavailable. Please refresh the page and try again.",
+      });
     }
 
     try {
+      setIsProcessingPayment(true);
+      setFeedback({ type: "", message: "" });
+
       const payload = {
-        professional: professionalId,
-        service: service._id,
+        professionalId,
+        serviceId: service._id,
         date,
         timeSlot: {
           start: timeSlot.split("-")[0],
           end: timeSlot.split("-")[1],
         },
+        paymentOption,
       };
 
-      if (!isLoggedIn) {
+      if (isLoggedIn) {
+        payload.contactName = loggedInName;
+        payload.contactEmail = loggedInEmail;
+        payload.contactPhone = loggedInPhone;
+      } else {
         payload.guestInfo = {
           name,
           email,
           phone,
         };
+        payload.contactName = name;
+        payload.contactEmail = email;
+        payload.contactPhone = phone;
       }
 
       const config = token
@@ -189,23 +314,72 @@ const BookingForm = ({ professionalId, service, availability = [], onSuccess }) 
           }
         : undefined;
 
-      const res = await axios.post(
-        "http://localhost:8000/api/bookings",
+      const { data } = await axios.post(
+        "http://localhost:8000/api/payment/service-booking-intent",
         payload,
         config
       );
 
-      setFeedback({ type: "success", message: "Booking request sent!" });
-      onSuccess?.(res.data);
+      const clientSecret = data?.clientSecret;
+      if (!clientSecret) {
+        throw new Error("Unable to initialize payment for this booking.");
+      }
+
+      const billingDetails = Object.fromEntries(
+        Object.entries({
+          name: loggedInName || name,
+          email: loggedInEmail || email,
+          phone: loggedInPhone || phone,
+        }).filter(([, value]) => Boolean(value))
+      );
+
+      const confirmation = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardElement,
+          billing_details: billingDetails,
+        },
+      });
+
+      if (confirmation.error) {
+        throw confirmation.error;
+      }
+
+      if (confirmation.paymentIntent?.status !== "succeeded") {
+        throw new Error("Payment did not complete. Please try again.");
+      }
+
+      setFeedback({
+        type: "success",
+        message: "Payment received! Your booking request has been sent.",
+      });
+
+      cardElement.clear();
+      resetForm();
+      onSuccess?.({
+        bookingId: data?.bookingId,
+        paymentIntentId: confirmation.paymentIntent?.id,
+        paymentOption,
+      });
     } catch (err) {
       console.error(err);
-      setFeedback({ type: "error", message: "Failed to send booking request." });
+      const friendlyMessage =
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to process payment. Please try again.";
+      setFeedback({ type: "error", message: friendlyMessage });
+    } finally {
+      setIsProcessingPayment(false);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="booking-form">
-      <h3>Book {service.title}</h3>
+      <h3>Book {service?.title || "this service"}</h3>
+      {!canAcceptPayments && (
+        <p className="feedback warning">
+          This professional can't accept payments yet. Please check back soon.
+        </p>
+      )}
       {feedback.message && (
         <p className={`feedback ${feedback.type}`}>{feedback.message}</p>
       )}
@@ -276,8 +450,82 @@ const BookingForm = ({ professionalId, service, availability = [], onSuccess }) 
         </>
       )}
 
-      <button type="submit">Confirm Booking</button>
+      <div className="payment-summary">
+        <h4>Payment options</h4>
+        <div className="payment-option-list">
+          {depositAvailable && (
+            <label>
+              <input
+                type="radio"
+                name="paymentOption"
+                value="deposit"
+                checked={paymentOption === "deposit"}
+                onChange={(e) => setPaymentOption(e.target.value)}
+              />
+              Pay deposit ({formatCurrency(depositAmount)})
+            </label>
+          )}
+          <label>
+            <input
+              type="radio"
+              name="paymentOption"
+              value="full"
+              checked={paymentOption === "full"}
+              onChange={(e) => setPaymentOption(e.target.value)}
+            />
+            Pay in full ({formatCurrency(servicePrice)})
+          </label>
+        </div>
+        <p className="due-today">
+          <strong>Due today:</strong> {formatCurrency(amountDue)}
+        </p>
+      </div>
+
+      <div className="card-element-group">
+        <label>Payment details</label>
+        <div className="card-element-shell">
+          <CardElement
+            options={cardElementOptions}
+            onChange={(event) => setCardMessage(event.error?.message || "")}
+          />
+        </div>
+        {cardMessage && <p className="feedback error">{cardMessage}</p>}
+      </div>
+
+      <button
+        type="submit"
+        disabled={
+          isProcessingPayment ||
+          !stripe ||
+          !elements ||
+          !canAcceptPayments ||
+          !date ||
+          !timeSlot ||
+          (!!cardMessage && cardMessage.length > 0)
+        }
+      >
+        {isProcessingPayment ? "Processing payment…" : "Confirm and pay"}
+      </button>
     </form>
+  );
+};
+
+const BookingForm = (props) => {
+  if (!stripePromise) {
+    return (
+      <div className="booking-form">
+        <h3>Book {props?.service?.title || "this service"}</h3>
+        <p className="feedback error">
+          Payments are unavailable because Stripe is not configured. Please contact support.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <Elements stripe={stripePromise}>
+      <BookingFormFields {...props} />
+    </Elements>
   );
 };
 
