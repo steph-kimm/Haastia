@@ -18,7 +18,7 @@ function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-brand">
-        <Link to="/">haastia</Link>
+        <Link to="/">Haastia</Link>
         <Link to="/">Home</Link>
       </div>
 
@@ -45,7 +45,7 @@ function Navbar() {
               </button>
 
               <button onClick={handleLogout} className="dropdown-item">
-                Login
+                Logout
               </button>
             </div>
           </div>
