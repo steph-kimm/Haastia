@@ -4,10 +4,12 @@ import axios from "axios";
 import { getValidToken } from "../../utils/auth";
 import "./AppointmentDetails.css";
 
-const normalizeStatus = (status) => (status ? status.toLowerCase() : "pending");
+const normalizeStatus = (status) => {
+  const normalized = status ? status.toLowerCase() : "accepted";
+  return normalized === "pending" ? "accepted" : normalized;
+};
 
 const statusConfig = {
-  pending: { label: "Pending response", tone: "pending" },
   accepted: { label: "Confirmed", tone: "accepted" },
   completed: { label: "Completed", tone: "completed" },
   declined: { label: "Declined", tone: "declined" },
@@ -76,8 +78,8 @@ const AppointmentDetails = () => {
   }, [bookingId, booking, professionalId, token, navigate]);
 
   const status = useMemo(() => normalizeStatus(booking?.status), [booking]);
-  const statusLabel = statusConfig[status]?.label || "Pending";
-  const statusTone = statusConfig[status]?.tone || "pending";
+  const statusLabel = statusConfig[status]?.label || "Confirmed";
+  const statusTone = statusConfig[status]?.tone || "accepted";
 
   const mergeBooking = (nextData) => {
     setBooking((prev) => {
@@ -88,21 +90,6 @@ const AppointmentDetails = () => {
       if (prev.guestInfo && nextData && !nextData?.guestInfo) merged.guestInfo = prev.guestInfo;
       return merged;
     });
-  };
-
-  const setBookingStatus = async (nextStatus) => {
-    if (!booking || !token) return;
-    try {
-      const res = await axios.put(
-        `http://localhost:8000/api/bookings/${booking._id}/status`,
-        { status: nextStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      mergeBooking(res.data || { status: nextStatus });
-    } catch (err) {
-      console.error("Status update error", err.response?.data || err.message);
-      alert(err.response?.data?.error || "Failed to update status");
-    }
   };
 
   const cancelBooking = async () => {
@@ -143,32 +130,17 @@ const AppointmentDetails = () => {
 
   const renderActions = () => {
     if (!booking) return null;
-    switch (status) {
-      case "pending":
-        return (
-          <div className="detail-actions">
-            <button className="btn primary" onClick={() => setBookingStatus("accepted")}>
-              Accept request
-            </button>
-            <button className="btn ghost" onClick={() => setBookingStatus("declined")}>
-              Decline
-            </button>
-          </div>
-        );
-      case "accepted":
-        return (
-          <div className="detail-actions">
-            <button className="btn ghost" onClick={cancelBooking}>
-              Cancel appointment
-            </button>
-            <button className="btn primary" onClick={markCompleted}>
-              Mark completed
-            </button>
-          </div>
-        );
-      default:
-        return null;
-    }
+    if (status !== "accepted") return null;
+    return (
+      <div className="detail-actions">
+        <button className="btn ghost" onClick={cancelBooking}>
+          Cancel appointment
+        </button>
+        <button className="btn primary" onClick={markCompleted}>
+          Mark completed
+        </button>
+      </div>
+    );
   };
 
   if (loading) {

@@ -16,6 +16,25 @@ import "./ProfessionalCalendar.css";
 const LOOK_BACK_DAYS = 30;
 const LOOK_AHEAD_DAYS = 180;
 
+const normalizeBookingStatus = (status) => {
+  const normalized = status ? status.toLowerCase() : "accepted";
+  return normalized === "pending" ? "accepted" : normalized;
+};
+
+const getDisplayStatus = (status) => {
+  const normalized = normalizeBookingStatus(status);
+  switch (normalized) {
+    case "completed":
+      return "Completed";
+    case "cancelled":
+      return "Cancelled";
+    case "declined":
+      return "Declined";
+    default:
+      return "Confirmed";
+  }
+};
+
 const ProfessionalCalendar = () => {
   const navigate = useNavigate();
   const auth = getValidToken();
@@ -84,11 +103,13 @@ const ProfessionalCalendar = () => {
           const end = combineDateAndTime(booking.date, booking.timeSlot?.end);
           if (!start || !end) return null;
 
+          const normalizedStatus = normalizeBookingStatus(booking.status);
           const classNames = ["evt"];
-          if (booking.status === "accepted") classNames.push("evt-accepted");
-          else if (booking.status === "pending") classNames.push("evt-pending");
-          else if (booking.status === "cancelled") classNames.push("evt-cancelled");
-          else if (booking.status === "completed") classNames.push("evt-completed");
+          if (normalizedStatus === "accepted") classNames.push("evt-accepted");
+          else if (normalizedStatus === "completed") classNames.push("evt-completed");
+          else if (normalizedStatus === "cancelled" || normalizedStatus === "declined")
+            classNames.push("evt-cancelled");
+          else classNames.push("evt-accepted");
 
           const titleParts = [];
           if (booking.service?.title) titleParts.push(booking.service.title);
@@ -191,7 +212,7 @@ const ProfessionalCalendar = () => {
           eventDidMount={(info) => {
             const booking = info.event.extendedProps.booking;
             if (booking) {
-              const status = booking.status;
+              const status = getDisplayStatus(booking.status);
               const who =
                 booking?.customer?.name ||
                 booking?.guestInfo?.name ||

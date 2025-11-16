@@ -21,8 +21,7 @@ const ProfessionalHome = () => {
 
       {/* Status legend */}
       <div className="legend">
-        <div><span className="dot accepted" /> Accepted</div>
-        <div><span className="dot pending" /> Pending</div>
+        <div><span className="dot accepted" /> Confirmed</div>
         <div><span className="dot cancelled" /> Cancelled</div>
         <div><span className="dot completed" /> Completed</div>
       </div>
