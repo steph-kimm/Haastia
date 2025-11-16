@@ -1,0 +1,240 @@
+.pro-settings-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2.5rem clamp(1rem, 3vw, 3rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  font-family: "Poppins", sans-serif;
+}
+
+.pro-settings-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pro-settings-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+  font-size: 0.85rem;
+  margin: 0 0 0.25rem;
+}
+
+.pro-settings-header h1 {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.75rem, 3vw, 2.3rem);
+  color: #0f1d2b;
+}
+
+.pro-settings-header p {
+  margin: 0;
+  color: #475467;
+}
+
+.pro-settings-preview {
+  text-decoration: none;
+  padding: 0.65rem 1.1rem;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.pro-settings-alert,
+.pro-settings-success {
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  font-weight: 500;
+}
+
+.pro-settings-alert {
+  background: rgba(225, 29, 72, 0.08);
+  color: #b91c1c;
+  border: 1px solid rgba(225, 29, 72, 0.2);
+}
+
+.pro-settings-success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.pro-settings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pro-settings-card {
+  background: #fff;
+  border-radius: 24px;
+  padding: clamp(1.25rem, 2.5vw, 2rem);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pro-settings-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.pro-settings-card__header h2 {
+  margin: 0.1rem 0 0;
+  font-size: 1.5rem;
+  color: #111c2c;
+}
+
+.pro-settings-hint {
+  margin: 0 0 0.35rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.pro-settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.pro-settings-card label,
+.pro-settings-field label {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.pro-settings-card input,
+.pro-settings-card textarea {
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  padding: 0.85rem 1rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.pro-settings-card input:focus,
+.pro-settings-card textarea:focus {
+  border-color: rgba(37, 99, 235, 0.6);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  outline: none;
+}
+
+.pro-settings-field__counter {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.pro-settings-card__footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.pro-settings-duo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.pro-settings-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.pro-settings-actions button {
+  border: none;
+  border-radius: 15px;
+  background: #111c2c;
+  color: #fff;
+  font-weight: 600;
+  padding: 0.9rem 1.75rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.pro-settings-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.pro-settings-actions button:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.18);
+}
+
+.pro-settings-unsaved {
+  font-size: 0.9rem;
+  color: #f97316;
+  font-weight: 600;
+}
+
+.pro-settings-cta {
+  border-radius: 20px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  background: rgba(15, 23, 42, 0.018);
+  flex-wrap: wrap;
+}
+
+.pro-settings-cta h3 {
+  margin: 0 0 0.35rem;
+  color: #0f1d2b;
+}
+
+.pro-settings-cta p {
+  margin: 0;
+  color: #475467;
+}
+
+.pro-settings-cta a {
+  align-self: center;
+  padding: 0.65rem 1.24rem;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  text-decoration: none;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .pro-settings-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pro-settings-preview {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pro-settings-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pro-settings-actions button {
+    width: 100%;
+  }
+
+  .pro-settings-unsaved {
+    text-align: center;
+  }
+}

@@ -113,4 +113,40 @@ describe("Professional profile management", () => {
       .send({ profileGuidelines: 123 })
       .expect(400);
   });
+
+  test("updates extended profile fields", async () => {
+    const response = await request(app)
+      .put("/api/professional/me/profile")
+      .set("Authorization", `Bearer ${professionalToken}`)
+      .send({
+        bio: "Licensed esthetician with 8+ years of hands-on experience.",
+        businessAddress: "77 Pearl Street, Boston, MA",
+        contactPhone: " (555) 221-8899 ext 1 ",
+        website: "glowspa.com",
+        tagline: "On-location glow ups",
+        location: "Greater Boston",
+      })
+      .expect(200);
+
+    expect(response.body.professional.bio).toContain("8+ years");
+    expect(response.body.professional.businessAddress).toBe("77 Pearl Street, Boston, MA");
+    expect(response.body.professional.contactPhone).toBe("(555) 221-8899  1");
+    expect(response.body.professional.website).toBe("https://glowspa.com/");
+    expect(response.body.professional.tagline).toBe("On-location glow ups");
+    expect(response.body.professional.location).toBe("Greater Boston");
+  });
+
+  test("validates website and rejects unknown fields", async () => {
+    await request(app)
+      .put("/api/professional/me/profile")
+      .set("Authorization", `Bearer ${professionalToken}`)
+      .send({ website: "ftp://example.com" })
+      .expect(400);
+
+    await request(app)
+      .put("/api/professional/me/profile")
+      .set("Authorization", `Bearer ${professionalToken}`)
+      .send({ })
+      .expect(400);
+  });
 });
