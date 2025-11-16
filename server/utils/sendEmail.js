@@ -2,6 +2,9 @@ import nodemailer from "nodemailer";
 
 export async function sendEmail(to, subject, text, html) {
   try {
+    if (process.env.NODE_ENV === "test" || process.env.JEST_WORKER_ID) {
+      return;
+    }
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 587,          // TLS port
