@@ -1,8 +1,6 @@
 import axios from "axios";
 import { getValidToken } from "./auth";
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
-
 const normalizeErrorMessage = (error) => {
   if (!error) {
     return "An unexpected error occurred.";
@@ -40,7 +38,7 @@ export const authorizedRequest = async ({ url, method = "get", data, params, hea
   try {
     const response = await axios({
       method,
-      url: `${API_BASE_URL}${url}`,
+      url,
       data,
       params,
       headers: {
