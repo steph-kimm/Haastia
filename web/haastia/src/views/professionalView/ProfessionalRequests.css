@@ -281,12 +281,6 @@
   align-items: center;
 }
 
-.status-pill.pending {
-  background: #fff6e6;
-  color: #a96900;
-  border-color: #ffe4ba;
-}
-
 .status-pill.accepted {
   background: #e9fbef;
   color: #1f7a2c;

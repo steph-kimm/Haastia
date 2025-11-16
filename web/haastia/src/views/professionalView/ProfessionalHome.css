@@ -75,7 +75,6 @@
   /* vertical-align: -1px; */
 }
 .legend .accepted  { background: #cfeec0; border-color: #b4e3a2; }
-.legend .pending   { background: #ffe7b8; border-color: #ffd489; }
 .legend .cancelled { background: #f6c5c7; border-color: #ef9ea1; }
 .legend .completed { background: #cfe8ff; border-color: #a8d2ff; }
 

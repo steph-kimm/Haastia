@@ -31,7 +31,6 @@
 /* Event styling by status */
 .evt { border-radius: 8px; font-weight: 600; }
 .evt-accepted  { background: #cfeec0 !important; border: 1px solid #b4e3a2 !important; color: #1b7a28 !important; }
-.evt-pending   { background: #ffe7b8 !important; border: 1px solid #ffd489 !important; color: #8a5a00 !important; }
 .evt-cancelled { background: #f6c5c7 !important; border: 1px solid #ef9ea1 !important; color: #8a1e23 !important; text-decoration: line-through; opacity: .85; }
 .evt-completed { background: #cfe8ff !important; border: 1px solid #a8d2ff !important; color: #0c3c78 !important; }
 .evt-blocked   { background: rgba(194, 65, 12, 0.18) !important; border: 1px dashed rgba(194, 65, 12, 0.45) !important; color: #7c2d12 !important; }

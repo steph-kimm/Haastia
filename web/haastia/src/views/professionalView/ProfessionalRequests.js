@@ -7,20 +7,21 @@ import { getValidToken } from "../../utils/auth";
 
 const statusFilters = [
   { id: "all", label: "All" },
-  { id: "pending", label: "Pending" },
-  { id: "accepted", label: "Accepted" },
+  { id: "accepted", label: "Confirmed" },
   { id: "completed", label: "Completed" },
 ];
 
 const statusLabels = {
-  pending: "Pending response",
   accepted: "Confirmed",
   completed: "Completed",
   declined: "Declined",
   cancelled: "Cancelled",
 };
 
-const normalizeStatus = (status) => (status ? status.toLowerCase() : "pending");
+const normalizeStatus = (status) => {
+  const normalized = status ? status.toLowerCase() : "accepted";
+  return normalized === "pending" ? "accepted" : normalized;
+};
 
 const formatDay = (dateString) => {
   if (!dateString) return "Date TBD";
@@ -110,21 +111,6 @@ const ProfessionalRequests = () => {
     }
   };
 
-  const updateStatus = async (bookingId, status) => {
-    if (!token) return;
-    try {
-      await axios.put(
-        `http://localhost:8000/api/bookings/${bookingId}/status`,
-        { status },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setRequests((prev) => prev.map((req) => (req._id === bookingId ? { ...req, status } : req)));
-    } catch (err) {
-      console.error("Error updating booking:", err.response?.data || err.message);
-      alert(err.response?.data?.error || "Failed to update booking");
-    }
-  };
-
   const statusCounts = useMemo(() => {
     return requests.reduce((acc, curr) => {
       const key = normalizeStatus(curr.status);
@@ -168,10 +154,10 @@ const ProfessionalRequests = () => {
       <header className="requests-hero">
         <div className="requests-hero__intro">
           <p className="eyebrow">Requests</p>
-          <h1>Keep every client touchpoint on track</h1>
+          <h1>Your calendar auto-confirms every booking</h1>
           <p className="sub">
-            Track new inquiries, stay on top of pending approvals, and complete work orders from one
-            streamlined dashboard.
+            New client requests land on your schedule instantly. Use this dashboard to cancel work
+            that can’t happen and to mark completed appointments when the job is done.
           </p>
 
           {/* <div className="requests-kpis">
@@ -180,11 +166,7 @@ const ProfessionalRequests = () => {
               <strong>{requests.length}</strong>
             </div>
             <div>
-              <span>Pending</span>
-              <strong>{statusCounts.pending || 0}</strong>
-            </div>
-            <div>
-              <span>Accepted</span>
+              <span>Confirmed</span>
               <strong>{statusCounts.accepted || 0}</strong>
             </div>
             <div>
@@ -197,11 +179,12 @@ const ProfessionalRequests = () => {
         <aside className="requests-hero__panel">
           <h2>Workflow tip</h2>
           <p>
-            Accept or decline requests within 24 hours to maintain a strong response rate. When a
-            service wraps, mark it completed so your availability updates instantly.
+            Because bookings auto-confirm, accuracy is all about follow-through. Cancel if you can’t
+            make it and mark the service complete right after you finish so availability stays up to
+            date.
           </p>
-        </aside>
-      </header>
+      </aside>
+    </header>
 
       <section className="requests-toolbar">
         <div className="status-filters">
@@ -247,7 +230,7 @@ const ProfessionalRequests = () => {
         <div className="requests-grid">
           {filteredRequests.map((req) => {
             const status = normalizeStatus(req.status);
-            const statusText = statusLabels[status] || status;
+            const statusText = statusLabels[status] || "Confirmed";
             const customerName = req.customer?.name || req.guestInfo?.name || "Guest";
             const customerEmail = req.customer?.email || req.guestInfo?.email || "N/A";
             const customerPhone = req.customer?.phone || req.guestInfo?.phone || "N/A";
@@ -304,31 +287,6 @@ const ProfessionalRequests = () => {
                 </ul>
 
                 <div className="request-card__actions">
-                  {status === "pending" && (
-                    <>
-                      <button
-                        type="button"
-                        className="btn btn-primary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          updateStatus(req._id, "accepted");
-                        }}
-                      >
-                        Accept
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-outline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          updateStatus(req._id, "declined");
-                        }}
-                      >
-                        Decline
-                      </button>
-                    </>
-                  )}
-
                   {status === "accepted" && (
                     <>
                       <button
