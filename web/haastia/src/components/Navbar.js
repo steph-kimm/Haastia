@@ -39,9 +39,9 @@ function Navbar() {
 
               <button
                 className="dropdown-item"
-                onClick={() => navigate('/settings')}
+                onClick={() => navigate('/pro/settings')}
               >
-                Settings
+                Professional settings
               </button>
 
               <button onClick={handleLogout} className="dropdown-item">
