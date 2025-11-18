@@ -17,24 +17,57 @@ const HelpCenter = () => {
     ];
 
     return (
-        <div className="help-center-container">
-            <h1>Help Center</h1>
+        <div className="help-center-shell">
+            <div className="help-center-container">
+                <header className="help-hero">
+                    <div className="help-hero-copy">
+                        <span className="help-hero-badge">Support</span>
+                        <h1>Help Center</h1>
+                        <p className="help-hero-text">
+                            Focus on great service while Haastia automates bookings, reminders, and payments.
+                            Browse the FAQs below or reach out for a deeper walkthrough.
+                        </p>
+                        <div className="help-hero-actions">
+                            <a href="/signup" className="btn btn-primary">Start free trial</a>
+                            <a href="mailto:team.haastia@gmail.com" className="btn btn-ghost">Email support</a>
+                        </div>
+                    </div>
+                    <div className="help-hero-card">
+                        <p>Average reply time</p>
+                        <strong>Under 1 business day</strong>
+                        <a href="mailto:team.haastia@gmail.com">team.haastia@gmail.com</a>
+                        <span>Send screenshots for the fastest help.</span>
+                    </div>
+                </header>
 
-            <section className="faq-section">
-                <h2>For Sellers</h2>
-                {sellersFAQs.map((faq, index) => (
-                    <FAQ key={index} question={faq.question} answer={faq.answer} />
-                ))}
-            </section>
+                <div className="faq-grid">
+                    <section className="faq-section">
+                        <div className="faq-section-head">
+                            <h2>For Sellers</h2>
+                            <p>Get your services live, keep calendars full, and control payouts.</p>
+                        </div>
+                        {sellersFAQs.map((faq, index) => (
+                            <FAQ key={index} question={faq.question} answer={faq.answer} />
+                        ))}
+                    </section>
 
-            <section className="faq-section">
-                <h2>For Buyers</h2>
-                {buyersFAQs.map((faq, index) => (
-                    <FAQ key={index} question={faq.question} answer={faq.answer} />
-                ))}
-            </section>
-            <div><SubmitTicketForm/></div>
-            
+                    <section className="faq-section">
+                        <div className="faq-section-head">
+                            <h2>For Buyers</h2>
+                            <p>Book confidently, stay updated, and manage appointments on the go.</p>
+                        </div>
+                        {buyersFAQs.map((faq, index) => (
+                            <FAQ key={index} question={faq.question} answer={faq.answer} />
+                        ))}
+                    </section>
+                </div>
+
+                <section className="support-card">
+                    <h2>Need something specific?</h2>
+                    <p>Share details with our support team and we will follow up before the next business day.</p>
+                    <SubmitTicketForm />
+                </section>
+            </div>
         </div>
     );
 };
