@@ -9,8 +9,9 @@ const FIELD_LIMITS = {
   businessAddress: 200,
   location: 120,
   contactPhone: 32,
-  website: 200,
 };
+
+const GUIDELINES_MAX_LENGTH = 1500;
 
 const EMPTY_FORM = Object.keys(FIELD_LIMITS).reduce(
   (acc, field) => ({ ...acc, [field]: "" }),
@@ -24,6 +25,18 @@ const extractProfessional = (payload) => {
   return payload;
 };
 
+const normalizeGuidelines = (value) => {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value);
+};
+
 const ProfessionalSettings = () => {
   const [form, setForm] = useState(EMPTY_FORM);
   const [initialForm, setInitialForm] = useState(EMPTY_FORM);
@@ -33,6 +46,11 @@ const ProfessionalSettings = () => {
   const [success, setSuccess] = useState("");
   const [profileUrl, setProfileUrl] = useState("");
   const [professionalName, setProfessionalName] = useState("");
+  const [guidelines, setGuidelines] = useState("");
+  const [initialGuidelines, setInitialGuidelines] = useState("");
+  const [guidelinesSaving, setGuidelinesSaving] = useState(false);
+  const [guidelinesError, setGuidelinesError] = useState("");
+  const [guidelinesSuccess, setGuidelinesSuccess] = useState("");
 
   const applyProfile = useCallback((payload) => {
     const professional = extractProfessional(payload);
@@ -50,6 +68,17 @@ const ProfessionalSettings = () => {
     setProfileUrl(
       professional?._id ? `/professional/${professional._id}` : ""
     );
+    const nextGuidelines = normalizeGuidelines(
+      professional?.profileGuidelines ??
+        payload?.profileGuidelines ??
+        payload?.data?.profileGuidelines ??
+        ""
+    ).slice(0, GUIDELINES_MAX_LENGTH);
+
+    setGuidelines(nextGuidelines);
+    setInitialGuidelines(nextGuidelines);
+    setGuidelinesError("");
+    setGuidelinesSuccess("");
   }, []);
 
   const fetchProfile = useCallback(async () => {
@@ -77,6 +106,9 @@ const ProfessionalSettings = () => {
     [form, initialForm]
   );
   const hasChanges = dirtyFields.length > 0;
+
+  const trimmedGuidelines = useMemo(() => guidelines.trim(), [guidelines]);
+  const guidelinesDirty = guidelines !== initialGuidelines;
 
   const handleInputChange = (field) => (event) => {
     setError("");
@@ -134,15 +166,73 @@ const ProfessionalSettings = () => {
     );
   };
 
+  const handleGuidelinesChange = (event) => {
+    setGuidelines(event.target.value.slice(0, GUIDELINES_MAX_LENGTH));
+    setGuidelinesError("");
+    setGuidelinesSuccess("");
+  };
+
+  const validateGuidelines = () => {
+    if (!trimmedGuidelines) {
+      setGuidelinesError("Please enter your house rules before saving.");
+      return false;
+    }
+
+    if (trimmedGuidelines.length > GUIDELINES_MAX_LENGTH) {
+      setGuidelinesError(`Keep your notes under ${GUIDELINES_MAX_LENGTH} characters.`);
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleGuidelinesSubmit = async (event) => {
+    event.preventDefault();
+    setGuidelinesError("");
+    setGuidelinesSuccess("");
+
+    if (!validateGuidelines()) {
+      return;
+    }
+
+    try {
+      setGuidelinesSaving(true);
+      await authorizedRequest({
+        url: "/api/professional/me/profile",
+        method: "put",
+        data: { profileGuidelines: trimmedGuidelines },
+      });
+
+      setGuidelines(trimmedGuidelines);
+      setInitialGuidelines(trimmedGuidelines);
+      setGuidelinesSuccess("Your house rules were saved.");
+    } catch (err) {
+      setGuidelinesError(
+        err.message || "We couldn't save your changes. Please try again."
+      );
+    } finally {
+      setGuidelinesSaving(false);
+    }
+  };
+
+  const guidelinesRemaining = Math.max(
+    0,
+    GUIDELINES_MAX_LENGTH - trimmedGuidelines.length
+  );
+
   return (
     <div className="pro-settings-page">
       <header className="pro-settings-header">
         <div>
           <p className="pro-settings-eyebrow">Profile</p>
-          <h1>{professionalName ? `${professionalName} · Settings` : "Settings"}</h1>
+          <h1>
+            {professionalName
+              ? `${professionalName} · Profile & house rules`
+              : "Profile & house rules"}
+          </h1>
           <p>
-            Keep your business details fresh so clients see accurate information
-            before they book you.
+            Keep your business info and house rules up to date so clients know
+            what to expect before booking.
           </p>
         </div>
         {profileUrl && (
@@ -287,13 +377,69 @@ const ProfessionalSettings = () => {
         </div>
       </form>
 
-      <div className="pro-settings-cta">
-        <div>
-          <h3>Need to tweak your house rules?</h3>
-          <p>Head over to profile guidelines to edit prep steps or policies.</p>
+      <section className="pro-settings-card pro-settings-guidelines">
+        <div className="pro-settings-card__header">
+          <div>
+            <p className="pro-settings-eyebrow">Set expectations</p>
+            <h2>House rules & before-you-book notes</h2>
+            <p className="pro-settings-hint">
+              Share prep steps, arrival tips, and policies. This copy lives on
+              your public profile and booking flow.
+            </p>
+          </div>
         </div>
-        <Link to="/profile-guidelines">Edit profile guidelines</Link>
-      </div>
+
+        {guidelinesError && (
+          <div className="pro-settings-guidelines__alert" role="alert">
+            {guidelinesError}
+          </div>
+        )}
+
+        {guidelinesSuccess && (
+          <div className="pro-settings-guidelines__success" role="status">
+            <p>{guidelinesSuccess}</p>
+            <Link to="/onboarding">Back to onboarding</Link>
+          </div>
+        )}
+
+        <form
+          className="pro-settings-guidelines__form"
+          onSubmit={handleGuidelinesSubmit}
+        >
+          <label htmlFor="professional-house-rules">
+            Set house rules / before-you-book notes
+          </label>
+          <p className="pro-settings-hint">
+            Clients will see this right before booking. Keep it friendly but
+            clear (think 2-3 short paragraphs).
+          </p>
+
+          <textarea
+            id="professional-house-rules"
+            name="professional-house-rules"
+            value={guidelines}
+            onChange={handleGuidelinesChange}
+            disabled={loading || guidelinesSaving}
+            placeholder={
+              loading
+                ? "Loading your existing notes..."
+                : "Example: Parking is available on 5th Ave. Please arrive 10 minutes early and bring any project files in PDF."
+            }
+            rows={8}
+          />
+
+          <div className="pro-settings-guidelines__meta">
+            <span>{guidelinesRemaining} characters left</span>
+            {guidelinesDirty && !loading && (
+              <span className="pro-settings-guidelines__dirty">Unsaved changes</span>
+            )}
+          </div>
+
+          <button type="submit" disabled={guidelinesSaving || loading}>
+            {guidelinesSaving ? "Saving..." : "Save house rules"}
+          </button>
+        </form>
+      </section>
     </div>
   );
 };
