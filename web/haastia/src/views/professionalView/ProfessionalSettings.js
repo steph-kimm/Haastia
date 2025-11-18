@@ -3,17 +3,21 @@ import { Link } from "react-router-dom";
 import authorizedRequest from "../../utils/api";
 import "./ProfessionalSettings.css";
 
+const GUIDELINES_MAX_LENGTH = 1500;
+
 const FIELD_LIMITS = {
   tagline: 120,
   bio: 2000,
   businessAddress: 200,
   location: 120,
   contactPhone: 32,
+  profileGuidelines: GUIDELINES_MAX_LENGTH,
 };
 
-const GUIDELINES_MAX_LENGTH = 1500;
+const EXTRA_FIELDS = ["website"];
+const FORM_FIELDS = [...Object.keys(FIELD_LIMITS), ...EXTRA_FIELDS];
 
-const EMPTY_FORM = Object.keys(FIELD_LIMITS).reduce(
+const EMPTY_FORM = FORM_FIELDS.reduce(
   (acc, field) => ({ ...acc, [field]: "" }),
   {}
 );
@@ -46,21 +50,29 @@ const ProfessionalSettings = () => {
   const [success, setSuccess] = useState("");
   const [profileUrl, setProfileUrl] = useState("");
   const [professionalName, setProfessionalName] = useState("");
-  const [guidelines, setGuidelines] = useState("");
-  const [initialGuidelines, setInitialGuidelines] = useState("");
-  const [guidelinesSaving, setGuidelinesSaving] = useState(false);
-  const [guidelinesError, setGuidelinesError] = useState("");
-  const [guidelinesSuccess, setGuidelinesSuccess] = useState("");
 
   const applyProfile = useCallback((payload) => {
     const professional = extractProfessional(payload);
-    const nextForm = Object.keys(FIELD_LIMITS).reduce(
-      (acc, field) => ({
+    const nextForm = FORM_FIELDS.reduce((acc, field) => {
+      let value =
+        professional?.[field] ??
+        payload?.[field] ??
+        payload?.data?.[field] ??
+        "";
+
+      if (field === "profileGuidelines") {
+        value = normalizeGuidelines(value).slice(0, GUIDELINES_MAX_LENGTH);
+      } else if (value === null || value === undefined) {
+        value = "";
+      } else if (typeof value !== "string") {
+        value = String(value);
+      }
+
+      return {
         ...acc,
-        [field]: professional?.[field] ?? "",
-      }),
-      {}
-    );
+        [field]: value,
+      };
+    }, {});
 
     setForm(nextForm);
     setInitialForm(nextForm);
@@ -68,17 +80,6 @@ const ProfessionalSettings = () => {
     setProfileUrl(
       professional?._id ? `/professional/${professional._id}` : ""
     );
-    const nextGuidelines = normalizeGuidelines(
-      professional?.profileGuidelines ??
-        payload?.profileGuidelines ??
-        payload?.data?.profileGuidelines ??
-        ""
-    ).slice(0, GUIDELINES_MAX_LENGTH);
-
-    setGuidelines(nextGuidelines);
-    setInitialGuidelines(nextGuidelines);
-    setGuidelinesError("");
-    setGuidelinesSuccess("");
   }, []);
 
   const fetchProfile = useCallback(async () => {
@@ -107,9 +108,6 @@ const ProfessionalSettings = () => {
   );
   const hasChanges = dirtyFields.length > 0;
 
-  const trimmedGuidelines = useMemo(() => guidelines.trim(), [guidelines]);
-  const guidelinesDirty = guidelines !== initialGuidelines;
-
   const handleInputChange = (field) => (event) => {
     setError("");
     setSuccess("");
@@ -133,12 +131,24 @@ const ProfessionalSettings = () => {
       return;
     }
 
+    const trimmedGuidelinesValue = form.profileGuidelines.trim();
+    if (
+      dirtyFields.includes("profileGuidelines") &&
+      !trimmedGuidelinesValue
+    ) {
+      setError("Please enter your house rules before saving.");
+      return;
+    }
+
     try {
       setSaving(true);
-      const payload = dirtyFields.reduce(
-        (acc, field) => ({ ...acc, [field]: form[field] }),
-        {}
-      );
+      const payload = dirtyFields.reduce((acc, field) => {
+        const nextValue =
+          field === "profileGuidelines"
+            ? trimmedGuidelinesValue
+            : form[field];
+        return { ...acc, [field]: nextValue };
+      }, {});
 
       const response = await authorizedRequest({
         url: "/api/professional/me/profile",
@@ -166,59 +176,12 @@ const ProfessionalSettings = () => {
     );
   };
 
-  const handleGuidelinesChange = (event) => {
-    setGuidelines(event.target.value.slice(0, GUIDELINES_MAX_LENGTH));
-    setGuidelinesError("");
-    setGuidelinesSuccess("");
-  };
-
-  const validateGuidelines = () => {
-    if (!trimmedGuidelines) {
-      setGuidelinesError("Please enter your house rules before saving.");
-      return false;
-    }
-
-    if (trimmedGuidelines.length > GUIDELINES_MAX_LENGTH) {
-      setGuidelinesError(`Keep your notes under ${GUIDELINES_MAX_LENGTH} characters.`);
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleGuidelinesSubmit = async (event) => {
-    event.preventDefault();
-    setGuidelinesError("");
-    setGuidelinesSuccess("");
-
-    if (!validateGuidelines()) {
-      return;
-    }
-
-    try {
-      setGuidelinesSaving(true);
-      await authorizedRequest({
-        url: "/api/professional/me/profile",
-        method: "put",
-        data: { profileGuidelines: trimmedGuidelines },
-      });
-
-      setGuidelines(trimmedGuidelines);
-      setInitialGuidelines(trimmedGuidelines);
-      setGuidelinesSuccess("Your house rules were saved.");
-    } catch (err) {
-      setGuidelinesError(
-        err.message || "We couldn't save your changes. Please try again."
-      );
-    } finally {
-      setGuidelinesSaving(false);
-    }
-  };
-
   const guidelinesRemaining = Math.max(
     0,
-    GUIDELINES_MAX_LENGTH - trimmedGuidelines.length
+    GUIDELINES_MAX_LENGTH - form.profileGuidelines.length
   );
+  const guidelinesDirty =
+    form.profileGuidelines !== initialForm.profileGuidelines;
 
   return (
     <div className="pro-settings-page">
@@ -367,45 +330,17 @@ const ProfessionalSettings = () => {
           </div>
         </section>
 
-        <div className="pro-settings-actions">
-          <button type="submit" disabled={!hasChanges || saving || loading}>
-            {saving ? "Saving..." : "Save changes"}
-          </button>
-          {hasChanges && !saving && (
-            <span className="pro-settings-unsaved">Unsaved changes</span>
-          )}
-        </div>
-      </form>
-
-      <section className="pro-settings-card pro-settings-guidelines">
-        <div className="pro-settings-card__header">
-          <div>
-            <p className="pro-settings-eyebrow">Set expectations</p>
-            <h2>House rules & before-you-book notes</h2>
-            <p className="pro-settings-hint">
-              Share prep steps, arrival tips, and policies. This copy lives on
-              your public profile and booking flow.
-            </p>
+        <section className="pro-settings-card pro-settings-guidelines">
+          <div className="pro-settings-card__header">
+            <div>
+              <p className="pro-settings-eyebrow">Set expectations</p>
+              <h2>House rules & before-you-book notes</h2>
+              <p className="pro-settings-hint">
+                Share prep steps, arrival tips, and policies. This copy lives on
+                your public profile and booking flow.
+              </p>
+            </div>
           </div>
-        </div>
-
-        {guidelinesError && (
-          <div className="pro-settings-guidelines__alert" role="alert">
-            {guidelinesError}
-          </div>
-        )}
-
-        {guidelinesSuccess && (
-          <div className="pro-settings-guidelines__success" role="status">
-            <p>{guidelinesSuccess}</p>
-            <Link to="/onboarding">Back to onboarding</Link>
-          </div>
-        )}
-
-        <form
-          className="pro-settings-guidelines__form"
-          onSubmit={handleGuidelinesSubmit}
-        >
           <label htmlFor="professional-house-rules">
             Set house rules / before-you-book notes
           </label>
@@ -417,9 +352,9 @@ const ProfessionalSettings = () => {
           <textarea
             id="professional-house-rules"
             name="professional-house-rules"
-            value={guidelines}
-            onChange={handleGuidelinesChange}
-            disabled={loading || guidelinesSaving}
+            value={form.profileGuidelines}
+            onChange={handleInputChange("profileGuidelines")}
+            disabled={loading || saving}
             placeholder={
               loading
                 ? "Loading your existing notes..."
@@ -434,12 +369,17 @@ const ProfessionalSettings = () => {
               <span className="pro-settings-guidelines__dirty">Unsaved changes</span>
             )}
           </div>
+        </section>
 
-          <button type="submit" disabled={guidelinesSaving || loading}>
-            {guidelinesSaving ? "Saving..." : "Save house rules"}
+        <div className="pro-settings-actions">
+          <button type="submit" disabled={!hasChanges || saving || loading}>
+            {saving ? "Saving..." : "Save changes"}
           </button>
-        </form>
-      </section>
+          {hasChanges && !saving && (
+            <span className="pro-settings-unsaved">Unsaved changes</span>
+          )}
+        </div>
+      </form>
     </div>
   );
 };
