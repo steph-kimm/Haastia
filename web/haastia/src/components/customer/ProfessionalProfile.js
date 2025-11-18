@@ -67,7 +67,7 @@ const ProfessionalProfile = () => {
   const heroSubtitle =
     professional?.tagline?.trim() ||
     professional?.shortDescription?.trim() ||
-    `Ready to book ${hasServices ? "services" : "time"} with a Neighborly pro in ${
+    `Ready to book ${hasServices ? "services" : "time"} with a Haastiapro in ${
       locationLabel !== "Location TBD" ? locationLabel : "your area"
     }.`;
   const aboutCopy =
@@ -103,7 +103,7 @@ const ProfessionalProfile = () => {
           <img src={profileImage} alt={`${professional.name} profile`} />
         </div>
         <div className="cover-copy">
-          <span className="eyebrow-tag">Neighborly Pro</span>
+          <span className="eyebrow-tag">HaastiaPro</span>
           <h1>{professional.name}</h1>
           <p className="cover-lead">{heroSubtitle}</p>
           <p className="cover-location">

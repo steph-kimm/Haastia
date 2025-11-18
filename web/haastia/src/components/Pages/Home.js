@@ -228,6 +228,9 @@ const Home = () => {
         <a href="/signup" className="btn btn-primary">
           Create your account
         </a>
+        <p className="cta-faq">
+          Have questions? <a href="/help">Visit the FAQ</a>.
+        </p>
       </section>
 
       <footer className="footer">
