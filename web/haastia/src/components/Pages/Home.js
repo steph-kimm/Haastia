@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import "./Home.css";
 
 const featureHighlights = [
@@ -65,7 +65,7 @@ const Home = () => {
           <h1>Run your beauty studio from one calm dashboard.</h1>
           <p>
             Focus on clients while Haastia keeps your schedule full, your payments flowing,
-            and your brand polished — no spreadsheets required.
+            and your brand polished â€” no spreadsheets required.
           </p>
 
           <div className="hero-cta">
@@ -99,8 +99,8 @@ const Home = () => {
           </div>
 
           <div className="hero-note fade-up delay-1">
-            <p>“Haastia lets my day feel calm but fully booked — it’s thoughtful without being fussy.”</p>
-            <span>— Mia, Brow Artist in Austin</span>
+            <p>â€œHaastia lets my day feel calm but fully booked â€” itâ€™s thoughtful without being fussy.â€</p>
+            <span>â€” Mia, Brow Artist in Austin</span>
           </div>
         </div>
 
@@ -231,12 +231,13 @@ const Home = () => {
       </section>
 
       <footer className="footer">
-        <p>© {new Date().getFullYear()} Haastia</p>
+        <p>Â© {new Date().getFullYear()} Haastia</p>
         <a href="mailto:team.haastia@gmail.com">team.haastia@gmail.com</a>
-        <p>FAQ</p>
+        <a href="/help">FAQ</a>
       </footer>
     </div>
   );
 };
 
 export default Home;
+

@@ -1,8 +1,7 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Route } from 'react-router-dom';
 import SharedPage1 from '../pages/SharedPage1';
 import SharedPage2 from '../pages/SharedPage2';
-import SettingsPage from '../components/Pages/user/SettingsPage';
 
 
 // TODO: this connected?
@@ -11,7 +10,6 @@ function SharedRoutes() {
         <>
             <Route path="/shared-page-1" element={<SharedPage1 />} />
             <Route path="/shared-page-2" element={<SharedPage2 />} />
-            <Route path="/settings" element={<SettingsPage />} />
             {/* Add more shared routes here */}
         </>
     );

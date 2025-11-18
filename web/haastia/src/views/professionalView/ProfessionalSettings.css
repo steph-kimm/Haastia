@@ -183,35 +183,103 @@
   font-weight: 600;
 }
 
-.pro-settings-cta {
-  border-radius: 20px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  padding: 1.2rem 1.5rem;
+.pro-settings-guidelines .pro-settings-card__header {
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pro-settings-guidelines__alert,
+.pro-settings-guidelines__success {
+  border-radius: 16px;
+  padding: 1rem 1.2rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.pro-settings-guidelines__alert {
+  background: #fff7ed;
+  border: 1px solid rgba(194, 65, 12, 0.3);
+  color: #9a3412;
+}
+
+.pro-settings-guidelines__success {
+  background: #ecfdf5;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #047857;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.pro-settings-guidelines__success a {
+  color: #047857;
+  font-weight: 600;
+}
+
+.pro-settings-guidelines__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pro-settings-guidelines__form textarea {
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid #cbd5f5;
+  padding: 1rem 1.2rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 220px;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pro-settings-guidelines__form textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.pro-settings-guidelines__form textarea:disabled {
+  background: #f8fafc;
+  cursor: not-allowed;
+}
+
+.pro-settings-guidelines__meta {
   display: flex;
   justify-content: space-between;
-  gap: 1rem;
-  background: rgba(15, 23, 42, 0.018);
-  flex-wrap: wrap;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #475569;
 }
 
-.pro-settings-cta h3 {
-  margin: 0 0 0.35rem;
-  color: #0f1d2b;
-}
-
-.pro-settings-cta p {
-  margin: 0;
-  color: #475467;
-}
-
-.pro-settings-cta a {
-  align-self: center;
-  padding: 0.65rem 1.24rem;
-  border-radius: 12px;
-  border: 1px solid rgba(15, 23, 42, 0.16);
-  text-decoration: none;
-  color: #0f172a;
+.pro-settings-guidelines__dirty {
+  color: #b45309;
   font-weight: 600;
+}
+
+.pro-settings-guidelines__form button {
+  align-self: flex-start;
+  border: none;
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.8rem 1.6rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.pro-settings-guidelines__form button:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.pro-settings-guidelines__form button:not(:disabled):hover {
+  transform: translateY(-1px);
 }
 
 @media (max-width: 768px) {

@@ -8,7 +8,6 @@ import ServiceDetail from "../components/Pages/ServiceDetail";
 import UserProfile from "../components/Pages/Profile";
 import ProfessionalProfile from "../components/customer/ProfessionalProfile";
 import ProfessionalBookingPage from "../components/Pages/booking/ProfessionalBookingPage";
-import SettingsPage from "../components/Pages/user/SettingsPage";
 import HelpPage from "../components/Pages/HelpPage";
 
 import ProfessionalHome from "../views/professionalView/ProfessionalHome";
@@ -20,7 +19,6 @@ import ProfessionalAvailability from "../views/professionalView/ProfessionalAvai
 import ProfessionalCustomers from "../views/professionalView/ProfessionalCustomers";
 import StripeConnectPage from "../views/professionalView/StripeConnectPage";
 import ProfessionalOnboarding from "../views/professionalView/ProfessionalOnboarding";
-import ProfessionalGuidelines from "../views/professionalView/ProfessionalGuidelines";
 import ProfessionalSettings from "../views/professionalView/ProfessionalSettings";
 
 export const customerRouteConfig = [
@@ -32,7 +30,6 @@ export const customerRouteConfig = [
   { path: "/signup/cancel", component: SignupCancel },
   { path: "/service/:id", component: ServiceDetail },
   { path: "/help", component: HelpCenter },
-  { path: "/settings", component: SettingsPage },
   { path: "/professional/:id", component: ProfessionalProfile },
   { path: "/professional/:id/book", component: ProfessionalBookingPage },
   { path: "/help", component: HelpPage },
@@ -40,7 +37,7 @@ export const customerRouteConfig = [
 
 export const professionalRouteConfig = [
   { path: "/onboarding", component: ProfessionalOnboarding },
-  { path: "/profile-guidelines", component: ProfessionalGuidelines },
+  { path: "/profile-guidelines", component: ProfessionalSettings },
   { path: "/add-service", component: AddServicePage },
   { path: "/calendar", component: ProfessionalHome },
   { path: "/customers", component: ProfessionalCustomers },

@@ -247,10 +247,11 @@ const ProfessionalOnboardingChecklist = ({ userId, onNavigate }) => {
       },
       {
         id: "profileGuidelines",
-        title: "Add house rules",
-        description: "Share expectations or prep steps on your public profile.",
-        cta: "Add house rules",
-        onClick: () => handleNavigate("/profile-guidelines"),
+        title: "Publish your house rules",
+        description:
+          "Use professional settings to share prep steps and booking policies.",
+        cta: "Open professional settings",
+        onClick: () => handleNavigate("/pro/settings"),
         completed: steps.profileGuidelines,
       },
       {
