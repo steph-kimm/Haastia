@@ -18,8 +18,9 @@ function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-brand">
-        <Link to="/">Haastia</Link>
-        <Link to="/">Home</Link>
+        <Link to="/" className="navbar-logo">
+          Haastia
+        </Link>
       </div>
 
       <div className="navbar-links">

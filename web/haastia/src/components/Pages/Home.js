@@ -234,8 +234,9 @@ const Home = () => {
       </section>
 
       <footer className="footer">
-        <p>Â© {new Date().getFullYear()} Haastia</p>
+        <p>© {new Date().getFullYear()} Haastia</p>
         <a href="mailto:team.haastia@gmail.com">team.haastia@gmail.com</a>
+        <br></br>
         <a href="/help">FAQ</a>
       </footer>
     </div>

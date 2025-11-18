@@ -17,23 +17,12 @@
     gap: 1.5rem;
 }
 
-.navbar-brand a:first-child {
+.navbar-brand .navbar-logo {
     font-family: 'Pacifico', cursive;
     font-size: 1.9rem;
     color: #0f172a;
     text-decoration: none;
     text-transform: lowercase;
-}
-
-.navbar-brand a:last-child {
-    font-size: 1rem;
-    color: #475569;
-    text-decoration: none;
-    letter-spacing: 0.05em;
-}
-
-.navbar-brand a:last-child:hover {
-    color: #0f172a;
 }
 
 .navbar-links a,
