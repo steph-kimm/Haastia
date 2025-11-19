@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { loadStripe } from "@stripe/stripe-js";
 import { CardElement, Elements, useElements, useStripe } from "@stripe/react-stripe-js";
+import DatePicker from "react-datepicker";
 import { getValidToken } from "../../utils/auth";
 import {
   getDayAvailabilityForDate,
@@ -10,6 +11,7 @@ import {
   toISODateString,
 } from "../../utils/availability";
 import "./booking-form.css";
+import "react-datepicker/dist/react-datepicker.css";
 
 const stripePromise = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY)
@@ -36,7 +38,7 @@ const BookingFormFields = ({
   const stripe = useStripe();
   const elements = useElements();
   const [date, setDate] = useState("");
-  const [dateInputValue, setDateInputValue] = useState("");
+  const [selectedDateObj, setSelectedDateObj] = useState(null);
   const [timeSlot, setTimeSlot] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -63,13 +65,23 @@ const BookingFormFields = ({
   const depositAmount = depositAvailable ? Number(service?.deposit ?? 0) : 0;
   const amountDue = paymentOption === "full" ? servicePrice : depositAmount;
 
-  const syncDateState = useCallback(
-    (value) => {
+  const syncDateState = useCallback((value, explicitDate = null) => {
+    if (value && ISO_DATE_PATTERN.test(value)) {
       setDate(value);
-      setDateInputValue(value);
-    },
-    [setDate, setDateInputValue]
-  );
+      if (explicitDate instanceof Date && !Number.isNaN(explicitDate.getTime())) {
+        const normalized = new Date(explicitDate);
+        normalized.setHours(0, 0, 0, 0);
+        setSelectedDateObj(normalized);
+      } else {
+        const parsed = new Date(`${value}T00:00:00`);
+        setSelectedDateObj(Number.isNaN(parsed.getTime()) ? null : parsed);
+      }
+      return;
+    }
+
+    setDate("");
+    setSelectedDateObj(null);
+  }, []);
 
   useEffect(() => {
     setPaymentOption(service?.deposit > 0 ? "deposit" : "full");
@@ -123,63 +135,87 @@ const BookingFormFields = ({
     return filterSlotsAgainstBlocks(baseSlots, blocks);
   }, [availability, date, blockedByDate]);
 
-  const handleDateChange = (value) => {
-    setDateInputValue(value);
-
-    if (!value) {
-      syncDateState("");
-      setTimeSlot("");
-      return;
-    }
-
-    let normalizedValue = null;
-    if (ISO_DATE_PATTERN.test(value)) {
-      normalizedValue = value;
-    } else if (value.length >= 8) {
-      const isoFromFallback = toISODateString(value);
-      if (isoFromFallback) {
-        normalizedValue = isoFromFallback;
+  const handleDateChange = useCallback(
+    (nextDate) => {
+      if (!nextDate) {
+        syncDateState("");
+        setTimeSlot("");
+        return;
       }
-    }
 
-    if (!normalizedValue) {
-      return;
-    }
+      const normalizedValue = toISODateString(nextDate);
+      if (!normalizedValue) {
+        syncDateState("");
+        setTimeSlot("");
+        return;
+      }
 
-    const dayAvailability = getDayAvailabilityForDate(availability, normalizedValue);
-    const hasSlots = dayAvailability?.slots?.length;
+      const dayAvailability = getDayAvailabilityForDate(availability, normalizedValue);
 
-    if (!hasSlots) {
-      setFeedback({
-        type: "error",
-        message: "No availability on the selected date. Please choose another date.",
-      });
-      syncDateState("");
+      if (!dayAvailability?.slots?.length) {
+        setFeedback({
+          type: "error",
+          message: "No availability on the selected date. Please choose another date.",
+        });
+        syncDateState("");
+        setTimeSlot("");
+        return;
+      }
+
+      const blocks = blockedByDate.get(normalizedValue) ?? [];
+      const openSlots = filterSlotsAgainstBlocks(dayAvailability?.slots ?? [], blocks);
+      if (!blockedLoading && openSlots.length === 0) {
+        setFeedback({
+          type: "error",
+          message: "All slots for that day are blocked off. Please choose another date.",
+        });
+        syncDateState("");
+        setTimeSlot("");
+        return;
+      }
+
+      if (feedback.type === "error") {
+        setFeedback({ type: "", message: "" });
+      }
+
+      syncDateState(normalizedValue, nextDate);
       setTimeSlot("");
-      return;
-    }
+    },
+    [availability, blockedByDate, blockedLoading, feedback.type, syncDateState]
+  );
 
-    const blocks = blockedByDate.get(normalizedValue) ?? [];
-    const openSlots = filterSlotsAgainstBlocks(dayAvailability?.slots ?? [], blocks);
-    if (!blockedLoading && openSlots.length === 0) {
-      setFeedback({
-        type: "error",
-        message: "All slots for that day are blocked off. Please choose another date.",
-      });
-      syncDateState("");
-      setTimeSlot("");
-      return;
-    }
+  const todayDate = useMemo(() => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return now;
+  }, []);
 
-    if (feedback.type === "error") {
-      setFeedback({ type: "", message: "" });
-    }
+  const isDateSelectable = useCallback(
+    (candidate) => {
+      if (!(candidate instanceof Date) || Number.isNaN(candidate.getTime())) {
+        return false;
+      }
 
-    syncDateState(normalizedValue);
-    setTimeSlot("");
-  };
+      const normalized = new Date(candidate);
+      normalized.setHours(0, 0, 0, 0);
+      if (normalized < todayDate) {
+        return false;
+      }
 
-  const todayISODate = useMemo(() => toISODateString(new Date()), []);
+      const iso = toISODateString(normalized);
+      if (!iso) return false;
+
+      const dayAvailability = getDayAvailabilityForDate(availability, iso);
+      if (!dayAvailability?.slots?.length) {
+        return false;
+      }
+
+      const blocks = blockedByDate.get(iso) ?? [];
+      const openSlots = filterSlotsAgainstBlocks(dayAvailability?.slots ?? [], blocks);
+      return openSlots.length > 0;
+    },
+    [availability, blockedByDate, todayDate]
+  );
 
   useEffect(() => {
     if (!date) return;
@@ -435,12 +471,15 @@ const BookingFormFields = ({
               Date <span aria-hidden="true">*</span>
             </label>
             <div className="booking-input-shell">
-              <input
+              <DatePicker
                 id="booking-date"
-                type="date"
-                value={dateInputValue}
-                min={todayISODate}
-                onChange={(e) => handleDateChange(e.target.value)}
+                selected={selectedDateObj}
+                onChange={handleDateChange}
+                minDate={todayDate}
+                filterDate={isDateSelectable}
+                placeholderText="Choose a date"
+                dateFormat="MMMM d, yyyy"
+                className="booking-date-input"
               />
             </div>
           </div>
