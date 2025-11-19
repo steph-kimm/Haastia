@@ -26,7 +26,7 @@ const bookingSchema = new Schema(
 
     paymentOption: {
       type: String,
-      enum: ["deposit", "full"],
+      enum: ["deposit", "full", "free"],
       default: "deposit",
     },
     amountDue: { type: Number, min: 0, default: 0 },

@@ -14,6 +14,7 @@ const AddNewServiceForm = ({ onSuccess }) => {
   const [images, setImages] = useState([]);
   const [preview, setPreview] = useState([]);
   const [addOns, setAddOns] = useState([]);
+  const [allowFreeReservations, setAllowFreeReservations] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -126,6 +127,7 @@ const AddNewServiceForm = ({ onSuccess }) => {
         description,
         price: priceValue,
         deposit: depositValue,
+        allowFreeReservations,
         category,
         duration: duration ? parseInt(duration, 10) : undefined,
         images,
@@ -149,6 +151,7 @@ const AddNewServiceForm = ({ onSuccess }) => {
       setImages([]);
       setPreview([]);
       setAddOns([]);
+      setAllowFreeReservations(false);
     } catch (err) {
       console.error("Error adding service:", err.response?.data || err.message);
       alert(err.response?.data?.error || "Failed to add service. Please try again.");
@@ -262,6 +265,24 @@ const AddNewServiceForm = ({ onSuccess }) => {
               </div>
               <p className="field-hint">Consider prep, service, and clean-up time.</p>
             </div>
+          </div>
+
+          <div className="form-group free-reservation-toggle">
+            <label htmlFor="allow-free-reservations" className="checkbox-label">
+              <input
+                id="allow-free-reservations"
+                type="checkbox"
+                checked={allowFreeReservations}
+                onChange={(e) => setAllowFreeReservations(e.target.checked)}
+              />
+              <div>
+                <p className="checkbox-title">Allow clients to reserve without upfront payment</p>
+                <p className="field-hint">
+                  When enabled, clients can secure a spot without paying immediately. Deposits still
+                  apply if you set one.
+                </p>
+              </div>
+            </label>
           </div>
 
           <div className="form-group">
