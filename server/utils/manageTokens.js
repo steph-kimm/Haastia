@@ -2,6 +2,7 @@ import crypto from "crypto";
 
 const MANAGE_TOKEN_BYTES = 32;
 const MANAGE_TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30 days
+const DEFAULT_APP_BASE_URL = "http://localhost:3000";
 
 export const hashManageToken = (token) =>
   crypto.createHash("sha256").update(String(token)).digest("hex");
@@ -19,10 +20,7 @@ export const generateManageTokenBundle = () => {
 };
 
 export const buildManageBookingUrl = (token) => {
-  const base = process.env.APP_BASE_URL;
-  if (!base) {
-    throw new Error("APP_BASE_URL environment variable is required");
-  }
+  const base = process.env.APP_BASE_URL || DEFAULT_APP_BASE_URL;
   const normalizedBase = base.endsWith("/") ? base.slice(0, -1) : base;
   return `${normalizedBase}/bookings/manage/${token}`;
 };

@@ -7,10 +7,9 @@ describe("manage token helpers", () => {
     process.env.APP_BASE_URL = originalBase;
   });
 
-  test("throws when APP_BASE_URL is missing", () => {
+  test("builds the default localhost URL when APP_BASE_URL is missing", () => {
     delete process.env.APP_BASE_URL;
-    expect(() => buildManageBookingUrl("abc"))
-      .toThrow("APP_BASE_URL environment variable is required");
+    expect(buildManageBookingUrl("abc")).toBe("http://localhost:3000/bookings/manage/abc");
   });
 
   test("builds a normalized manage URL", () => {
