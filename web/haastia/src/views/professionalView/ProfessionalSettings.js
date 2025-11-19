@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import authorizedRequest from "../../utils/api";
+import {
+  extractProfessional,
+  normalizeGuidelines,
+  resolveProfileUrl,
+} from "./utils/profileHelpers";
 import "./ProfessionalSettings.css";
 
 const GUIDELINES_MAX_LENGTH = 1500;
@@ -21,25 +26,6 @@ const EMPTY_FORM = FORM_FIELDS.reduce(
   (acc, field) => ({ ...acc, [field]: "" }),
   {}
 );
-
-const extractProfessional = (payload) => {
-  if (!payload) return {};
-  if (payload.professional) return payload.professional;
-  if (payload.data?.professional) return payload.data.professional;
-  return payload;
-};
-
-const normalizeGuidelines = (value) => {
-  if (typeof value === "string") {
-    return value;
-  }
-
-  if (value === null || value === undefined) {
-    return "";
-  }
-
-  return String(value);
-};
 
 const ProfessionalSettings = () => {
   const [form, setForm] = useState(EMPTY_FORM);
@@ -77,9 +63,7 @@ const ProfessionalSettings = () => {
     setForm(nextForm);
     setInitialForm(nextForm);
     setProfessionalName(professional?.name || "");
-    setProfileUrl(
-      professional?._id ? `/professional/${professional._id}` : ""
-    );
+    setProfileUrl(resolveProfileUrl(professional));
   }, []);
 
   const fetchProfile = useCallback(async () => {
