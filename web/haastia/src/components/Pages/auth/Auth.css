@@ -197,6 +197,28 @@
   font-weight: 600;
 }
 
+.field-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.auth-link {
+  font-weight: 600;
+  color: #4f46e5;
+  text-decoration: none;
+}
+
+.auth-link.subtle {
+  font-weight: 500;
+  color: #4b5563;
+  transition: color 0.15s ease;
+}
+
+.auth-link:hover {
+  color: #4338ca;
+  text-decoration: underline;
+}
+
 .auth-submit {
   display: inline-flex;
   justify-content: center;

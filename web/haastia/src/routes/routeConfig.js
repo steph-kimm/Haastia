@@ -3,6 +3,7 @@ import Login from "../components/Pages/auth/Login";
 import Signup from "../components/Pages/auth/Signup";
 import SignupSuccess from "../components/Pages/auth/SignupSuccess";
 import SignupCancel from "../components/Pages/auth/SignupCancel";
+import PasswordRecoveryRequest from "../components/Pages/auth/PasswordRecoveryRequest";
 import HelpCenter from "../components/Pages/HelpCenter";
 import ServiceDetail from "../components/Pages/ServiceDetail";
 import UserProfile from "../components/Pages/Profile";
@@ -30,6 +31,7 @@ export const customerRouteConfig = [
   { path: "/signup", component: Signup },
   { path: "/signup/success", component: SignupSuccess },
   { path: "/signup/cancel", component: SignupCancel },
+  { path: "/password/recovery", component: PasswordRecoveryRequest },
   { path: "/service/:id", component: ServiceDetail },
   { path: "/help", component: HelpCenter },
   { path: "/professional/:id", component: ProfessionalProfile },
