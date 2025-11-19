@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import './Auth.css';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useView } from '../../../context/ViewContext';
 import { handleAuthSuccess } from '../../../utils/auth';
 
@@ -95,6 +95,11 @@ function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
+              </div>
+              <div className="field-actions">
+                <Link to="/password/recovery" className="auth-link subtle">
+                  Forgot password?
+                </Link>
               </div>
             </div>
           </div>
