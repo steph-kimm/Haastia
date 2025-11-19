@@ -53,11 +53,13 @@ export const createBooking = async (req, res) => {
       return res.status(400).json({ error: "Missing required booking fields" });
     }
 
-    if (!["deposit", "full"].includes(paymentOption)) {
+    if (!["deposit", "full", "free"].includes(paymentOption)) {
       return res.status(400).json({ error: "Invalid payment option" });
     }
 
-    const serviceDoc = await Service.findById(service).select("price deposit professional");
+    const serviceDoc = await Service.findById(service).select(
+      "price deposit professional allowFreeReservations",
+    );
     if (!serviceDoc) {
       return res.status(404).json({ error: "Service not found" });
     }
@@ -67,7 +69,18 @@ export const createBooking = async (req, res) => {
     }
 
     let amountDue = 0;
-    if (paymentOption === "full") {
+    let paymentStatus = "requires_payment";
+    let paidAt;
+    if (paymentOption === "free") {
+      if (!serviceDoc.allowFreeReservations) {
+        return res
+          .status(400)
+          .json({ error: "This service does not allow free reservations" });
+      }
+      amountDue = 0;
+      paymentStatus = "paid";
+      paidAt = new Date();
+    } else if (paymentOption === "full") {
       amountDue = serviceDoc.price;
     } else {
       const depositAmount = serviceDoc.deposit ?? 0;
@@ -106,8 +119,12 @@ export const createBooking = async (req, res) => {
       paymentOption,
       amountDue,
       amountPaid: 0,
-      paymentStatus: "requires_payment",
+      paymentStatus,
     };
+
+    if (paidAt) {
+      bookingData.paidAt = paidAt;
+    }
 
     if (req.user?._id) {
       bookingData.customer = req.user._id;
