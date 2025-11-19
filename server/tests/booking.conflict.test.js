@@ -100,4 +100,39 @@ describe("booking slot conflicts", () => {
     expect(wednesday).toBeDefined();
     expect(wednesday.slots).toHaveLength(0);
   });
+
+  test("allows free bookings when service permits them", async () => {
+    await Service.findByIdAndUpdate(service._id, { allowFreeReservations: true });
+
+    const payload = {
+      professional: professional._id,
+      service: service._id,
+      date: bookingDate.toISOString(),
+      timeSlot: slot,
+      guestInfo: { name: "Free Tester", email: "free@example.com", phone: "1234567890" },
+      paymentOption: "free",
+    };
+
+    const response = await request(app).post("/api/bookings").send(payload).expect(200);
+
+    expect(response.body.amountDue).toBe(0);
+    expect(response.body.paymentStatus).toBe("paid");
+    expect(response.body.amountPaid).toBe(0);
+    expect(response.body.paidAt).toBeTruthy();
+  });
+
+  test("rejects free bookings when service disallows them", async () => {
+    const payload = {
+      professional: professional._id,
+      service: service._id,
+      date: bookingDate.toISOString(),
+      timeSlot: slot,
+      guestInfo: { name: "Free Tester", email: "free@example.com", phone: "1234567890" },
+      paymentOption: "free",
+    };
+
+    const response = await request(app).post("/api/bookings").send(payload).expect(400);
+
+    expect(response.body.error).toMatch(/free reservations/i);
+  });
 });
