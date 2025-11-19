@@ -62,6 +62,8 @@ const BookingFormFields = ({
   const servicePrice = Number(service?.price ?? 0);
   const depositAmount = depositAvailable ? Number(service?.deposit ?? 0) : 0;
   const amountDue = paymentOption === "full" ? servicePrice : depositAmount;
+  const requiresPayment = amountDue > 0;
+  const isCompletelyFreeService = servicePrice <= 0 && depositAmount <= 0;
 
   const syncDateState = useCallback(
     (value) => {
@@ -282,25 +284,17 @@ const BookingFormFields = ({
       });
     }
 
-    if (!canAcceptPayments) {
+    if (requiresPayment && !canAcceptPayments) {
       return setFeedback({
         type: "error",
         message: "This professional can't accept payments yet. Please try again later.",
       });
     }
 
-    if (!stripe || !elements) {
+    if (requiresPayment && (!stripe || !elements)) {
       return setFeedback({
         type: "error",
         message: "Payment details are still loading. Please wait a moment and try again.",
-      });
-    }
-
-    const cardElement = elements.getElement(CardElement);
-    if (!cardElement) {
-      return setFeedback({
-        type: "error",
-        message: "Payment details are unavailable. Please refresh the page and try again.",
       });
     }
 
@@ -308,14 +302,58 @@ const BookingFormFields = ({
       setIsProcessingPayment(true);
       setFeedback({ type: "", message: "" });
 
+      const baseTimeSlot = {
+        start: timeSlot.split("-")[0],
+        end: timeSlot.split("-")[1],
+      };
+
+      if (!requiresPayment) {
+        const bookingPayload = {
+          professional: professionalId,
+          service: service._id,
+          date,
+          timeSlot: baseTimeSlot,
+          paymentOption,
+        };
+
+        if (!isLoggedIn) {
+          bookingPayload.guestInfo = {
+            name,
+            email,
+            phone,
+          };
+        }
+
+        const bookingConfig = token
+          ? {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          : undefined;
+
+        const { data } = await axios.post("/api/bookings", bookingPayload, bookingConfig);
+
+        setFeedback({
+          type: "success",
+          message: "Booking request sent! No payment required.",
+        });
+
+        resetForm();
+        onSuccess?.({
+          bookingId: data?._id || data?.bookingId,
+          paymentOption,
+          paymentIntentId: null,
+        });
+
+        return;
+      }
+
       const payload = {
         professionalId,
         serviceId: service._id,
         date,
-        timeSlot: {
-          start: timeSlot.split("-")[0],
-          end: timeSlot.split("-")[1],
-        },
+        timeSlot: baseTimeSlot,
         paymentOption,
       };
 
@@ -351,6 +389,14 @@ const BookingFormFields = ({
       const clientSecret = data?.clientSecret;
       if (!clientSecret) {
         throw new Error("Unable to initialize payment for this booking.");
+      }
+
+      const cardElement = elements.getElement(CardElement);
+      if (!cardElement) {
+        return setFeedback({
+          type: "error",
+          message: "Payment details are unavailable. Please refresh the page and try again.",
+        });
       }
 
       const billingDetails = Object.fromEntries(
@@ -409,15 +455,23 @@ const BookingFormFields = ({
           <span className="booking-badge">Secure booking</span>
           <h3>Reserve {service?.title || "this service"}</h3>
           <p className="booking-lede">
-            Choose a time, share your details, and submit payment to lock in your visit.
+            {requiresPayment
+              ? "Choose a time, share your details, and submit payment to lock in your visit."
+              : "Choose a time, share your details, and confirm—no payment is required."}
           </p>
           <div className="booking-price-chip" aria-live="polite">
-            <span>Due today</span>
-            <strong>{formatCurrency(amountDue)}</strong>
+            <span>{requiresPayment ? "Due today" : "Payment due"}</span>
+            <strong>{requiresPayment ? formatCurrency(amountDue) : "$0.00"}</strong>
           </div>
         </div>
 
-        {!canAcceptPayments && (
+        {!requiresPayment && isCompletelyFreeService && (
+          <div className="booking-feedback success">
+            This service is free—no payment details needed.
+          </div>
+        )}
+
+        {requiresPayment && !canAcceptPayments && (
           <div className="booking-feedback warning">
             This professional can't accept payments yet. Please check back soon.
           </div>
@@ -522,61 +576,67 @@ const BookingFormFields = ({
             </>
           )}
 
-          <div className="booking-field">
-            <div className="booking-section-header">
-              <div>
-                <label>Payment preference</label>
-                <p className="booking-footnote muted">
-                  Choose to pay a deposit now or settle the full balance.
-                </p>
+          {requiresPayment && (
+            <>
+              <div className="booking-field">
+                <div className="booking-section-header">
+                  <div>
+                    <label>Payment preference</label>
+                    <p className="booking-footnote muted">
+                      Choose to pay a deposit now or settle the full balance.
+                    </p>
+                  </div>
+                </div>
+                <div className="payment-option-grid" role="radiogroup">
+                  {depositAvailable && (
+                    <label
+                      className={`payment-option-card ${
+                        paymentOption === "deposit" ? "active" : ""
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="paymentOption"
+                        value="deposit"
+                        checked={paymentOption === "deposit"}
+                        onChange={(e) => setPaymentOption(e.target.value)}
+                      />
+                      <span className="option-label">Pay deposit</span>
+                      <span className="option-amount">{formatCurrency(depositAmount)}</span>
+                      <p className="booking-footnote muted">We'll charge the rest later.</p>
+                    </label>
+                  )}
+                  <label
+                    className={`payment-option-card ${
+                      paymentOption === "full" ? "active" : ""
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentOption"
+                      value="full"
+                      checked={paymentOption === "full"}
+                      onChange={(e) => setPaymentOption(e.target.value)}
+                    />
+                    <span className="option-label">Pay in full</span>
+                    <span className="option-amount">{formatCurrency(servicePrice)}</span>
+                    <p className="booking-footnote muted">Nothing else due after today.</p>
+                  </label>
+                </div>
               </div>
-            </div>
-            <div className="payment-option-grid" role="radiogroup">
-              {depositAvailable && (
-                <label
-                  className={`payment-option-card ${
-                    paymentOption === "deposit" ? "active" : ""
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="paymentOption"
-                    value="deposit"
-                    checked={paymentOption === "deposit"}
-                    onChange={(e) => setPaymentOption(e.target.value)}
-                  />
-                  <span className="option-label">Pay deposit</span>
-                  <span className="option-amount">{formatCurrency(depositAmount)}</span>
-                  <p className="booking-footnote muted">We'll charge the rest later.</p>
-                </label>
-              )}
-              <label
-                className={`payment-option-card ${paymentOption === "full" ? "active" : ""}`}
-              >
-                <input
-                  type="radio"
-                  name="paymentOption"
-                  value="full"
-                  checked={paymentOption === "full"}
-                  onChange={(e) => setPaymentOption(e.target.value)}
-                />
-                <span className="option-label">Pay in full</span>
-                <span className="option-amount">{formatCurrency(servicePrice)}</span>
-                <p className="booking-footnote muted">Nothing else due after today.</p>
-              </label>
-            </div>
-          </div>
 
-          <div className="booking-field">
-            <label>Payment details</label>
-            <div className="booking-input-shell card-shell">
-              <CardElement
-                options={cardElementOptions}
-                onChange={(event) => setCardMessage(event.error?.message || "")}
-              />
-            </div>
-            {cardMessage && <p className="booking-footnote error">{cardMessage}</p>}
-          </div>
+              <div className="booking-field">
+                <label>Payment details</label>
+                <div className="booking-input-shell card-shell">
+                  <CardElement
+                    options={cardElementOptions}
+                    onChange={(event) => setCardMessage(event.error?.message || "")}
+                  />
+                </div>
+                {cardMessage && <p className="booking-footnote error">{cardMessage}</p>}
+              </div>
+            </>
+          )}
         </div>
 
         <button
@@ -584,15 +644,22 @@ const BookingFormFields = ({
           className="booking-submit"
           disabled={
             isProcessingPayment ||
-            !stripe ||
-            !elements ||
-            !canAcceptPayments ||
             !date ||
             !timeSlot ||
-            (!!cardMessage && cardMessage.length > 0)
+            (requiresPayment &&
+              (!stripe ||
+                !elements ||
+                !canAcceptPayments ||
+                (!!cardMessage && cardMessage.length > 0)))
           }
         >
-          {isProcessingPayment ? "Processing payment…" : "Confirm and pay"}
+          {requiresPayment
+            ? isProcessingPayment
+              ? "Processing payment…"
+              : "Confirm and pay"
+            : isProcessingPayment
+            ? "Submitting request…"
+            : "Confirm booking"}
         </button>
       </div>
     </form>
