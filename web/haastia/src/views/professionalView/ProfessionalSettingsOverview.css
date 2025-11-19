@@ -165,6 +165,43 @@
   line-height: 1.6;
 }
 
+.pro-overview-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pro-overview-card__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 1.4rem;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(120deg, #0f172a, #2563eb);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.18);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pro-overview-card__button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.24);
+}
+
+.pro-overview-card__fine-print {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.pro-overview-card__fine-print a {
+  color: #2563eb;
+  font-weight: 600;
+}
+
 .pro-overview-checklist {
   list-style: none;
   margin: 0;
