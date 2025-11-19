@@ -8,6 +8,7 @@ import ServiceDetail from "../components/Pages/ServiceDetail";
 import UserProfile from "../components/Pages/Profile";
 import ProfessionalProfile from "../components/customer/ProfessionalProfile";
 import ProfessionalBookingPage from "../components/Pages/booking/ProfessionalBookingPage";
+import BookingManagePage from "../components/Pages/booking/BookingManagePage";
 import HelpPage from "../components/Pages/HelpPage";
 
 import ProfessionalHome from "../views/professionalView/ProfessionalHome";
@@ -33,6 +34,7 @@ export const customerRouteConfig = [
   { path: "/help", component: HelpCenter },
   { path: "/professional/:id", component: ProfessionalProfile },
   { path: "/professional/:id/book", component: ProfessionalBookingPage },
+  { path: "/bookings/manage/:token", component: BookingManagePage },
   { path: "/help", component: HelpPage },
 ];
 
