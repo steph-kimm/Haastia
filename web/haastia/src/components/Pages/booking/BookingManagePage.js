@@ -8,7 +8,9 @@ import {
   getDayAvailabilityForDate,
   groupBlockedTimesByDate,
   toISODateString,
+  combineDateAndTime,
 } from "../../../utils/availability";
+import { buildGoogleCalendarLink } from "../../../utils/calendarLinks";
 
 import "../../customer/booking-form.css";
 import "react-datepicker/dist/react-datepicker.css";
@@ -229,6 +231,51 @@ const BookingManagePage = () => {
     }
   }, [slotsForSelectedDate, rescheduleSlot]);
 
+  const eventStart = useMemo(
+    () => combineDateAndTime(booking?.date, booking?.timeSlot?.start),
+    [booking?.date, booking?.timeSlot?.start]
+  );
+
+  const eventEnd = useMemo(
+    () => combineDateAndTime(booking?.date, booking?.timeSlot?.end),
+    [booking?.date, booking?.timeSlot?.end]
+  );
+
+  const calendarLink = useMemo(() => {
+    if (!eventStart || !eventEnd) return "";
+
+    const descriptionParts = [`Appointment with ${professionalProfile?.name || "your professional"}`];
+
+    if (serviceDetails?.description) {
+      descriptionParts.push(serviceDetails.description);
+    }
+
+    if (booking?.notes) {
+      descriptionParts.push(`Notes: ${booking.notes}`);
+    }
+
+    return buildGoogleCalendarLink({
+      startDate: eventStart,
+      endDate: eventEnd,
+      title: serviceDetails?.title || "Booking",
+      description: descriptionParts.join("\n\n"),
+      location: booking?.location || booking?.address || professionalProfile?.location,
+      timezone: booking?.timezone || professionalProfile?.timezone,
+    });
+  }, [
+    booking?.address,
+    booking?.location,
+    booking?.notes,
+    booking?.timezone,
+    eventEnd,
+    eventStart,
+    professionalProfile?.location,
+    professionalProfile?.name,
+    professionalProfile?.timezone,
+    serviceDetails?.description,
+    serviceDetails?.title,
+  ]);
+
   const handleDateChange = useCallback((selected) => {
     if (!selected) {
       setRescheduleDate("");
@@ -386,6 +433,16 @@ const BookingManagePage = () => {
         </section>
 
         <div className="booking-manage-actions">
+          {calendarLink && (
+            <a
+              className="calendar-button secondary"
+              href={calendarLink}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Add to Google Calendar
+            </a>
+          )}
           <button
             type="button"
             className="secondary"

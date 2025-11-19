@@ -65,6 +65,7 @@
 }
 
 .booking-manage-actions button,
+.booking-manage-actions .calendar-button,
 .panel-actions button {
   border-radius: 999px;
   padding: 12px 20px;
@@ -72,6 +73,14 @@
   border: 1px solid transparent;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.booking-manage-actions .calendar-button {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
 }
 
 .booking-manage-actions button:disabled,
@@ -86,7 +95,8 @@ button.primary {
   box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
 }
 
-button.secondary {
+button.secondary,
+.calendar-button.secondary {
   background: rgba(79, 70, 229, 0.08);
   color: #4338ca;
 }
@@ -106,7 +116,8 @@ button.ghost {
 button.primary:not(:disabled):hover,
 button.secondary:not(:disabled):hover,
 button.danger:not(:disabled):hover,
-button.ghost:not(:disabled):hover {
+button.ghost:not(:disabled):hover,
+.booking-manage-actions .calendar-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1);
 }
