@@ -20,6 +20,7 @@ import ProfessionalCustomers from "../views/professionalView/ProfessionalCustome
 import StripeConnectPage from "../views/professionalView/StripeConnectPage";
 import ProfessionalOnboarding from "../views/professionalView/ProfessionalOnboarding";
 import ProfessionalSettings from "../views/professionalView/ProfessionalSettings";
+import ProfessionalSettingsOverview from "../views/professionalView/ProfessionalSettingsOverview";
 
 export const customerRouteConfig = [
   { path: "/", component: Home },
@@ -47,5 +48,5 @@ export const professionalRouteConfig = [
   { path: "/bookings", component: ProfessionalRequests },
   { path: "/bookings/:bookingId", component: AppointmentDetails },
   { path: "/payments/connect", component: StripeConnectPage },
-  { path: "/pro/settings", component: ProfessionalSettings },
+  { path: "/pro/settings", component: ProfessionalSettingsOverview },
 ];
