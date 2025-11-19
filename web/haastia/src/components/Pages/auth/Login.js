@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import axios from 'axios';
 import './Auth.css';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useView } from '../../../context/ViewContext';
 import { handleAuthSuccess } from '../../../utils/auth';
 
@@ -29,7 +29,10 @@ function Login() {
   };
 
   const navigate = useNavigate();
+  const location = useLocation();
   const { setCurrentView } = useView();
+
+  const successNotice = useMemo(() => location.state?.successNotice, [location.state]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -104,6 +107,7 @@ function Login() {
             </div>
           </div>
 
+          {successNotice && <p className="helper-text success">{successNotice}</p>}
           {errorMessage && <p className="helper-text error">{errorMessage}</p>}
 
             <button className="auth-submit" type="submit">

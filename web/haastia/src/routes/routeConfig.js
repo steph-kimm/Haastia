@@ -5,6 +5,7 @@ import SignupSuccess from "../components/Pages/auth/SignupSuccess";
 import SignupCancel from "../components/Pages/auth/SignupCancel";
 import ForgotPassword from "../components/Pages/auth/ForgotPassword";
 import PasswordRecoveryRequest from "../components/Pages/auth/PasswordRecoveryRequest";
+import ResetPassword from "../components/Pages/auth/ResetPassword";
 import HelpCenter from "../components/Pages/HelpCenter";
 import ServiceDetail from "../components/Pages/ServiceDetail";
 import UserProfile from "../components/Pages/Profile";
@@ -34,6 +35,7 @@ export const customerRouteConfig = [
   { path: "/signup/cancel", component: SignupCancel },
   { path: "/password/forgot", component: ForgotPassword },
   { path: "/password/recovery", component: PasswordRecoveryRequest },
+  { path: "/password/reset", component: ResetPassword },
   { path: "/service/:id", component: ServiceDetail },
   { path: "/help", component: HelpCenter },
   { path: "/professional/:id", component: ProfessionalProfile },

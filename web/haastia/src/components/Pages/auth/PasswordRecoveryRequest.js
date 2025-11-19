@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 import './Auth.css';
 
 const PasswordRecoveryRequest = () => {
@@ -7,6 +8,7 @@ const PasswordRecoveryRequest = () => {
   const [statusMessage, setStatusMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasRequested, setHasRequested] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,6 +19,7 @@ const PasswordRecoveryRequest = () => {
       setIsSubmitting(true);
       await axios.post('/api/auth/recovery-request', { email });
       setStatusMessage('Check your inbox for a link to reset your password.');
+      setHasRequested(true);
     } catch (error) {
       const friendlyMessage =
         error?.response?.data?.error ||
@@ -61,6 +64,16 @@ const PasswordRecoveryRequest = () => {
 
             {statusMessage && <p className="helper-text">{statusMessage}</p>}
             {errorMessage && <p className="helper-text error">{errorMessage}</p>}
+
+            {hasRequested && (
+              <p className="helper-text" style={{ marginTop: '-8px' }}>
+                Ready to finish?{' '}
+                <Link to="/password/reset" state={{ email }} className="auth-link subtle">
+                  Enter your reset code
+                </Link>{' '}
+                to choose a new password.
+              </p>
+            )}
 
             <button className="auth-submit" type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Sending link...' : 'Send reset link'}
