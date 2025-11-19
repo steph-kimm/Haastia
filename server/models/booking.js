@@ -41,6 +41,7 @@ const bookingSchema = new Schema(
     stripeChargeId: { type: String },
     stripeTransferId: { type: String },
     paidAt: { type: Date },
+    reminderEmailSentAt: { type: Date, default: null },
 
     // Lifecycle state
     status: {
