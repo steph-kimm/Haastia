@@ -9,6 +9,10 @@ import {
   buildManageBookingUrl,
 } from "../utils/manageTokens.js";
 import {
+  buildCustomerConfirmationEmail,
+  buildProviderNotificationEmail,
+} from "../utils/bookingEmailTemplates.js";
+import {
   INACTIVE_BOOKING_STATUSES,
   findSlotConflicts,
   normalizeDateOnly,
@@ -134,7 +138,7 @@ export const createBooking = async (req, res) => {
     }
 
     const serviceDoc = await Service.findById(service).select(
-      "price deposit professional allowFreeReservations",
+      "title price deposit professional allowFreeReservations",
     );
     if (!serviceDoc) {
       return res.status(404).json({ error: "Service not found" });
@@ -222,6 +226,9 @@ export const createBooking = async (req, res) => {
 
     const booking = await new Booking(bookingData).save();
     const manageBookingUrl = buildManageBookingUrl(manageTokenBundle.raw);
+    const manageRescheduleUrl = `${manageBookingUrl}?action=reschedule`;
+    const manageCancelUrl = `${manageBookingUrl}?action=cancel`;
+    const serviceTitle = serviceDoc?.title || "Selected service";
     // Send confirmation emails
     try {
       // --- Fetch provider info ---
@@ -242,54 +249,49 @@ export const createBooking = async (req, res) => {
       const timeRange = `${timeSlot.start} - ${timeSlot.end}`;
 
       // --- Email to Client ---
-      const clientSubject = "Your Haastia Booking Confirmation";
-      const manageLine =
-        manageBookingUrl
-          ? `\nManage your booking: ${manageBookingUrl}`
-          : "\nKeep this email handy to manage your booking.";
-      const clientMessage = `
-Hi ${clientName},
+      const clientEmailContent = buildCustomerConfirmationEmail({
+        clientName,
+        providerName: provider?.name,
+        serviceTitle,
+        formattedDate,
+        timeRange,
+        manageUrl: manageBookingUrl,
+        manageRescheduleUrl,
+        manageCancelUrl,
+        manageToken: manageTokenBundle.raw,
+      });
 
-Your booking with ${provider?.name || "your professional"} has been confirmed!
+      const emailTransportConfigured =
+        Boolean(process.env.EMAIL_USER) && Boolean(process.env.EMAIL_PASS);
+      const fallbackAddress = "team.haastia@gmail.com";
+      const resolveRecipient = (preferred) =>
+        emailTransportConfigured && preferred ? preferred : fallbackAddress;
 
-📅 Date: ${formattedDate}
-⏰ Time: ${timeRange}
-💇‍♀️ Service: ${service}
-
-Use this one-time link or token to manage your appointment:
-Token: ${manageTokenBundle.raw}
-${manageLine}
-
-We look forward to seeing you!
-— The Haastia Team
-`;
-      // TODO: replace the blow for prod
-      // await sendEmail(clientEmail, clientSubject, clientMessage);
-      await sendEmail("team.haastia@gmail.com", clientSubject, clientMessage);
+      await sendEmail(
+        resolveRecipient(clientEmail),
+        clientEmailContent.subject,
+        clientEmailContent.text,
+        clientEmailContent.html,
+      );
 
       // --- Email to Provider ---
-      const providerSubject = "New Booking Received on Haastia";
-      const providerMessage = `
-Hi ${provider?.name || "Professional"},
-
-You have a new booking from ${clientName}!
-
-📅 Date: ${formattedDate}
-⏰ Time: ${timeRange}
-📞 Contact: ${clientEmail || "N/A"}
-
-Share this booking token with your client if they need to manage the appointment:
-${manageTokenBundle.raw}
-
-Log in to your dashboard to view details and manage this appointment.
-
-— The Haastia Team
-`;
-
       if (provider?.email) {
-        // TODO: replace the blow for prod
-        // await sendEmail(provider.email, providerSubject, providerMessage);
-        await sendEmail("team.haastia@gmail.com", providerSubject, providerMessage);
+        const providerEmailContent = buildProviderNotificationEmail({
+          providerName: provider?.name,
+          clientName,
+          clientEmail,
+          formattedDate,
+          timeRange,
+          serviceTitle,
+          manageUrl: manageBookingUrl,
+        });
+
+        await sendEmail(
+          resolveRecipient(provider.email),
+          providerEmailContent.subject,
+          providerEmailContent.text,
+          providerEmailContent.html,
+        );
       }
 
       console.log("✅ Booking confirmation emails sent.");
