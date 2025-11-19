@@ -49,8 +49,12 @@ const BookingFormFields = ({
   const [blockedError, setBlockedError] = useState("");
   const [cardMessage, setCardMessage] = useState("");
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [paymentOption, setPaymentOption] = useState(
-    service?.deposit > 0 ? "deposit" : "full"
+  const [paymentOption, setPaymentOption] = useState(() =>
+    service?.allowFreeReservations
+      ? "free"
+      : service?.deposit > 0
+      ? "deposit"
+      : "full"
   );
 
   const auth = getValidToken();
@@ -63,9 +67,18 @@ const BookingFormFields = ({
   const depositAvailable = Number(service?.deposit ?? 0) > 0;
   const servicePrice = Number(service?.price ?? 0);
   const depositAmount = depositAvailable ? Number(service?.deposit ?? 0) : 0;
-  const amountDue = paymentOption === "full" ? servicePrice : depositAmount;
-  const requiresPayment = amountDue > 0;
+  const supportsFreeReservations = Boolean(service?.allowFreeReservations);
+  const isFreeReservation = paymentOption === "free";
+  const amountDue =
+    paymentOption === "full"
+      ? servicePrice
+      : paymentOption === "deposit"
+      ? depositAmount
+      : 0;
+  const requiresPayment = !isFreeReservation && amountDue > 0;
   const isCompletelyFreeService = servicePrice <= 0 && depositAmount <= 0;
+  const paymentOptionsAvailable =
+    servicePrice > 0 || depositAvailable || supportsFreeReservations;
 
   const syncDateState = useCallback((value, explicitDate = null) => {
     if (value && ISO_DATE_PATTERN.test(value)) {
@@ -86,14 +99,26 @@ const BookingFormFields = ({
   }, []);
 
   useEffect(() => {
-    setPaymentOption(service?.deposit > 0 ? "deposit" : "full");
-  }, [service?._id, service?.deposit]);
+    setPaymentOption(
+      service?.allowFreeReservations
+        ? "free"
+        : service?.deposit > 0
+        ? "deposit"
+        : "full"
+    );
+  }, [service?._id, service?.deposit, service?.allowFreeReservations]);
 
   useEffect(() => {
     if (!depositAvailable && paymentOption === "deposit") {
-      setPaymentOption("full");
+      setPaymentOption(supportsFreeReservations ? "free" : "full");
     }
-  }, [depositAvailable, paymentOption]);
+  }, [depositAvailable, paymentOption, supportsFreeReservations]);
+
+  useEffect(() => {
+    if (!supportsFreeReservations && paymentOption === "free") {
+      setPaymentOption(service?.deposit > 0 ? "deposit" : "full");
+    }
+  }, [supportsFreeReservations, paymentOption, service?.deposit]);
 
   useEffect(() => {
     if (!professionalId) return;
@@ -274,7 +299,13 @@ const BookingFormFields = ({
       setPhone("");
     }
     setCardMessage("");
-    setPaymentOption(service?.deposit > 0 ? "deposit" : "full");
+    setPaymentOption(
+      service?.allowFreeReservations
+        ? "free"
+        : service?.deposit > 0
+        ? "deposit"
+        : "full"
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -496,7 +527,7 @@ const BookingFormFields = ({
               : "Choose a time, share your details, and confirm—no payment is required."}
           </p>
           <div className="booking-price-chip" aria-live="polite">
-            <span>{requiresPayment ? "Due today" : "Payment due"}</span>
+            <span>{requiresPayment ? "Due today" : "No payment due"}</span>
             <strong>{requiresPayment ? formatCurrency(amountDue) : "$0.00"}</strong>
           </div>
         </div>
@@ -615,14 +646,14 @@ const BookingFormFields = ({
             </>
           )}
 
-          {requiresPayment && (
+          {paymentOptionsAvailable && (
             <>
               <div className="booking-field">
                 <div className="booking-section-header">
                   <div>
                     <label>Payment preference</label>
                     <p className="booking-footnote muted">
-                      Choose to pay a deposit now or settle the full balance.
+                      Choose how you'd like to reserve your spot today.
                     </p>
                   </div>
                 </div>
@@ -645,35 +676,59 @@ const BookingFormFields = ({
                       <p className="booking-footnote muted">We'll charge the rest later.</p>
                     </label>
                   )}
-                  <label
-                    className={`payment-option-card ${
-                      paymentOption === "full" ? "active" : ""
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="paymentOption"
-                      value="full"
-                      checked={paymentOption === "full"}
-                      onChange={(e) => setPaymentOption(e.target.value)}
-                    />
-                    <span className="option-label">Pay in full</span>
-                    <span className="option-amount">{formatCurrency(servicePrice)}</span>
-                    <p className="booking-footnote muted">Nothing else due after today.</p>
-                  </label>
+                  {servicePrice > 0 && (
+                    <label
+                      className={`payment-option-card ${
+                        paymentOption === "full" ? "active" : ""
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="paymentOption"
+                        value="full"
+                        checked={paymentOption === "full"}
+                        onChange={(e) => setPaymentOption(e.target.value)}
+                      />
+                      <span className="option-label">Pay in full</span>
+                      <span className="option-amount">{formatCurrency(servicePrice)}</span>
+                      <p className="booking-footnote muted">Nothing else due after today.</p>
+                    </label>
+                  )}
+                  {supportsFreeReservations && (
+                    <label
+                      className={`payment-option-card ${
+                        paymentOption === "free" ? "active" : ""
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="paymentOption"
+                        value="free"
+                        checked={paymentOption === "free"}
+                        onChange={(e) => setPaymentOption(e.target.value)}
+                      />
+                      <span className="option-label">Reserve without paying</span>
+                      <span className="option-amount">$0.00</span>
+                      <p className="booking-footnote muted">
+                        We’ll confirm your spot without charging a card.
+                      </p>
+                    </label>
+                  )}
                 </div>
               </div>
 
-              <div className="booking-field">
-                <label>Payment details</label>
-                <div className="booking-input-shell card-shell">
-                  <CardElement
-                    options={cardElementOptions}
-                    onChange={(event) => setCardMessage(event.error?.message || "")}
-                  />
+              {requiresPayment && (
+                <div className="booking-field">
+                  <label>Payment details</label>
+                  <div className="booking-input-shell card-shell">
+                    <CardElement
+                      options={cardElementOptions}
+                      onChange={(event) => setCardMessage(event.error?.message || "")}
+                    />
+                  </div>
+                  {cardMessage && <p className="booking-footnote error">{cardMessage}</p>}
                 </div>
-                {cardMessage && <p className="booking-footnote error">{cardMessage}</p>}
-              </div>
+              )}
             </>
           )}
         </div>
@@ -692,12 +747,14 @@ const BookingFormFields = ({
                 (!!cardMessage && cardMessage.length > 0)))
           }
         >
-          {requiresPayment
-            ? isProcessingPayment
+          {isProcessingPayment
+            ? requiresPayment
               ? "Processing payment…"
-              : "Confirm and pay"
-            : isProcessingPayment
-            ? "Submitting request…"
+              : "Submitting request…"
+            : isFreeReservation
+            ? "Reserve without paying"
+            : requiresPayment
+            ? "Confirm and pay"
             : "Confirm booking"}
         </button>
       </div>
