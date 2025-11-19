@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { getValidToken } from "../../utils/auth";
+import { combineDateAndTime } from "../../utils/availability";
+import { buildGoogleCalendarLink } from "../../utils/calendarLinks";
 import "./AppointmentDetails.css";
 
 const normalizeStatus = (status) => {
@@ -127,18 +129,74 @@ const AppointmentDetails = () => {
   };
 
   const customer = booking?.customer || booking?.guestInfo;
+  const startDateTime = useMemo(
+    () => combineDateAndTime(booking?.date, booking?.timeSlot?.start),
+    [booking?.date, booking?.timeSlot?.start]
+  );
+  const endDateTime = useMemo(
+    () => combineDateAndTime(booking?.date, booking?.timeSlot?.end),
+    [booking?.date, booking?.timeSlot?.end]
+  );
+
+  const googleCalendarLink = useMemo(() => {
+    if (!startDateTime || !endDateTime) return "";
+
+    const descriptionParts = [];
+
+    if (customer?.name || customer?.email) {
+      const emailLabel = customer?.email ? ` (${customer.email})` : "";
+      descriptionParts.push(`Client: ${customer?.name || "Guest"}${emailLabel}`);
+    }
+
+    if (booking?.location || booking?.address) {
+      descriptionParts.push(`Location: ${booking.location || booking.address}`);
+    }
+
+    if (booking?.notes) {
+      descriptionParts.push(`Notes: ${booking.notes}`);
+    }
+
+    return buildGoogleCalendarLink({
+      startDate: new Date(startDateTime),
+      endDate: new Date(endDateTime),
+      title: booking?.service?.title || "Appointment",
+      description: descriptionParts.join("\n"),
+      location: booking?.location || booking?.address,
+      timezone: booking?.timeZone || booking?.timezone,
+    });
+  }, [
+    booking?.address,
+    booking?.location,
+    booking?.notes,
+    booking?.service?.title,
+    booking?.timeZone,
+    booking?.timezone,
+    customer?.email,
+    customer?.name,
+    endDateTime,
+    startDateTime,
+  ]);
 
   const renderActions = () => {
     if (!booking) return null;
-    if (status !== "accepted") return null;
+    if (status !== "accepted" && !googleCalendarLink) return null;
     return (
       <div className="detail-actions">
-        <button className="btn ghost" onClick={cancelBooking}>
-          Cancel appointment
-        </button>
-        <button className="btn primary" onClick={markCompleted}>
-          Mark completed
-        </button>
+        {googleCalendarLink ? (
+          <a className="btn secondary" href={googleCalendarLink} target="_blank" rel="noreferrer">
+            Add to Google Calendar
+          </a>
+        ) : null}
+        {status === "accepted" ? (
+          <>
+            <button className="btn ghost" onClick={cancelBooking}>
+              Cancel appointment
+            </button>
+            <button className="btn primary" onClick={markCompleted}>
+              Mark completed
+            </button>
+          </>
+        ) : null}
       </div>
     );
   };

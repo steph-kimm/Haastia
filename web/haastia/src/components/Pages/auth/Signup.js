@@ -58,6 +58,7 @@ const Signup = () => {
   const [isLaunchingCheckout, setIsLaunchingCheckout] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
   const [embeddedClientSecret, setEmbeddedClientSecret] = useState('');
+  const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { setCurrentView } = useView();
@@ -113,6 +114,7 @@ const Signup = () => {
     try {
       setIsSubmitting(true);
       setCheckoutError('');
+      setFormError('');
       const basePayload = {
         ...formData,
       };
@@ -149,7 +151,7 @@ const Signup = () => {
     } catch (error) {
       console.error('Error signing up:', error);
       const friendlyMessage = error.response?.data?.error || error.response?.data?.message;
-      alert(friendlyMessage || 'Signup failed');
+      setFormError(friendlyMessage || 'Signup failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -239,6 +241,8 @@ const Signup = () => {
                 </>
               )}
             </div>
+
+            {formError && <p className="helper-text error">{formError}</p>}
 
             <button className="auth-submit" type="submit">
               {isSubmitting ? 'Submitting...' : 'Create account'}
