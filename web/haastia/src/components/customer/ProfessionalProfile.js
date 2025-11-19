@@ -44,7 +44,6 @@ const ProfessionalProfile = () => {
   if (!professional) return <p>Loading...</p>;
 
   const profileImage = professional?.image?.url || FALLBACK_AVATAR;
-  const locationLabel = professional.location?.trim() || "Location TBD";
   const firstName = professional.name?.split(" ")[0] || "This professional";
   const hasCustomName = firstName !== "This professional";
   const canAcceptPayments = Boolean(
@@ -64,18 +63,24 @@ const ProfessionalProfile = () => {
         .filter(Boolean)
     : [];
   const hasServices = services.length > 0;
-  const heroSubtitle =
+  const defaultAbout = `Expect a collaborative, transparent experience from ${
+    hasCustomName ? firstName : "this professional"
+  } with updates before, during, and after your appointment.`;
+  const defaultHeroDescription = `Ready to book ${
+    hasServices ? "services" : "time"
+  } with a HaastiaPro in your area.`;
+  const profileHeadline =
+    professional?.headline?.trim() ||
     professional?.tagline?.trim() ||
     professional?.shortDescription?.trim() ||
-    `Ready to book ${hasServices ? "services" : "time"} with a Haastiapro in ${
-      locationLabel !== "Location TBD" ? locationLabel : "your area"
-    }.`;
+    "";
+  const heroDescription =
+    professional?.description?.trim() ||
+    professional?.shortDescription?.trim() ||
+    professional?.tagline?.trim() ||
+    defaultHeroDescription;
   const aboutCopy =
-    professional?.bio?.trim() ||
-    professional?.about?.trim() ||
-    `Expect a collaborative, transparent experience from ${
-      hasCustomName ? firstName : "this professional"
-    } with updates before, during, and after your appointment.`;
+    professional?.bio?.trim() || professional?.about?.trim() || defaultAbout;
   const contactNote =
     professional?.schedulingNote?.trim() ||
     "Have questions before you book? Reach out and they'll get back quickly.";
@@ -105,10 +110,8 @@ const ProfessionalProfile = () => {
         <div className="cover-copy">
           <span className="eyebrow-tag">HaastiaPro</span>
           <h1>{professional.name}</h1>
-          <p className="cover-lead">{heroSubtitle}</p>
-          <p className="cover-location">
-            Based in <strong>{locationLabel}</strong>
-          </p>
+          {profileHeadline && <p className="cover-headline">{profileHeadline}</p>}
+          <p className="cover-lead">{heroDescription}</p>
           <div className="cover-actions">
             {hasServices && (
               <button
@@ -135,11 +138,6 @@ const ProfessionalProfile = () => {
         <article className="story-card contact-card">
           <h4>Reach out</h4>
           <p>{contactNote}</p>
-          {professional.email && (
-            <a className="contact-link" href={`mailto:${professional.email}`}>
-              {professional.email}
-            </a>
-          )}
         </article>
       </section>
 
@@ -181,7 +179,12 @@ const ProfessionalProfile = () => {
         <ul>
           {services.map((s) => (
             <li key={s._id} className="service-row">
-              <div>
+              {s.images?.[0]?.url && (
+                <div className="service-media">
+                  <img src={s.images[0].url} alt={`${s.title} preview`} loading="lazy" />
+                </div>
+              )}
+              <div className="service-details">
                 <h4>{s.title}</h4>
                 {s.description && <p>{s.description}</p>}
                 <div className="service-meta">
