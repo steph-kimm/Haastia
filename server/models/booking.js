@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { generateManageTokenBundle } from "../utils/manageTokens.js";
 const { Schema } = mongoose;
 
 const cancellationSchema = new Schema(
@@ -43,6 +44,11 @@ const bookingSchema = new Schema(
     paidAt: { type: Date },
     reminderEmailSentAt: { type: Date, default: null },
 
+    // Customer self-serve management
+    manageToken: { type: String, required: true, index: true },
+    manageTokenCreatedAt: { type: Date, default: Date.now },
+    manageTokenExpiresAt: { type: Date },
+
     // Lifecycle state
     status: {
       type: String,
@@ -63,5 +69,15 @@ const bookingSchema = new Schema(
 // helpful indexes
 bookingSchema.index({ professional: 1, status: 1, date: 1 });
 bookingSchema.index({ customer: 1, status: 1, date: 1 });
+
+bookingSchema.pre("validate", function ensureManageToken(next) {
+  if (!this.manageToken) {
+    const bundle = generateManageTokenBundle();
+    this.manageToken = bundle.hashed;
+    this.manageTokenCreatedAt = bundle.createdAt;
+    this.manageTokenExpiresAt = bundle.expiresAt;
+  }
+  next();
+});
 
 export default mongoose.model("Booking", bookingSchema);

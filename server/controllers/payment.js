@@ -10,6 +10,7 @@ import {
   normalizeTimeSlot,
 } from "../utils/scheduling.js";
 import { hashPassword } from "../helpers/auth.js";
+import { generateManageTokenBundle } from "../utils/manageTokens.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const SUBSCRIPTION_PRICE_ID =
@@ -551,6 +552,13 @@ export const createServiceBookingIntent = async (req, res) => {
       }
     } else {
       booking = new Booking();
+    }
+
+    if (!booking.manageToken) {
+      const bundle = generateManageTokenBundle();
+      booking.manageToken = bundle.hashed;
+      booking.manageTokenCreatedAt = bundle.createdAt;
+      booking.manageTokenExpiresAt = bundle.expiresAt;
     }
 
     booking.professional = professionalId;

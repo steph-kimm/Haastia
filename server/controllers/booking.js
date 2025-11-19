@@ -4,6 +4,11 @@ import { sendEmail } from "../utils/sendEmail.js";
 import User from "../models/user.js"; // (to find the provider’s email)
 import Service from "../models/service.js";
 import {
+  generateManageTokenBundle,
+  hashManageToken,
+  buildManageBookingUrl,
+} from "../utils/manageTokens.js";
+import {
   INACTIVE_BOOKING_STATUSES,
   findSlotConflicts,
   normalizeDateOnly,
@@ -19,6 +24,77 @@ const DAY_NAMES = [
   "Friday",
   "Saturday",
 ];
+
+const sanitizeBookingForCustomer = (booking, extra = {}) => {
+  if (!booking) return null;
+  const plain =
+    typeof booking.toObject === "function"
+      ? booking.toObject({ virtuals: false })
+      : booking;
+
+  const id = plain._id?.toString?.() ?? plain._id;
+
+  return {
+    _id: id,
+    id,
+    professional: plain.professional,
+    service: plain.service,
+    customer: plain.customer,
+    guestInfo: plain.guestInfo,
+    date: plain.date,
+    timeSlot: plain.timeSlot,
+    status: plain.status,
+    paymentOption: plain.paymentOption,
+    paymentStatus: plain.paymentStatus,
+    amountDue: plain.amountDue,
+    amountPaid: plain.amountPaid,
+    paidAt: plain.paidAt,
+    cancellation: plain.cancellation,
+    acceptedAt: plain.acceptedAt,
+    completedAt: plain.completedAt,
+    createdAt: plain.createdAt,
+    updatedAt: plain.updatedAt,
+    ...extra,
+  };
+};
+
+const findBookingByManageToken = async (token) => {
+  if (!token) return null;
+  const hashed = hashManageToken(token);
+  const now = new Date();
+
+  return Booking.findOne({
+    manageToken: hashed,
+    $or: [
+      { manageTokenExpiresAt: null },
+      { manageTokenExpiresAt: { $gt: now } },
+    ],
+  });
+};
+
+const ensurePendingOrAccepted = (booking) => {
+  if (!booking) {
+    const error = new Error("Booking not found");
+    error.statusCode = 404;
+    throw error;
+  }
+  if (!["pending", "accepted"].includes(booking.status)) {
+    const error = new Error("Only pending or accepted bookings can be modified");
+    error.statusCode = 400;
+    throw error;
+  }
+};
+
+const applyCancellation = ({ booking, reason, cancelledBy }) => {
+  ensurePendingOrAccepted(booking);
+  booking.status = "cancelled";
+  booking.cancellation = {
+    by: cancelledBy,
+    at: new Date(),
+    reason,
+  };
+  return booking;
+};
 
 const normalizeSlotToString = (slot) => {
   if (!slot) return null;
@@ -109,6 +185,8 @@ export const createBooking = async (req, res) => {
       });
     }
 
+    const manageTokenBundle = generateManageTokenBundle();
+
     const bookingData = {
       professional,
       service,
@@ -120,6 +198,9 @@ export const createBooking = async (req, res) => {
       amountDue,
       amountPaid: 0,
       paymentStatus,
+      manageToken: manageTokenBundle.hashed,
+      manageTokenCreatedAt: manageTokenBundle.createdAt,
+      manageTokenExpiresAt: manageTokenBundle.expiresAt,
     };
 
     if (paidAt) {
@@ -140,6 +221,7 @@ export const createBooking = async (req, res) => {
     }
 
     const booking = await new Booking(bookingData).save();
+    const manageBookingUrl = buildManageBookingUrl(manageTokenBundle.raw);
     // Send confirmation emails
     try {
       // --- Fetch provider info ---
@@ -161,6 +243,10 @@ export const createBooking = async (req, res) => {
 
       // --- Email to Client ---
       const clientSubject = "Your Haastia Booking Confirmation";
+      const manageLine =
+        manageBookingUrl
+          ? `\nManage your booking: ${manageBookingUrl}`
+          : "\nKeep this email handy to manage your booking.";
       const clientMessage = `
 Hi ${clientName},
 
@@ -169,6 +255,10 @@ Your booking with ${provider?.name || "your professional"} has been confirmed!
 📅 Date: ${formattedDate}
 ⏰ Time: ${timeRange}
 💇‍♀️ Service: ${service}
+
+Use this one-time link or token to manage your appointment:
+Token: ${manageTokenBundle.raw}
+${manageLine}
 
 We look forward to seeing you!
 — The Haastia Team
@@ -188,6 +278,9 @@ You have a new booking from ${clientName}!
 ⏰ Time: ${timeRange}
 📞 Contact: ${clientEmail || "N/A"}
 
+Share this booking token with your client if they need to manage the appointment:
+${manageTokenBundle.raw}
+
 Log in to your dashboard to view details and manage this appointment.
 
 — The Haastia Team
@@ -204,7 +297,12 @@ Log in to your dashboard to view details and manage this appointment.
       console.error("❌ Error sending booking confirmation emails:", emailError);
     }
 
-    res.json(booking);
+    res.json(
+      sanitizeBookingForCustomer(booking, {
+        manageToken: manageTokenBundle.raw,
+        manageUrl: manageBookingUrl,
+      }),
+    );
   } catch (err) {
     console.error("Error creating booking:", err);
     res.status(500).json({ error: "Error creating booking" });
@@ -339,19 +437,19 @@ export const cancelBooking = async (req, res) => {
       return res.status(403).json({ error: "Not authorized to cancel this booking" });
     }
 
-    if (!["pending", "accepted"].includes(booking.status)) {
-      return res.status(400).json({ error: "Only pending or accepted bookings can be cancelled" });
+    try {
+      applyCancellation({
+        booking,
+        reason,
+        cancelledBy: isProfessional ? "professional" : "customer",
+      });
+    } catch (validationError) {
+      const statusCode = validationError.statusCode || 500;
+      return res.status(statusCode).json({ error: validationError.message });
     }
 
-    booking.status = "cancelled";
-    booking.cancellation = {
-      by: isProfessional ? "professional" : "customer",
-      at: new Date(),
-      reason,
-    };
-
     await booking.save();
-    res.json(booking);
+    res.json(sanitizeBookingForCustomer(booking));
   } catch (err) {
     console.error("Error cancelling booking:", err);
     res.status(500).json({ error: "Failed to cancel booking" });
@@ -382,5 +480,91 @@ export const completeBooking = async (req, res) => {
   } catch (err) {
     console.error("Error completing booking:", err);
     res.status(500).json({ error: "Failed to complete booking" });
+  }
+};
+
+export const getBookingByManageToken = async (req, res) => {
+  try {
+    const booking = await findBookingByManageToken(req.params.token);
+    if (!booking) {
+      return res.status(404).json({ error: "Booking not found" });
+    }
+
+    res.json(sanitizeBookingForCustomer(booking));
+  } catch (err) {
+    console.error("Error fetching booking by token:", err);
+    res.status(500).json({ error: "Failed to fetch booking" });
+  }
+};
+
+export const cancelBookingByManageToken = async (req, res) => {
+  try {
+    const booking = await findBookingByManageToken(req.params.token);
+    if (!booking) {
+      return res.status(404).json({ error: "Booking not found" });
+    }
+
+    try {
+      applyCancellation({ booking, reason: req.body?.reason, cancelledBy: "customer" });
+    } catch (validationError) {
+      const statusCode = validationError.statusCode || 500;
+      return res.status(statusCode).json({ error: validationError.message });
+    }
+
+    await booking.save();
+    res.json(sanitizeBookingForCustomer(booking));
+  } catch (err) {
+    console.error("Error cancelling booking by token:", err);
+    res.status(500).json({ error: "Failed to cancel booking" });
+  }
+};
+
+export const rescheduleBookingByManageToken = async (req, res) => {
+  try {
+    const booking = await findBookingByManageToken(req.params.token);
+    if (!booking) {
+      return res.status(404).json({ error: "Booking not found" });
+    }
+
+    try {
+      ensurePendingOrAccepted(booking);
+    } catch (validationError) {
+      const statusCode = validationError.statusCode || 500;
+      return res.status(statusCode).json({ error: validationError.message });
+    }
+
+    const { date, timeSlot } = req.body || {};
+
+    const normalizedDate = normalizeDateOnly(date);
+    if (!normalizedDate) {
+      return res.status(400).json({ error: "Invalid booking date" });
+    }
+
+    const normalizedSlot = normalizeTimeSlot(timeSlot);
+    if (!normalizedSlot) {
+      return res.status(400).json({ error: "Invalid time slot" });
+    }
+
+    const conflict = await findSlotConflicts({
+      professionalId: booking.professional,
+      date: normalizedDate,
+      timeSlot: normalizedSlot,
+      excludeBookingId: booking._id,
+    });
+
+    if (conflict) {
+      return res.status(409).json({ error: "Selected time slot is no longer available." });
+    }
+
+    booking.date = normalizedDate;
+    booking.timeSlot = normalizedSlot;
+    booking.status = "accepted";
+    booking.acceptedAt = new Date();
+
+    await booking.save();
+    res.json(sanitizeBookingForCustomer(booking));
+  } catch (err) {
+    console.error("Error rescheduling booking by token:", err);
+    res.status(500).json({ error: "Failed to reschedule booking" });
   }
 };
