@@ -12,6 +12,7 @@ import {
   buildCustomerConfirmationEmail,
   buildProviderNotificationEmail,
 } from "../utils/bookingEmailTemplates.js";
+import { buildGoogleCalendarLink } from "../utils/calendarLinks.js";
 import {
   INACTIVE_BOOKING_STATUSES,
   findSlotConflicts,
@@ -112,6 +113,26 @@ const dayNameFromDate = (value) => {
   if (Number.isNaN(date.getTime())) return null;
   const index = date.getUTCDay();
   return DAY_NAMES[index] ?? null;
+};
+
+const combineDateAndTime = (dateOnly, timeString) => {
+  if (!dateOnly || typeof timeString !== "string") return null;
+  const [hoursStr, minutesStr] = timeString.split(":");
+  const hours = Number(hoursStr);
+  const minutes = Number(minutesStr);
+  if (
+    !Number.isInteger(hours) ||
+    !Number.isInteger(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
+    return null;
+  }
+  const dateTime = new Date(dateOnly);
+  dateTime.setUTCHours(hours, minutes, 0, 0);
+  return dateTime;
 };
 
 // Create a new booking request
@@ -248,6 +269,16 @@ export const createBooking = async (req, res) => {
 
       const timeRange = `${timeSlot.start} - ${timeSlot.end}`;
 
+      const startDateTime = combineDateAndTime(normalizedDate, timeSlot.start);
+      const endDateTime = combineDateAndTime(normalizedDate, timeSlot.end);
+
+      const googleCalendarUrl = buildGoogleCalendarLink({
+        startDate: startDateTime,
+        endDate: endDateTime,
+        title: serviceTitle,
+        description: `Booking with ${provider?.name || "your professional"}`,
+      });
+
       // --- Email to Client ---
       const clientEmailContent = buildCustomerConfirmationEmail({
         clientName,
@@ -255,6 +286,7 @@ export const createBooking = async (req, res) => {
         serviceTitle,
         formattedDate,
         timeRange,
+        googleCalendarUrl,
         manageUrl: manageBookingUrl,
         manageRescheduleUrl,
         manageCancelUrl,
@@ -283,6 +315,7 @@ export const createBooking = async (req, res) => {
           formattedDate,
           timeRange,
           serviceTitle,
+          googleCalendarUrl,
           manageUrl: manageBookingUrl,
         });
 
