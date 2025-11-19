@@ -14,6 +14,7 @@ export const buildCustomerConfirmationEmail = ({
   serviceTitle,
   formattedDate,
   timeRange,
+  googleCalendarUrl,
   manageUrl,
   manageRescheduleUrl,
   manageCancelUrl,
@@ -25,11 +26,16 @@ export const buildCustomerConfirmationEmail = ({
 
   const subject = "Your Haastia Booking Confirmation";
 
+  const calendarText = googleCalendarUrl
+    ? `Add to Google Calendar: ${googleCalendarUrl}\n`
+    : "";
+
   const text = `Hi ${safeClientName},\n\n` +
     `Your booking with ${safeProviderName} has been confirmed!\n\n` +
     `📅 Date: ${formattedDate}\n` +
     `⏰ Time: ${timeRange}\n` +
     `💇‍♀️ Service: ${safeServiceTitle}\n\n` +
+    calendarText +
     `Manage your booking online at: ${manageUrl}\n` +
     `• Reschedule: ${manageRescheduleUrl}\n` +
     `• Cancel: ${manageCancelUrl}\n\n` +
@@ -45,6 +51,11 @@ export const buildCustomerConfirmationEmail = ({
         <strong>⏰ Time:</strong> ${timeRange}<br/>
         <strong>💇‍♀️ Service:</strong> ${safeServiceTitle}
       </p>
+      ${
+        googleCalendarUrl
+          ? `<p><a href="${googleCalendarUrl}" style="${baseButtonStyle};background-color:#16a34a;">Add to Google Calendar</a></p>`
+          : ""
+      }
       <p style="margin:24px 0 16px;font-weight:600;">Manage your booking:</p>
       <p>
         <a href="${manageRescheduleUrl}" style="${baseButtonStyle};background-color:#2563eb;">Reschedule</a>
@@ -68,6 +79,7 @@ export const buildProviderNotificationEmail = ({
   formattedDate,
   timeRange,
   serviceTitle,
+  googleCalendarUrl,
   manageUrl,
 }) => {
   const safeProviderName = providerName || "Professional";
@@ -75,12 +87,17 @@ export const buildProviderNotificationEmail = ({
   const safeServiceTitle = serviceTitle || "Selected service";
   const subject = "New Booking Received on Haastia";
 
+  const calendarText = googleCalendarUrl
+    ? `Add to Google Calendar: ${googleCalendarUrl}\n\n`
+    : "";
+
   const text = `Hi ${safeProviderName},\n\n` +
     `You have a new booking from ${safeClientName}!\n\n` +
     `📅 Date: ${formattedDate}\n` +
     `⏰ Time: ${timeRange}\n` +
     `💇‍♀️ Service: ${safeServiceTitle}\n` +
     `📞 Contact: ${clientEmail || "N/A"}\n\n` +
+    calendarText +
     `Clients can manage their own appointments via: ${manageUrl}\n\n` +
     `Log in to your dashboard to review additional details.\n\n` +
     `— The Haastia Team`;
@@ -95,6 +112,11 @@ export const buildProviderNotificationEmail = ({
         <strong>💇‍♀️ Service:</strong> ${safeServiceTitle}<br/>
         <strong>📞 Contact:</strong> ${clientEmail || "N/A"}
       </p>
+      ${
+        googleCalendarUrl
+          ? `<p><a href="${googleCalendarUrl}" style="${baseButtonStyle};background-color:#16a34a;">Add to Google Calendar</a></p>`
+          : ""
+      }
       <p>Clients can reschedule or cancel anytime using <a href="${manageUrl}">${manageUrl}</a>.</p>
       <p>Visit your dashboard to review the appointment and collect any outstanding information.</p>
       <p>— The Haastia Team</p>
