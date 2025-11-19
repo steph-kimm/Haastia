@@ -275,12 +275,32 @@ export const forgotPassword = async (req, res) => {
     // save to db
     user.resetCode = resetCode;
     user.save();
-    // prepare email
+    const frontendBaseUrl =
+        process.env.FRONTEND_URL || process.env.CLIENT_URL || process.env.WEB_APP_URL || "";
+    const trimmedBaseUrl = frontendBaseUrl.replace(/\/$/, "");
+    const resetLink = trimmedBaseUrl
+        ? `${trimmedBaseUrl}/password/reset?email=${encodeURIComponent(user.email)}&code=${resetCode}`
+        : "";
+
     const emailData = {
         from: process.env.EMAIL_FROM,
         to: user.email,
         subject: "Password reset code",
-        html: "<h1>Your password  reset code is: {resetCode}</h1>"
+        html: `
+            <div style="font-family: Arial, sans-serif; color: #1f2937;">
+                <h1 style="font-size: 20px; margin-bottom: 12px;">Password reset request</h1>
+                <p style="margin: 0 0 12px 0;">Here is your Haastia password reset code:</p>
+                <p style="font-size: 24px; font-weight: bold; letter-spacing: 2px; color: #111827; margin: 0 0 12px 0;">
+                    ${resetCode}
+                </p>
+                <p style="margin: 0 0 16px 0;">Enter this code on the password reset form to choose a new password.</p>
+                ${resetLink
+                    ? `<p style="margin: 0 0 12px 0;">You can also go directly to the reset page and enter your code there:</p>
+                       <p style="margin: 0 0 16px 0;"><a href="${resetLink}" style="display: inline-block; padding: 10px 16px; background: #2563eb; color: #fff; text-decoration: none; border-radius: 6px;">Open reset page</a></p>`
+                    : ""}
+                <p style="margin: 0; color: #4b5563;">If you didn't request this, you can ignore this email.</p>
+            </div>
+        `,
     };
     // send email
     try {
