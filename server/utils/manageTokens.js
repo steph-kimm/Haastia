@@ -20,7 +20,9 @@ export const generateManageTokenBundle = () => {
 
 export const buildManageBookingUrl = (token) => {
   const base = process.env.APP_BASE_URL;
-  if (!base) return null;
+  if (!base) {
+    throw new Error("APP_BASE_URL environment variable is required");
+  }
   const normalizedBase = base.endsWith("/") ? base.slice(0, -1) : base;
   return `${normalizedBase}/bookings/manage/${token}`;
 };
