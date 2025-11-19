@@ -1,0 +1,226 @@
+.pro-settings-overview {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2.5rem clamp(1rem, 3vw, 3rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  font-family: "Poppins", sans-serif;
+}
+
+.pro-settings-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+  font-size: 0.85rem;
+  margin: 0 0 0.25rem;
+}
+
+.pro-settings-alert {
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  background: rgba(225, 29, 72, 0.08);
+  color: #b91c1c;
+  border: 1px solid rgba(225, 29, 72, 0.2);
+  font-weight: 500;
+}
+
+.pro-settings-overview__hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.pro-settings-overview__hero h1 {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.75rem, 3vw, 2.3rem);
+  color: #0f1d2b;
+}
+
+.pro-settings-overview__hero p {
+  margin: 0;
+  color: #475467;
+}
+
+.pro-settings-overview__cta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 220px;
+}
+
+.pro-settings-overview__cta button {
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(120deg, #111c2c, #1d4ed8);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.9rem 1.5rem;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  box-shadow: 0 18px 30px rgba(15, 23, 42, 0.16);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pro-settings-overview__cta button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 22px 38px rgba(15, 23, 42, 0.22);
+}
+
+.pro-settings-overview__cta-icon {
+  font-size: 1.2rem;
+}
+
+.pro-overview-preview {
+  text-decoration: none;
+  padding: 0.65rem 1.1rem;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.pro-settings-overview__loading {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  color: #475467;
+}
+
+.pro-settings-overview__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.pro-overview-card {
+  background: #fff;
+  border-radius: 24px;
+  padding: clamp(1.25rem, 2.5vw, 2rem);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pro-overview-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.pro-overview-card__header h2 {
+  margin: 0.1rem 0 0;
+  font-size: 1.4rem;
+  color: #111c2c;
+}
+
+.pro-overview-card__meta {
+  font-size: 0.9rem;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.pro-overview-card__details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.pro-overview-card__details dt {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  margin-bottom: 0.25rem;
+}
+
+.pro-overview-card__details dd {
+  margin: 0;
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.pro-overview-card__details a {
+  color: #2563eb;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.pro-overview-card__body {
+  margin: 0;
+  color: #475467;
+  line-height: 1.6;
+}
+
+.pro-overview-checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: #0f172a;
+  font-weight: 500;
+}
+
+.pro-overview-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.16);
+  color: #047857;
+  margin-right: 0.5rem;
+  font-weight: 700;
+}
+
+.pro-overview-checklist li {
+  display: flex;
+  align-items: center;
+}
+
+.pro-overview-card--guidelines {
+  grid-column: 1 / -1;
+}
+
+.pro-overview-empty {
+  color: #9ca3af;
+}
+
+@media (max-width: 768px) {
+  .pro-settings-overview__hero {
+    flex-direction: column;
+  }
+
+  .pro-settings-overview__cta {
+    width: 100%;
+  }
+
+  .pro-settings-overview__cta button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pro-overview-card__header {
+    flex-direction: column;
+  }
+
+  .pro-overview-card__meta {
+    white-space: normal;
+  }
+}
