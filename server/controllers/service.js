@@ -3,6 +3,7 @@ import cloudinary from "cloudinary";
 import { nanoid } from "nanoid";
 
 const numericFields = ["price", "deposit", "duration"];
+const booleanFields = ["allowFreeReservations"];
 
 const coerceNumber = (value) => {
   if (value === undefined || value === null || value === "") {
@@ -59,6 +60,7 @@ const extractServicePayload = (body) => {
     "price",
     "deposit",
     "duration",
+    "allowFreeReservations",
   ];
 
   for (const field of allowed) {
@@ -87,6 +89,11 @@ const extractServicePayload = (body) => {
     } else {
       delete data[field];
     }
+  }
+
+  for (const field of booleanFields) {
+    if (data[field] === undefined) continue;
+    data[field] = data[field] === true || data[field] === "true";
   }
 
   return { data, errors };

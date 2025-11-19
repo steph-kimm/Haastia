@@ -62,6 +62,10 @@ const serviceSchema = new Schema(
       type: Number, // in minutes
       required: true,
     },
+    allowFreeReservations: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
