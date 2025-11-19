@@ -97,7 +97,7 @@ function Login() {
                 />
               </div>
               <div className="field-actions">
-                <Link to="/password/recovery" className="auth-link subtle">
+                <Link to="/password/forgot" className="auth-link subtle">
                   Forgot password?
                 </Link>
               </div>
