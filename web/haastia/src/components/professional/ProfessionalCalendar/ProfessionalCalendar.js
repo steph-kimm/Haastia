@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -12,6 +12,17 @@ import {
   toISODateString,
 } from "../../../utils/availability";
 import "./ProfessionalCalendar.css";
+
+const blockDateFormatter = new Intl.DateTimeFormat(undefined, {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+});
+
+const blockTimeFormatter = new Intl.DateTimeFormat(undefined, {
+  hour: "numeric",
+  minute: "2-digit",
+});
 
 const LOOK_BACK_DAYS = 30;
 const LOOK_AHEAD_DAYS = 180;
@@ -43,7 +54,36 @@ const ProfessionalCalendar = () => {
   const [availability, setAvailability] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [blockedTimes, setBlockedTimes] = useState([]);
+  const [blockedLoading, setBlockedLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [blockForm, setBlockForm] = useState({
+    date: "",
+    start: "",
+    end: "",
+    reason: "",
+  });
+  const [showBlockPanel, setShowBlockPanel] = useState(false);
+  const [blockFeedback, setBlockFeedback] = useState(null);
+  const [isBlocking, setIsBlocking] = useState(false);
+  const [deletingBlockId, setDeletingBlockId] = useState(null);
+
+  const authHeaders = useMemo(
+    () => (token ? { Authorization: `Bearer ${token}` } : undefined),
+    [token]
+  );
+
+  const getBlockedRangeParams = useCallback(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const rangeStart = new Date(today);
+    rangeStart.setDate(today.getDate() - LOOK_BACK_DAYS);
+    const rangeEnd = new Date(today);
+    rangeEnd.setDate(today.getDate() + LOOK_AHEAD_DAYS);
+    return {
+      start: toISODateString(rangeStart),
+      end: toISODateString(rangeEnd),
+    };
+  }, []);
 
   useEffect(() => {
     if (!auth) {
@@ -59,6 +99,7 @@ const ProfessionalCalendar = () => {
     const load = async () => {
       if (!professionalId || !token) return;
       setLoading(true);
+      setBlockedLoading(true);
       try {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -66,8 +107,6 @@ const ProfessionalCalendar = () => {
         rangeStart.setDate(today.getDate() - LOOK_BACK_DAYS);
         const rangeEnd = new Date(today);
         rangeEnd.setDate(today.getDate() + LOOK_AHEAD_DAYS);
-
-        const authHeaders = token ? { Authorization: `Bearer ${token}` } : undefined;
 
         const [availRes, bookingsRes, blockedRes] = await Promise.all([
           axios.get(`/api/availability/${professionalId}`),
@@ -90,10 +129,39 @@ const ProfessionalCalendar = () => {
         console.error("Calendar load error:", err.response?.data || err.message);
       } finally {
         setLoading(false);
+        setBlockedLoading(false);
       }
     };
     load();
-  }, [professionalId, token]);
+  }, [professionalId, token, authHeaders]);
+
+  const refreshBlockedTimes = useCallback(
+    async (withLoader = true) => {
+      if (!professionalId) return;
+      if (withLoader) {
+        setBlockedLoading(true);
+      }
+      try {
+        const params = getBlockedRangeParams();
+        const { data } = await axios.get(`/api/blocked-times/${professionalId}`, {
+          params,
+          headers: authHeaders,
+        });
+        setBlockedTimes(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Blocked time reload error:", err.response?.data || err.message);
+        setBlockFeedback({
+          type: "error",
+          message: err.response?.data?.error || "Could not refresh blocked times. Please try again.",
+        });
+      } finally {
+        if (withLoader) {
+          setBlockedLoading(false);
+        }
+      }
+    },
+    [professionalId, authHeaders, getBlockedRangeParams]
+  );
 
   const bookingEvents = useMemo(
     () =>
@@ -166,14 +234,230 @@ const ProfessionalCalendar = () => {
     [availability, blockedTimes]
   );
 
+  const upcomingBlocked = useMemo(() => {
+    const now = Date.now();
+    return (blockedTimes || [])
+      .map((block) => {
+        if (!block) return null;
+        const baseDate = new Date(block.date);
+        if (Number.isNaN(baseDate.getTime())) return null;
+        baseDate.setHours(0, 0, 0, 0);
+        const [startHour, startMinute] = (block.start || "").split(":").map(Number);
+        const [endHour, endMinute] = (block.end || "").split(":").map(Number);
+        if (
+          !Number.isInteger(startHour) ||
+          !Number.isInteger(startMinute) ||
+          !Number.isInteger(endHour) ||
+          !Number.isInteger(endMinute)
+        ) {
+          return null;
+        }
+        const startDate = new Date(baseDate);
+        startDate.setHours(startHour, startMinute, 0, 0);
+        const endDate = new Date(baseDate);
+        endDate.setHours(endHour, endMinute, 0, 0);
+        if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+          return null;
+        }
+        return {
+          id: block._id || `${baseDate.toISOString()}-${block.start}-${block.end}`,
+          startDate,
+          endDate,
+          reason: block.reason?.trim() || "",
+        };
+      })
+      .filter((block) => block && block.endDate.getTime() >= now)
+      .sort((a, b) => a.startDate - b.startDate);
+  }, [blockedTimes]);
+
+  const handleBlockInputChange = (field) => (event) => {
+    const value = event.target.value;
+    setBlockForm((prev) => ({ ...prev, [field]: value }));
+    if (blockFeedback) {
+      setBlockFeedback(null);
+    }
+  };
+
+  const handleBlockSubmit = async (event) => {
+    event.preventDefault();
+    if (!professionalId) return;
+    const { date, start, end, reason } = blockForm;
+
+    if (!date || !start || !end) {
+      setBlockFeedback({
+        type: "error",
+        message: "Please select a date along with a start and end time.",
+      });
+      return;
+    }
+
+    if (start >= end) {
+      setBlockFeedback({
+        type: "error",
+        message: "End time must be after the start time.",
+      });
+      return;
+    }
+
+    if (!token) {
+      setBlockFeedback({
+        type: "error",
+        message: "You must be signed in to manage blocked times.",
+      });
+      return;
+    }
+
+    setIsBlocking(true);
+    setBlockFeedback(null);
+
+    try {
+      await axios.post(
+        `/api/blocked-times/${professionalId}`,
+        {
+          date,
+          start,
+          end,
+          reason: reason?.trim() || undefined,
+        },
+        { headers: authHeaders }
+      );
+
+      setBlockForm({ date: "", start: "", end: "", reason: "" });
+      setBlockFeedback({ type: "success", message: "Blocked time added." });
+      await refreshBlockedTimes(false);
+    } catch (err) {
+      console.error("Error creating blocked time", err);
+      const message = err.response?.data?.error || "Failed to add blocked time. Please try again.";
+      setBlockFeedback({ type: "error", message });
+    } finally {
+      setIsBlocking(false);
+    }
+  };
+
+  const handleDeleteBlockedTime = async (id) => {
+    if (!id || !token) return;
+    setDeletingBlockId(id);
+    try {
+      await axios.delete(`/api/blocked-times/${id}`, {
+        headers: authHeaders,
+      });
+      await refreshBlockedTimes(false);
+    } catch (err) {
+      console.error("Error deleting blocked time", err);
+      const message = err.response?.data?.error || "Failed to delete blocked time. Please try again.";
+      setBlockFeedback({ type: "error", message });
+    } finally {
+      setDeletingBlockId(null);
+    }
+  };
+
   return (
     <div className="pro-cal-wrapper">
       <div className="pro-cal-header">
-        <h2>My Calendar</h2>
-        <p className="sub">
-          Working hours are highlighted; non-working time is shaded automatically.
-        </p>
+        <div className="pro-cal-heading">
+          <h2>My Calendar</h2>
+          <p className="sub">
+            Working hours are highlighted; non-working time is shaded automatically.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="pro-block-toggle"
+          onClick={() => setShowBlockPanel((open) => !open)}
+          aria-expanded={showBlockPanel}
+        >
+          Block off time
+        </button>
       </div>
+
+      {showBlockPanel && (
+        <section className="pro-block-card">
+          <div className="pro-block-head">
+            <div>
+              <h3>One-off time off</h3>
+              <p className="pro-block-sub">
+                Drop a quick block to hide personal events from the booking calendar.
+              </p>
+            </div>
+          </div>
+          <form className="pro-block-form" onSubmit={handleBlockSubmit}>
+            <label>
+              <span>Date</span>
+              <input
+                type="date"
+                value={blockForm.date}
+                onChange={handleBlockInputChange("date")}
+                min={toISODateString(new Date())}
+              />
+            </label>
+            <label>
+              <span>Start</span>
+              <input
+                type="time"
+                value={blockForm.start}
+                onChange={handleBlockInputChange("start")}
+              />
+            </label>
+            <label>
+              <span>End</span>
+              <input
+                type="time"
+                value={blockForm.end}
+                onChange={handleBlockInputChange("end")}
+              />
+            </label>
+            <label className="pro-block-reason-input">
+              <span>Reason (optional)</span>
+              <input
+                type="text"
+                value={blockForm.reason}
+                placeholder="Vacation, errand, etc."
+                onChange={handleBlockInputChange("reason")}
+              />
+            </label>
+            <button type="submit" className="pro-block-submit" disabled={isBlocking}>
+              {isBlocking ? "Saving…" : "Block this time"}
+            </button>
+          </form>
+          {blockFeedback && (
+            <p className={`pro-block-feedback ${blockFeedback.type}`}>{blockFeedback.message}</p>
+          )}
+          <div className="pro-block-list-wrapper">
+            {blockedLoading ? (
+              <p className="pro-block-footnote">Loading blocked times…</p>
+            ) : upcomingBlocked.length ? (
+              <ul className="pro-block-list">
+                {upcomingBlocked.map((block) => (
+                  <li key={block.id} className="pro-block-item">
+                    <div className="pro-block-meta">
+                      <span className="pro-block-date">
+                        {blockDateFormatter.format(block.startDate)}
+                      </span>
+                      <span className="pro-block-range">
+                        {blockTimeFormatter.format(block.startDate)} –{" "}
+                        {blockTimeFormatter.format(block.endDate)}
+                      </span>
+                      {block.reason && <span className="pro-block-reason">{block.reason}</span>}
+                    </div>
+                    <button
+                      type="button"
+                      className="pro-block-delete"
+                      onClick={() => handleDeleteBlockedTime(block.id)}
+                      disabled={deletingBlockId === block.id}
+                    >
+                      {deletingBlockId === block.id ? "Removing…" : "Remove"}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="pro-block-footnote">
+                No upcoming blocks. Add one above to reserve personal time.
+              </p>
+            )}
+          </div>
+        </section>
+      )}
 
       {loading ? (
         <div className="pro-cal-loading">Loading calendar…</div>

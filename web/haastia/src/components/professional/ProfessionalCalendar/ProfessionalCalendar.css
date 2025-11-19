@@ -7,13 +7,19 @@
 
 .pro-cal-header {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 12px;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.pro-cal-heading {
+  flex: 1;
+  min-width: 220px;
 }
 
 .pro-cal-header h2 {
-  margin: 0;
+  margin: 0 0 4px;
 }
 
 .pro-cal-header .sub {
@@ -49,4 +55,230 @@
 }
 .fc .fc-timegrid-slot {
   height: 26px; /* slightly condensed to shorten day/week view */
+}
+
+.pro-block-toggle {
+  background: #dc2626;
+  color: #ffffff;
+  border: none;
+  border-radius: 999px;
+  padding: 0.65rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  margin: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  width: fit-content;
+}
+
+.pro-block-toggle:hover {
+  background: #b91c1c;
+  box-shadow: 0 12px 24px rgba(220, 38, 38, 0.35);
+  transform: translateY(-1px);
+}
+
+.pro-block-toggle:active {
+  transform: translateY(0);
+}
+
+.pro-block-toggle:focus-visible {
+  outline: 3px solid rgba(220, 38, 38, 0.45);
+  outline-offset: 2px;
+}
+
+.pro-block-card {
+  border: 1px solid #e4ebf3;
+  border-radius: 14px;
+  background-color: #ffffff;
+  padding: 1.25rem;
+  margin-bottom: 20px;
+  box-shadow: 0 10px 30px rgba(15, 29, 43, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pro-block-head h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1.2rem;
+  color: #0f1d2b;
+}
+
+.pro-block-sub {
+  margin: 0;
+  color: #475467;
+  line-height: 1.4;
+}
+
+.pro-block-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.9rem;
+  align-items: end;
+}
+
+.pro-block-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.pro-block-form input {
+  border: 1px solid #d0d7e2;
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pro-block-form input:focus {
+  outline: none;
+  border-color: #2e86ab;
+  box-shadow: 0 0 0 3px rgba(46, 134, 171, 0.18);
+}
+
+.pro-block-reason-input {
+  grid-column: span 2;
+}
+
+.pro-block-submit {
+  background-color: #2e86ab;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1.2rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pro-block-submit:disabled {
+  background-color: #94b9cb;
+  cursor: wait;
+}
+
+.pro-block-submit:not(:disabled):hover {
+  background-color: #22688d;
+  box-shadow: 0 10px 24px rgba(34, 104, 141, 0.28);
+}
+
+.pro-block-feedback {
+  margin: 0;
+  font-weight: 500;
+}
+
+.pro-block-feedback.success {
+  color: #1f7a4d;
+}
+
+.pro-block-feedback.error {
+  color: #c2410c;
+}
+
+.pro-block-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.pro-block-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(46, 134, 171, 0.18);
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.pro-block-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pro-block-date {
+  font-weight: 600;
+  color: #0f1d2b;
+}
+
+.pro-block-range {
+  color: #475467;
+}
+
+.pro-block-reason {
+  align-self: flex-start;
+  background: rgba(46, 134, 171, 0.12);
+  color: #2e86ab;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.pro-block-delete {
+  background: transparent;
+  color: #c2410c;
+  border: 1px solid #c2410c;
+  border-radius: 8px;
+  padding: 0.45rem 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.pro-block-delete:hover:not(:disabled) {
+  background: #c2410c;
+  color: #ffffff;
+}
+
+.pro-block-delete:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.pro-block-footnote {
+  margin: 0;
+  color: #475467;
+  font-size: 0.95rem;
+}
+
+.pro-block-list-wrapper {
+  min-height: 48px;
+}
+
+@media (max-width: 640px) {
+  .pro-cal-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pro-block-toggle {
+    width: 100%;
+    text-align: center;
+  }
+
+  .pro-block-form {
+    grid-template-columns: 1fr;
+  }
+
+  .pro-block-reason-input {
+    grid-column: span 1;
+  }
+
+  .pro-block-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pro-block-delete {
+    width: 100%;
+    text-align: center;
+  }
 }
