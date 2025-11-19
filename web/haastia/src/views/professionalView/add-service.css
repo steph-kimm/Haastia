@@ -294,6 +294,35 @@
   gap: 20px;
 }
 
+.free-reservation-toggle {
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.9);
+}
+
+.checkbox-label {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-weight: 600;
+  color: #1f2937;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  accent-color: #4ade80;
+}
+
+.checkbox-title {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
 .upload-card {
   position: relative;
   display: flex;
