@@ -4,18 +4,25 @@ import {
   getBookingsForProfessional,
   getBookingsForCustomer,
   updateBookingStatus,
-    cancelBooking,
+  cancelBooking,
   completeBooking,
   getAvailableSlotsForProfessional,
+  getBookingByManageToken,
+  cancelBookingByManageToken,
+  rescheduleBookingByManageToken,
 } from "../controllers/booking.js";
 
 import { optionalAuth } from "../middlewares/optionalAuth.js";
 import { requireSignin } from "../middlewares/auth.js";
+import {
+  manageBookingRateLimit,
+  logManageBookingRequest,
+} from "../middlewares/manageBookingGuard.js";
 
 const router = express.Router();
 
 // Create booking
-router.post("/", optionalAuth,  createBooking);
+router.post("/", optionalAuth, createBooking);
 
 // Get bookings for a professional
 router.get("/professional/:id", getBookingsForProfessional);
@@ -34,5 +41,25 @@ router.put("/:id/cancel", requireSignin, cancelBooking);
 
 // Complete (professional)
 router.put("/:id/complete", requireSignin, completeBooking);
+
+// Customer self-serve endpoints (unauthenticated, rate-limited + logged)
+router.get(
+  "/manage/:token",
+  manageBookingRateLimit,
+  logManageBookingRequest,
+  getBookingByManageToken,
+);
+router.put(
+  "/manage/:token/cancel",
+  manageBookingRateLimit,
+  logManageBookingRequest,
+  cancelBookingByManageToken,
+);
+router.put(
+  "/manage/:token/reschedule",
+  manageBookingRateLimit,
+  logManageBookingRequest,
+  rescheduleBookingByManageToken,
+);
 
 export default router;

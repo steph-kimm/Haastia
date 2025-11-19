@@ -28,3 +28,9 @@ onboarding and dashboard redirects can be generated dynamically:
 
 Set these values to the frontend routes that handle the corresponding flows for
 each deployment environment instead of relying on hard-coded localhost URLs.
+
+## URLs used in transactional emails
+
+- `APP_BASE_URL` – optional, but recommended. When provided the backend builds
+  absolute "manage booking" URLs like `${APP_BASE_URL}/bookings/manage/<token>`
+  so confirmation emails can link customers directly to the self-service page.
