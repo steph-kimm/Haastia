@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import User from "../models/user.js";
+import User, { DEFAULT_SCHEDULING_LIMITS } from "../models/user.js";
 import Availability from "../models/availability.js";
 import Booking from "../models/booking.js";
 import ClientNote from "../models/clientNote.js";
@@ -41,13 +41,78 @@ const MAX_BUSINESS_ADDRESS_LENGTH = 200;
 const MAX_LOCATION_LENGTH = 120;
 const MAX_CONTACT_PHONE_LENGTH = 32;
 const MAX_WEBSITE_LENGTH = 200;
+const SCHEDULING_LIMIT_FIELDS = [
+  { key: "minBookingLeadTimeMinutes", label: "Minimum booking lead time (minutes)" },
+  { key: "maxBookingDaysInAdvance", label: "Maximum days in advance" },
+  { key: "rescheduleCutoffMinutes", label: "Reschedule cutoff (minutes)" },
+  { key: "cancelCutoffMinutes", label: "Cancel cutoff (minutes)" },
+  { key: "maxBookingsPerSlot", label: "Bookings per slot" },
+  { key: "maxBookingsPerDay", label: "Bookings per day" },
+  { key: "maxBookingsPerWeek", label: "Bookings per week" },
+];
+
+const applySchedulingLimitDefaults = (limits = {}) => {
+  const fallback = { ...DEFAULT_SCHEDULING_LIMITS };
+
+  SCHEDULING_LIMIT_FIELDS.forEach(({ key }) => {
+    if (limits[key] !== undefined) {
+      fallback[key] = limits[key];
+    }
+  });
+
+  return fallback;
+};
+
+const formatProfessionalForResponse = (professionalDoc) => {
+  if (!professionalDoc) return null;
+  const professional = professionalDoc.toObject ? professionalDoc.toObject() : professionalDoc;
+  professional.schedulingLimits = applySchedulingLimitDefaults(professional.schedulingLimits || {});
+  return professional;
+};
+
+const sanitizeSchedulingLimits = (value) => {
+  if (value === undefined) {
+    return { updates: null, error: null };
+  }
+
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return { updates: null, error: "Scheduling limits must be an object" };
+  }
+
+  const updates = {};
+
+  for (const { key, label } of SCHEDULING_LIMIT_FIELDS) {
+    if (!Object.prototype.hasOwnProperty.call(value, key)) {
+      continue;
+    }
+
+    const raw = value[key];
+    if (raw === null || raw === undefined || raw === "") {
+      updates[`schedulingLimits.${key}`] = null;
+      continue;
+    }
+
+    const numericValue = Number(raw);
+    if (!Number.isFinite(numericValue) || numericValue < 0) {
+      return {
+        updates: null,
+        error: `${label} must be a non-negative number or null`,
+      };
+    }
+
+    updates[`schedulingLimits.${key}`] = Math.floor(numericValue);
+  }
+
+  return { updates, error: null };
+};
 
 const fetchProfessionalProfilePayload = async (professionalId) => {
-  const professional = await User.findById(professionalId).select("-password");
-  if (!professional) {
+  const professionalDoc = await User.findById(professionalId).select("-password");
+  if (!professionalDoc) {
     return null;
   }
 
+  const professional = formatProfessionalForResponse(professionalDoc);
   const availability = await Availability.find({ professionalId }).sort({ day: 1 });
   return { professional, availability };
 };
@@ -169,6 +234,17 @@ export const updateProfessionalProfile = async (req, res) => {
       sanitizer: normalizeWebsiteValue,
     });
 
+    const { updates: schedulingLimitUpdates, error: schedulingLimitError } =
+      sanitizeSchedulingLimits(req.body.schedulingLimits);
+
+    if (schedulingLimitError) {
+      errors.push(schedulingLimitError);
+    }
+
+    if (schedulingLimitUpdates) {
+      Object.assign(updates, schedulingLimitUpdates);
+    }
+
     if (errors.length > 0) {
       return res.status(400).json({ error: errors[0] });
     }
@@ -177,14 +253,15 @@ export const updateProfessionalProfile = async (req, res) => {
       return res.status(400).json({ error: "No valid profile fields provided" });
     }
 
-    const professional = await User.findByIdAndUpdate(req.user._id, updates, {
+    const professionalDoc = await User.findByIdAndUpdate(req.user._id, updates, {
       new: true,
     }).select("-password");
 
-    if (!professional) {
+    if (!professionalDoc) {
       return res.status(404).json({ error: "Professional not found" });
     }
 
+    const professional = formatProfessionalForResponse(professionalDoc);
     const availability = await Availability.find({ professionalId: req.user._id }).sort({ day: 1 });
 
     return res.json({
@@ -201,14 +278,15 @@ export const getProfessionalProfile = async (req, res) => {
   try {
     const { id } = req.params; // professionalId
     console.log("looking, ", id);
-    const professional = await User.findById(id).select("-password");
-    if (!professional) {
+    const professionalDoc = await User.findById(id).select("-password");
+    if (!professionalDoc) {
       return res.status(404).json({ error: "Professional not found" });
     }
-    if (professional.role !== "professional") {
+    if (professionalDoc.role !== "professional") {
       return res.status(400).json({ error: "User is not a professional" });
     }
 
+    const professional = formatProfessionalForResponse(professionalDoc);
     const availability = await Availability.find({ professionalId: id }).sort({ day: 1 });
 
     return res.json({
