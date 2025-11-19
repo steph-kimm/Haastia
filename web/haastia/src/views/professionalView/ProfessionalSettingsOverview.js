@@ -76,6 +76,15 @@ const ProfessionalSettingsOverview = () => {
     (professional?.serviceArea && String(professional.serviceArea)) ||
     "";
   const website = professional?.website ? String(professional.website).trim() : "";
+  const cancellationEmail = "team.haastia@gmail.com";
+  const cancellationMailto = useMemo(() => {
+    const subject = encodeURIComponent("Cancel my Haastia subscription");
+    const body = encodeURIComponent(
+      "Hi Haastia team,%0D%0A%0D%0AI need to cancel my professional subscription. Please confirm once processed.%0D%0A%0D%0AThanks!"
+    );
+
+    return `mailto:${cancellationEmail}?subject=${subject}&body=${body}`;
+  }, [cancellationEmail]);
 
   const handleEditClick = () => {
     navigate("/profile-guidelines");
@@ -201,6 +210,32 @@ const ProfessionalSettingsOverview = () => {
               {professional?.tagline ? "Tagline set" : "Add a tagline"}
             </li>
           </ul>
+        </article>
+
+        <article className="pro-overview-card pro-overview-card--subscription">
+          <div className="pro-overview-card__header">
+            <div>
+              <p className="pro-settings-eyebrow">Billing &amp; subscription</p>
+              <h2>Manage subscription</h2>
+            </div>
+          </div>
+          <p className="pro-overview-card__body">
+            You can cancel anytime and you’ll keep access until the end of your billing
+            period. We’ll email you a confirmation when the cancellation is processed.
+          </p>
+          <div className="pro-overview-card__actions">
+            <a
+              className="pro-overview-card__button"
+              href={cancellationMailto}
+              rel="noopener noreferrer"
+            >
+              Email support to cancel
+            </a>
+            <p className="pro-overview-card__fine-print">
+              Prefer to chat? <Link to="/help">Visit the Help Center</Link> for
+              more billing resources.
+            </p>
+          </div>
         </article>
 
         <article className="pro-overview-card pro-overview-card--guidelines">
