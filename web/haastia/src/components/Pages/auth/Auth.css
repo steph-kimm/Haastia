@@ -192,6 +192,11 @@
   color: #6b7280;
 }
 
+.helper-text.error {
+  color: #dc2626;
+  font-weight: 600;
+}
+
 .auth-submit {
   display: inline-flex;
   justify-content: center;
