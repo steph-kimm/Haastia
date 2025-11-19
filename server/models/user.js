@@ -1,6 +1,29 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
+export const DEFAULT_SCHEDULING_LIMITS = {
+    minBookingLeadTimeMinutes: 0,
+    maxBookingDaysInAdvance: null,
+    rescheduleCutoffMinutes: null,
+    cancelCutoffMinutes: null,
+    maxBookingsPerSlot: null,
+    maxBookingsPerDay: null,
+    maxBookingsPerWeek: null,
+};
+
+const schedulingLimitsSchema = new Schema(
+    {
+        minBookingLeadTimeMinutes: { type: Number, min: 0, default: DEFAULT_SCHEDULING_LIMITS.minBookingLeadTimeMinutes },
+        maxBookingDaysInAdvance: { type: Number, min: 0, default: DEFAULT_SCHEDULING_LIMITS.maxBookingDaysInAdvance },
+        rescheduleCutoffMinutes: { type: Number, min: 0, default: DEFAULT_SCHEDULING_LIMITS.rescheduleCutoffMinutes },
+        cancelCutoffMinutes: { type: Number, min: 0, default: DEFAULT_SCHEDULING_LIMITS.cancelCutoffMinutes },
+        maxBookingsPerSlot: { type: Number, min: 0, default: DEFAULT_SCHEDULING_LIMITS.maxBookingsPerSlot },
+        maxBookingsPerDay: { type: Number, min: 0, default: DEFAULT_SCHEDULING_LIMITS.maxBookingsPerDay },
+        maxBookingsPerWeek: { type: Number, min: 0, default: DEFAULT_SCHEDULING_LIMITS.maxBookingsPerWeek },
+    },
+    { _id: false }
+);
+
 // const availabilitySchema = new Schema({
 //     day: {
 //         type: String,
@@ -59,6 +82,10 @@ const userSchema = new Schema(
             type: String,
             trim: true,
             default: "",
+        },
+        schedulingLimits: {
+            type: schedulingLimitsSchema,
+            default: () => ({ ...DEFAULT_SCHEDULING_LIMITS }),
         },
         image: {
             public_id: {
