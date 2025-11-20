@@ -5,6 +5,8 @@ import User from "../models/user.js";
 import Service from "../models/service.js";
 import Booking from "../models/booking.js";
 import {
+  getEffectiveMaxBookingsPerSlot,
+  getProfessionalSchedulingLimits,
   findSlotConflicts,
   normalizeDateOnly,
   normalizeTimeSlot,
@@ -453,7 +455,7 @@ export const createServiceBookingIntent = async (req, res) => {
     }
 
     const professional = await User.findById(professionalId).select(
-      "stripeAccountId name",
+      "stripeAccountId name schedulingLimits",
     );
     if (!professional) {
       return res.status(404).json({ error: "Professional not found" });
@@ -508,11 +510,16 @@ export const createServiceBookingIntent = async (req, res) => {
       return res.status(400).json({ error: "Invalid time slot" });
     }
 
+    const schedulingLimits =
+      (await getProfessionalSchedulingLimits(professionalId)) ?? {};
+    const slotCapacity = getEffectiveMaxBookingsPerSlot(schedulingLimits);
+
     const conflict = await findSlotConflicts({
       professionalId,
       date: normalizedDate,
       timeSlot: normalizedSlot,
       excludeBookingId: bookingId,
+      maxBookingsPerSlot: slotCapacity,
     });
 
     if (conflict) {

@@ -1,7 +1,41 @@
 import Booking from "../models/booking.js";
 import BlockedTime from "../models/blockedTime.js";
+import User, { DEFAULT_SCHEDULING_LIMITS } from "../models/user.js";
 
 export const INACTIVE_BOOKING_STATUSES = ["cancelled", "declined"];
+
+export const applySchedulingLimitDefaults = (limits = {}) => ({
+  ...DEFAULT_SCHEDULING_LIMITS,
+  ...(limits?.toObject?.() ?? limits),
+});
+
+export const getEffectiveMaxBookingsPerSlot = (limits) => {
+  const value = limits?.maxBookingsPerSlot;
+  const numericValue = Number(value);
+  if (Number.isFinite(numericValue) && numericValue > 0) {
+    return numericValue;
+  }
+  return 1;
+};
+
+export const getProfessionalSchedulingLimits = async (professionalId) => {
+  const professional = await User.findById(professionalId).select("schedulingLimits");
+  if (!professional) return null;
+  return applySchedulingLimitDefaults(professional.schedulingLimits || {});
+};
+
+export const startOfUtcDay = (date) => {
+  const dayStart = new Date(date);
+  dayStart.setUTCHours(0, 0, 0, 0);
+  return dayStart;
+};
+
+export const startOfUtcWeek = (date) => {
+  const weekStart = startOfUtcDay(date);
+  const dayOfWeek = weekStart.getUTCDay();
+  weekStart.setUTCDate(weekStart.getUTCDate() - dayOfWeek);
+  return weekStart;
+};
 
 const parseTimeToMinutes = (value) => {
   if (typeof value !== "string") return null;
@@ -67,9 +101,9 @@ export const findSlotConflicts = async ({
   date,
   timeSlot,
   excludeBookingId,
+  maxBookingsPerSlot,
 }) => {
-  const dayStart = new Date(date);
-  dayStart.setUTCHours(0, 0, 0, 0);
+  const dayStart = startOfUtcDay(date);
   const dayEnd = new Date(dayStart);
   dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
 
@@ -88,11 +122,18 @@ export const findSlotConflicts = async ({
     BlockedTime.find({ professionalId, date: dayStart }).select("start end").lean(),
   ]);
 
-  const conflictingBooking = bookings.find((existing) =>
+  const overlappingBookings = bookings.filter((existing) =>
     slotsOverlap(existing.timeSlot, timeSlot),
   );
-  if (conflictingBooking) {
-    return { type: "booking", bookingId: conflictingBooking._id };
+
+  const capacityLimit = maxBookingsPerSlot ?? 1;
+  if (capacityLimit > 0 && overlappingBookings.length >= capacityLimit) {
+    return {
+      type: "booking",
+      bookingId: overlappingBookings[0]?._id,
+      count: overlappingBookings.length,
+      capacity: capacityLimit,
+    };
   }
 
   const conflictingBlockedTime = blockedTimes.find((block) =>
@@ -103,4 +144,44 @@ export const findSlotConflicts = async ({
   }
 
   return null;
+};
+
+export const countBookingsForRanges = async ({
+  professionalId,
+  dayStart,
+  weekStart,
+  excludeBookingId,
+}) => {
+  const dayEnd = new Date(dayStart);
+  dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
+
+  const weekEnd = new Date(weekStart);
+  weekEnd.setUTCDate(weekEnd.getUTCDate() + 7);
+
+  const baseQuery = {
+    professional: professionalId,
+    status: { $nin: INACTIVE_BOOKING_STATUSES },
+  };
+
+  const dayQuery = {
+    ...baseQuery,
+    date: { $gte: dayStart, $lt: dayEnd },
+  };
+
+  const weekQuery = {
+    ...baseQuery,
+    date: { $gte: weekStart, $lt: weekEnd },
+  };
+
+  if (excludeBookingId) {
+    dayQuery._id = { $ne: excludeBookingId };
+    weekQuery._id = { $ne: excludeBookingId };
+  }
+
+  const [dayCount, weekCount] = await Promise.all([
+    Booking.countDocuments(dayQuery),
+    Booking.countDocuments(weekQuery),
+  ]);
+
+  return { dayCount, weekCount };
 };
