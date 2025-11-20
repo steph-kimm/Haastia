@@ -2,18 +2,32 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useView } from "../context/ViewContext";
+import { getValidToken } from "../utils/auth";
 
 const ALLOWED_VIEWS = new Set(["professional", "admin"]);
 
 const ProfessionalRouteGuard = ({ children }) => {
-  const { currentView } = useView();
+  const { currentView, setCurrentView } = useView();
   const navigate = useNavigate();
 
-  const isLoading = currentView === null;
-  const isAllowed = ALLOWED_VIEWS.has(currentView);
+  const auth = getValidToken();
+  const role = auth?.payload?.role;
+  const isProfessionalRole = role === "professional" || role === "admin";
+  const isAllowedView = ALLOWED_VIEWS.has(currentView);
+  const isAllowed = isProfessionalRole || isAllowedView;
+  const shouldSyncView =
+    isProfessionalRole && !isAllowedView && role !== undefined;
 
   useEffect(() => {
-    if (isLoading || isAllowed) {
+    if (!shouldSyncView) {
+      return;
+    }
+
+    setCurrentView(role === "admin" ? "admin" : "professional");
+  }, [role, setCurrentView, shouldSyncView]);
+
+  useEffect(() => {
+    if (isAllowed) {
       return;
     }
 
@@ -22,9 +36,9 @@ const ProfessionalRouteGuard = ({ children }) => {
     }, 2000);
 
     return () => clearTimeout(timeout);
-  }, [isAllowed, isLoading, navigate]);
+  }, [isAllowed, navigate]);
 
-  if (isLoading) {
+  if (shouldSyncView) {
     return <div>Loading...</div>;
   }
 
