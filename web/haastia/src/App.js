@@ -8,7 +8,7 @@ function App() {
   return (
     <ViewProvider>
       <PreviewGate>
-        <Router>
+        <Router basename="/Haastia">
           <AppRoutes />
         </Router>
       </PreviewGate>
