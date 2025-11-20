@@ -13,6 +13,7 @@ import ProfessionalProfile from "../components/customer/ProfessionalProfile";
 import ProfessionalBookingPage from "../components/Pages/booking/ProfessionalBookingPage";
 import BookingManagePage from "../components/Pages/booking/BookingManagePage";
 import HelpPage from "../components/Pages/HelpPage";
+import TermsAndConditions from "../components/Pages/TermsAndConditions";
 
 import ProfessionalHome from "../views/professionalView/ProfessionalHome";
 import MyServices from "../views/professionalView/MyServices";
@@ -43,6 +44,7 @@ export const customerRouteConfig = [
   { path: "/professional/:id/book", component: ProfessionalBookingPage },
   { path: "/bookings/manage/:token", component: BookingManagePage },
   { path: "/help", component: HelpPage },
+  { path: "/terms", component: TermsAndConditions },
 ];
 
 export const professionalRouteConfig = [

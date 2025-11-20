@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import './Auth.css';
@@ -51,8 +51,10 @@ const Signup = () => {
     name: '',
     email: '',
     password: '',
+    confirmPassword: '',
     location: '',
     isProvider: true,
+    acceptedTerms: false,
   });
   const [pendingSignup, setPendingSignup] = useState(null);
   const [isLaunchingCheckout, setIsLaunchingCheckout] = useState(false);
@@ -62,6 +64,9 @@ const Signup = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { setCurrentView } = useView();
+  const passwordsMismatch =
+    formData.confirmPassword &&
+    formData.password !== formData.confirmPassword;
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -111,12 +116,21 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.acceptedTerms) {
+      setFormError('You must agree to the terms and conditions before continuing.');
+      return;
+    }
+    if (passwordsMismatch) {
+      setFormError('Passwords must match before continuing.');
+      return;
+    }
     try {
       setIsSubmitting(true);
       setCheckoutError('');
       setFormError('');
+      const { acceptedTerms, confirmPassword, ...signupPayload } = formData;
       const basePayload = {
-        ...formData,
+        ...signupPayload,
       };
 
       const response = await axios.post('/api/auth/signup', basePayload);
@@ -218,6 +232,24 @@ const Signup = () => {
               </div>
 
               <div className="form-group">
+                <label htmlFor="signup-confirm-password">Confirm password</label>
+                <div className="input-shell">
+                  <input
+                    id="signup-confirm-password"
+                    type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="Re-enter your password"
+                    required
+                  />
+                </div>
+                {passwordsMismatch && (
+                  <p className="helper-text error">Passwords must match.</p>
+                )}
+              </div>
+
+              <div className="form-group">
                 <label htmlFor="signup-location">Location</label>
                 <div className="input-shell">
                   <input
@@ -232,6 +264,22 @@ const Signup = () => {
                 </div>
               </div>
 
+              <div className="checkbox-card">
+                <input
+                  id="signup-accepted-terms"
+                  type="checkbox"
+                  name="acceptedTerms"
+                  checked={formData.acceptedTerms}
+                  onChange={handleChange}
+                />
+                <label htmlFor="signup-accepted-terms">
+                  I agree to the{' '}
+                  <Link className="auth-link" to="/terms">
+                    terms and conditions
+                  </Link>
+                </label>
+              </div>
+
               {formData.isProvider && (
                 <>
                   <p className="helper-text">
@@ -244,7 +292,11 @@ const Signup = () => {
 
             {formError && <p className="helper-text error">{formError}</p>}
 
-            <button className="auth-submit" type="submit">
+            <button
+              className="auth-submit"
+              type="submit"
+              disabled={isSubmitting || !formData.acceptedTerms}
+            >
               {isSubmitting ? 'Submitting...' : 'Create account'}
             </button>
           </form>
