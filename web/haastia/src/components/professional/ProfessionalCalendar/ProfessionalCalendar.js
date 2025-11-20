@@ -7,7 +7,6 @@ import interactionPlugin from "@fullcalendar/interaction";
 import { useNavigate } from "react-router-dom";
 import { getValidToken } from "../../../utils/auth";
 import {
-  buildBusinessHoursWithBlockedTimes,
   combineDateAndTime,
   toISODateString,
 } from "../../../utils/availability";
@@ -51,7 +50,7 @@ const ProfessionalCalendar = () => {
   const auth = getValidToken();
   const token = auth?.token ?? null;
   const [professionalId, setProfessionalId] = useState(null);
-  const [availability, setAvailability] = useState([]);
+  const [availableSlots, setAvailableSlots] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [blockedTimes, setBlockedTimes] = useState([]);
   const [blockedLoading, setBlockedLoading] = useState(false);
@@ -72,19 +71,6 @@ const ProfessionalCalendar = () => {
     [token]
   );
 
-  const getBlockedRangeParams = useCallback(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const rangeStart = new Date(today);
-    rangeStart.setDate(today.getDate() - LOOK_BACK_DAYS);
-    const rangeEnd = new Date(today);
-    rangeEnd.setDate(today.getDate() + LOOK_AHEAD_DAYS);
-    return {
-      start: toISODateString(rangeStart),
-      end: toISODateString(rangeEnd),
-    };
-  }, []);
-
   useEffect(() => {
     if (!auth) {
       navigate("/login");
@@ -95,72 +81,44 @@ const ProfessionalCalendar = () => {
     setProfessionalId(decoded?._id || decoded?.id || null);
   }, [auth, navigate]);
 
-  useEffect(() => {
-    const load = async () => {
+  const loadCalendarData = useCallback(
+    async (withLoader = true) => {
       if (!professionalId || !token) return;
-      setLoading(true);
+      if (withLoader) {
+        setLoading(true);
+      }
       setBlockedLoading(true);
       try {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const rangeStart = new Date(today);
-        rangeStart.setDate(today.getDate() - LOOK_BACK_DAYS);
-        const rangeEnd = new Date(today);
-        rangeEnd.setDate(today.getDate() + LOOK_AHEAD_DAYS);
+        const { data } = await axios.get("/api/professional/me/calendar", {
+          params: { lookBackDays: LOOK_BACK_DAYS, lookAheadDays: LOOK_AHEAD_DAYS },
+          headers: authHeaders,
+        });
 
-        const [availRes, bookingsRes, blockedRes] = await Promise.all([
-          axios.get(`/api/availability/${professionalId}`),
-          axios.get(`/api/bookings/professional/${professionalId}`, {
-            headers: authHeaders,
-          }),
-          axios.get(`/api/blocked-times/${professionalId}`, {
-            params: {
-              start: toISODateString(rangeStart),
-              end: toISODateString(rangeEnd),
-            },
-            headers: authHeaders,
-          }),
-        ]);
-
-        setAvailability(availRes.data || []);
-        setBookings(bookingsRes.data || []);
-        setBlockedTimes(blockedRes.data || []);
+        setBookings(data?.bookings || []);
+        setBlockedTimes(data?.blockedTimes || []);
+        setAvailableSlots(data?.availableSlots || []);
       } catch (err) {
         console.error("Calendar load error:", err.response?.data || err.message);
       } finally {
-        setLoading(false);
+        if (withLoader) {
+          setLoading(false);
+        }
         setBlockedLoading(false);
       }
-    };
-    load();
-  }, [professionalId, token, authHeaders]);
+    },
+    [professionalId, token, authHeaders]
+  );
+
+  useEffect(() => {
+    loadCalendarData();
+  }, [loadCalendarData]);
 
   const refreshBlockedTimes = useCallback(
     async (withLoader = true) => {
       if (!professionalId) return;
-      if (withLoader) {
-        setBlockedLoading(true);
-      }
-      try {
-        const params = getBlockedRangeParams();
-        const { data } = await axios.get(`/api/blocked-times/${professionalId}`, {
-          params,
-          headers: authHeaders,
-        });
-        setBlockedTimes(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error("Blocked time reload error:", err.response?.data || err.message);
-        setBlockFeedback({
-          type: "error",
-          message: err.response?.data?.error || "Could not refresh blocked times. Please try again.",
-        });
-      } finally {
-        if (withLoader) {
-          setBlockedLoading(false);
-        }
-      }
+      await loadCalendarData(withLoader);
     },
-    [professionalId, authHeaders, getBlockedRangeParams]
+    [professionalId, loadCalendarData]
   );
 
   const bookingEvents = useMemo(
@@ -227,11 +185,17 @@ const ProfessionalCalendar = () => {
 
   const businessHours = useMemo(
     () =>
-      buildBusinessHoursWithBlockedTimes(availability, blockedTimes, {
-        lookBackDays: LOOK_BACK_DAYS,
-        lookAheadDays: LOOK_AHEAD_DAYS,
-      }),
-    [availability, blockedTimes]
+      (availableSlots || [])
+        .flatMap((entry) =>
+          (entry.slots || []).map((slot) => {
+            const start = combineDateAndTime(entry.date, slot.start);
+            const end = combineDateAndTime(entry.date, slot.end);
+            if (!start || !end) return null;
+            return { start, end };
+          })
+        )
+        .filter(Boolean),
+    [availableSlots]
   );
 
   const upcomingBlocked = useMemo(() => {
