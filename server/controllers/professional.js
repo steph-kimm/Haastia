@@ -2,7 +2,15 @@ import mongoose from "mongoose";
 import User, { DEFAULT_SCHEDULING_LIMITS } from "../models/user.js";
 import Availability from "../models/availability.js";
 import Booking from "../models/booking.js";
+import BlockedTime from "../models/blockedTime.js";
 import ClientNote from "../models/clientNote.js";
+import {
+  INACTIVE_BOOKING_STATUSES,
+  getEffectiveMaxBookingsPerSlot,
+  getProfessionalSchedulingLimits,
+  startOfUtcDay,
+  startOfUtcWeek,
+} from "../utils/scheduling.js";
 
 const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
 
@@ -68,6 +76,138 @@ const formatProfessionalForResponse = (professionalDoc) => {
   const professional = professionalDoc.toObject ? professionalDoc.toObject() : professionalDoc;
   professional.schedulingLimits = applySchedulingLimitDefaults(professional.schedulingLimits || {});
   return professional;
+};
+
+const DAY_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+const normalizeSlotToString = (slot) => {
+  if (!slot) return null;
+  if (typeof slot === "string") return slot;
+  if (slot.start && slot.end) return `${slot.start}-${slot.end}`;
+  return null;
+};
+
+const toISODateString = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  const year = date.getUTCFullYear();
+  const month = `${date.getUTCMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getUTCDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const normalizeSlotRange = (slot) => {
+  if (!slot) return null;
+  const isString = typeof slot === "string";
+  const [rawStart, rawEnd] = isString ? slot.split("-") : [slot?.start, slot?.end];
+  const start = typeof rawStart === "string" ? rawStart.trim() : "";
+  const end = typeof rawEnd === "string" ? rawEnd.trim() : "";
+  if (!start || !end) return null;
+  return { start, end };
+};
+
+const toMinutes = (time) => {
+  if (typeof time !== "string") return null;
+  const [hours, minutes] = time.split(":").map(Number);
+  if (
+    Number.isInteger(hours) &&
+    Number.isInteger(minutes) &&
+    hours >= 0 &&
+    hours < 24 &&
+    minutes >= 0 &&
+    minutes < 60
+  ) {
+    return hours * 60 + minutes;
+  }
+  return null;
+};
+
+const subtractInterval = (interval, block) => {
+  if (!interval) return [];
+  if (!block) return [interval];
+  if (block.end <= interval.start || block.start >= interval.end) {
+    return [interval];
+  }
+  const segments = [];
+  if (block.start > interval.start) {
+    segments.push({ start: interval.start, end: Math.min(block.start, interval.end) });
+  }
+  if (block.end < interval.end) {
+    segments.push({ start: Math.max(block.end, interval.start), end: interval.end });
+  }
+  return segments.filter((segment) => segment.end > segment.start);
+};
+
+const toIntervals = (slots = []) =>
+  slots
+    .map(normalizeSlotRange)
+    .filter(Boolean)
+    .map(({ start, end }) => ({
+      start: toMinutes(start),
+      end: toMinutes(end),
+    }))
+    .filter((interval) => interval.start !== null && interval.end !== null && interval.end > interval.start);
+
+const normalizeBlocksToIntervals = (blocks = []) =>
+  blocks
+    .map((block) => {
+      const normalized = normalizeSlotRange(block);
+      if (!normalized) return null;
+      return {
+        start: toMinutes(normalized.start),
+        end: toMinutes(normalized.end),
+      };
+    })
+    .filter((interval) => interval && interval.start !== null && interval.end !== null && interval.end > interval.start);
+
+const formatMinutes = (value) => `${String(Math.floor(value / 60)).padStart(2, "0")}:${String(value % 60).padStart(2, "0")}`;
+
+const subtractBlocksFromSlots = (slots = [], blocks = []) => {
+  const intervals = toIntervals(slots);
+  const blockIntervals = normalizeBlocksToIntervals(blocks);
+  const reduced = blockIntervals.reduce(
+    (current, block) => current.flatMap((interval) => subtractInterval(interval, block)),
+    intervals,
+  );
+  return reduced.map((interval) => ({
+    start: formatMinutes(interval.start),
+    end: formatMinutes(interval.end),
+  }));
+};
+
+const incrementCount = (map, key) => {
+  const current = map.get(key) ?? 0;
+  map.set(key, current + 1);
+};
+
+const buildBookingCountMaps = (bookings) => {
+  const slotCounts = new Map();
+  const dayCounts = new Map();
+  const weekCounts = new Map();
+
+  for (const booking of bookings) {
+    const dayStart = startOfUtcDay(booking.date);
+    const dayKey = dayStart.toISOString();
+    const weekKey = startOfUtcWeek(dayStart).toISOString();
+    const slotKey = normalizeSlotToString(booking.timeSlot);
+
+    incrementCount(dayCounts, dayKey);
+    incrementCount(weekCounts, weekKey);
+
+    if (slotKey) {
+      incrementCount(slotCounts, `${dayKey}|${slotKey}`);
+    }
+  }
+
+  return { slotCounts, dayCounts, weekCounts };
 };
 
 const sanitizeSchedulingLimits = (value) => {
@@ -502,5 +642,128 @@ export const updateCustomerNote = async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Failed to update note" });
+  }
+};
+
+export const getMyCalendarSnapshot = async (req, res) => {
+  if (!ensureProfessional(req, res)) return;
+
+  try {
+    const professionalId = req.user._id;
+    const schedulingLimits = await getProfessionalSchedulingLimits(professionalId);
+
+    if (!schedulingLimits) {
+      return res.status(404).json({ error: "Professional not found" });
+    }
+
+    const parseWindow = (value, fallback) => {
+      const numeric = Number(value);
+      return Number.isFinite(numeric) && numeric >= 0 ? Math.floor(numeric) : fallback;
+    };
+
+    const lookBackDays = parseWindow(req.query.lookBackDays, 30);
+    const lookAheadDays = parseWindow(req.query.lookAheadDays, 180);
+
+    const today = startOfUtcDay(new Date());
+    const rangeStart = new Date(today);
+    rangeStart.setUTCDate(today.getUTCDate() - lookBackDays);
+
+    const rangeEnd = new Date(today);
+    rangeEnd.setUTCDate(today.getUTCDate() + lookAheadDays);
+
+    const rangeEndExclusive = new Date(rangeEnd);
+    rangeEndExclusive.setUTCDate(rangeEndExclusive.getUTCDate() + 1);
+
+    const [availabilityDocs, bookings, blockedTimes] = await Promise.all([
+      Availability.find({ professionalId }).lean(),
+      Booking.find({
+        professional: professionalId,
+        date: { $gte: rangeStart, $lt: rangeEndExclusive },
+      })
+        .populate("customer", "name email")
+        .populate("service", "title price deposit")
+        .sort({ date: 1 })
+        .lean(),
+      BlockedTime.find({
+        professionalId,
+        date: { $gte: rangeStart, $lt: rangeEndExclusive },
+      })
+        .sort({ date: 1, start: 1 })
+        .lean(),
+    ]);
+
+    const activeBookings = bookings.filter(
+      (booking) => !INACTIVE_BOOKING_STATUSES.includes((booking.status || "").toLowerCase()),
+    );
+
+    const { slotCounts, dayCounts, weekCounts } = buildBookingCountMaps(activeBookings);
+    const slotCapacity = getEffectiveMaxBookingsPerSlot(schedulingLimits);
+
+    const availabilityByDay = new Map();
+    availabilityDocs.forEach((doc) => {
+      if (!doc?.day) return;
+      const normalizedSlots = (doc.slots || []).map(normalizeSlotRange).filter(Boolean);
+      if (!normalizedSlots.length) return;
+      availabilityByDay.set(doc.day, normalizedSlots);
+    });
+
+    const blockedByDate = new Map();
+    blockedTimes.forEach((block) => {
+      const isoDate = toISODateString(block.date);
+      if (!isoDate) return;
+      if (!blockedByDate.has(isoDate)) {
+        blockedByDate.set(isoDate, []);
+      }
+      blockedByDate.get(isoDate).push(block);
+    });
+
+    const availableSlots = [];
+    for (let cursor = new Date(rangeStart); cursor <= rangeEnd; cursor.setUTCDate(cursor.getUTCDate() + 1)) {
+      const isoDate = toISODateString(cursor);
+      if (!isoDate) continue;
+      const dayName = DAY_NAMES[cursor.getUTCDay()];
+      const dayAvailability = availabilityByDay.get(dayName);
+      if (!dayAvailability?.length) continue;
+
+      const dayKey = startOfUtcDay(cursor).toISOString();
+      const weekKey = startOfUtcWeek(cursor).toISOString();
+      const dayCount = dayCounts.get(dayKey) ?? 0;
+      const weekCount = weekCounts.get(weekKey) ?? 0;
+
+      const dayAtCapacity =
+        schedulingLimits.maxBookingsPerDay !== null &&
+        schedulingLimits.maxBookingsPerDay !== undefined &&
+        dayCount >= schedulingLimits.maxBookingsPerDay;
+
+      const weekAtCapacity =
+        schedulingLimits.maxBookingsPerWeek !== null &&
+        schedulingLimits.maxBookingsPerWeek !== undefined &&
+        weekCount >= schedulingLimits.maxBookingsPerWeek;
+
+      if (dayAtCapacity || weekAtCapacity) {
+        continue;
+      }
+
+      const blocks = blockedByDate.get(isoDate) ?? [];
+      const openSlots = subtractBlocksFromSlots(dayAvailability, blocks);
+
+      const filtered = openSlots.filter((slot) => {
+        const slotKey = `${dayKey}|${normalizeSlotToString(slot)}`;
+        const currentCount = slotCounts.get(slotKey) ?? 0;
+        return currentCount < slotCapacity;
+      });
+
+      if (filtered.length) {
+        availableSlots.push({
+          date: isoDate,
+          slots: filtered,
+        });
+      }
+    }
+
+    return res.json({ bookings, blockedTimes, availableSlots });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to load calendar data" });
   }
 };
