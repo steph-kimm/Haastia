@@ -15,9 +15,15 @@ import {
 import { buildGoogleCalendarLink } from "../utils/calendarLinks.js";
 import {
   INACTIVE_BOOKING_STATUSES,
+  applySchedulingLimitDefaults,
+  countBookingsForRanges,
+  getEffectiveMaxBookingsPerSlot,
+  getProfessionalSchedulingLimits,
   findSlotConflicts,
   normalizeDateOnly,
   normalizeTimeSlot,
+  startOfUtcDay,
+  startOfUtcWeek,
 } from "../utils/scheduling.js";
 
 const DAY_NAMES = [
@@ -115,6 +121,22 @@ const dayNameFromDate = (value) => {
   return DAY_NAMES[index] ?? null;
 };
 
+const nextDateForDayName = (dayName, referenceDate) => {
+  const dayIndex = DAY_NAMES.indexOf(dayName);
+  if (dayIndex === -1) return null;
+
+  const start = startOfUtcDay(referenceDate);
+  const diff = (dayIndex - start.getUTCDay() + 7) % 7;
+  const target = new Date(start);
+  target.setUTCDate(target.getUTCDate() + (diff === 0 ? 7 : diff));
+  return target;
+};
+
+const incrementCount = (map, key) => {
+  const current = map.get(key) ?? 0;
+  map.set(key, current + 1);
+};
+
 const combineDateAndTime = (dateOnly, timeString) => {
   if (!dateOnly || typeof timeString !== "string") return null;
   const [hoursStr, minutesStr] = timeString.split(":");
@@ -133,6 +155,99 @@ const combineDateAndTime = (dateOnly, timeString) => {
   const dateTime = new Date(dateOnly);
   dateTime.setUTCHours(hours, minutes, 0, 0);
   return dateTime;
+};
+
+const loadProfessionalLimitsOrFail = async (professionalId) => {
+  const limits = await getProfessionalSchedulingLimits(professionalId);
+  if (!limits) {
+    const error = new Error("Professional not found");
+    error.statusCode = 404;
+    throw error;
+  }
+  return applySchedulingLimitDefaults(limits);
+};
+
+const minutesUntil = (targetDate, now = new Date()) =>
+  Math.floor((targetDate.getTime() - now.getTime()) / 60000);
+
+const validateLeadTimes = ({ limits, normalizedDate, startDateTime, now = new Date() }) => {
+  const minutesAhead = minutesUntil(startDateTime, now);
+  if (
+    limits.minBookingLeadTimeMinutes !== null &&
+    limits.minBookingLeadTimeMinutes !== undefined &&
+    minutesAhead < limits.minBookingLeadTimeMinutes
+  ) {
+    const error = new Error(
+      `Bookings must be made at least ${limits.minBookingLeadTimeMinutes} minutes in advance.`,
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (
+    limits.maxBookingDaysInAdvance !== null &&
+    limits.maxBookingDaysInAdvance !== undefined
+  ) {
+    const todayStart = startOfUtcDay(now);
+    const dayDiff = Math.floor(
+      (normalizedDate.getTime() - todayStart.getTime()) / (1000 * 60 * 60 * 24),
+    );
+    if (dayDiff > limits.maxBookingDaysInAdvance) {
+      const error = new Error(
+        `Bookings cannot be scheduled more than ${limits.maxBookingDaysInAdvance} days in advance.`,
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+  }
+};
+
+const validateCutoff = ({ cutoffMinutes, actionLabel, startDateTime, now = new Date() }) => {
+  if (cutoffMinutes === null || cutoffMinutes === undefined) return;
+  const minutesAhead = minutesUntil(startDateTime, now);
+  if (minutesAhead < cutoffMinutes) {
+    const error = new Error(
+      `${actionLabel} must be completed at least ${cutoffMinutes} minutes before the appointment start time.`,
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+};
+
+const enforceBookingCaps = async ({
+  professionalId,
+  limits,
+  normalizedDate,
+  excludeBookingId,
+}) => {
+  const dayStart = startOfUtcDay(normalizedDate);
+  const weekStart = startOfUtcWeek(normalizedDate);
+  const { dayCount, weekCount } = await countBookingsForRanges({
+    professionalId,
+    dayStart,
+    weekStart,
+    excludeBookingId,
+  });
+
+  if (
+    limits.maxBookingsPerDay !== null &&
+    limits.maxBookingsPerDay !== undefined &&
+    dayCount >= limits.maxBookingsPerDay
+  ) {
+    const error = new Error("This day is fully booked.");
+    error.statusCode = 409;
+    throw error;
+  }
+
+  if (
+    limits.maxBookingsPerWeek !== null &&
+    limits.maxBookingsPerWeek !== undefined &&
+    weekCount >= limits.maxBookingsPerWeek
+  ) {
+    const error = new Error("This week is fully booked.");
+    error.statusCode = 409;
+    throw error;
+  }
 };
 
 // Create a new booking request
@@ -198,15 +313,41 @@ export const createBooking = async (req, res) => {
       return res.status(400).json({ error: "Invalid time slot" });
     }
 
+    const schedulingLimits = await loadProfessionalLimitsOrFail(professional);
+    const startDateTime = combineDateAndTime(normalizedDate, normalizedSlot.start);
+    if (!startDateTime) {
+      return res.status(400).json({ error: "Invalid booking start time" });
+    }
+
+    try {
+      validateLeadTimes({
+        limits: schedulingLimits,
+        normalizedDate,
+        startDateTime,
+      });
+      await enforceBookingCaps({
+        professionalId: professional,
+        limits: schedulingLimits,
+        normalizedDate,
+      });
+    } catch (validationError) {
+      const statusCode = validationError.statusCode || 400;
+      return res.status(statusCode).json({ error: validationError.message });
+    }
+
     const conflict = await findSlotConflicts({
       professionalId: professional,
       date: normalizedDate,
       timeSlot: normalizedSlot,
+      maxBookingsPerSlot: getEffectiveMaxBookingsPerSlot(schedulingLimits),
     });
 
     if (conflict) {
       return res.status(409).json({
-        error: "Selected time slot is no longer available. Please choose another time.",
+        error:
+          conflict.type === "booking"
+            ? "Selected time slot has reached its capacity. Please choose another time."
+            : "Selected time slot is no longer available. Please choose another time.",
       });
     }
 
@@ -340,7 +481,10 @@ export const createBooking = async (req, res) => {
     );
   } catch (err) {
     console.error("Error creating booking:", err);
-    res.status(500).json({ error: "Error creating booking" });
+    const statusCode = err.statusCode || 500;
+    res.status(statusCode).json({
+      error: statusCode === 500 ? "Error creating booking" : err.message,
+    });
   }
 };
 
@@ -350,34 +494,69 @@ export const getAvailableSlotsForProfessional = async (req, res) => {
   try {
     const { id } = req.params;
 
+    const schedulingLimits = await loadProfessionalLimitsOrFail(id);
+    const slotCapacity = getEffectiveMaxBookingsPerSlot(schedulingLimits);
+    const todayStart = startOfUtcDay(new Date());
+
     const [availabilityDocs, activeBookings] = await Promise.all([
       Availability.find({ professionalId: id }),
       Booking.find({
         professional: id,
         status: { $nin: INACTIVE_BOOKING_STATUSES },
-      }),
+        date: { $gte: todayStart },
+      })
+        .select("date timeSlot")
+        .lean(),
     ]);
 
-    const bookedByDay = new Map();
+    const slotCounts = new Map();
+    const dayCounts = new Map();
+    const weekCounts = new Map();
 
     for (const booking of activeBookings) {
-      const start = booking?.timeSlot?.start;
-      const end = booking?.timeSlot?.end;
-      if (!start || !end) continue;
+      const dayStart = startOfUtcDay(booking.date);
+      const dayKey = dayStart.toISOString();
+      const weekKey = startOfUtcWeek(dayStart).toISOString();
+      const slotKey = normalizeSlotToString(booking.timeSlot);
 
-      const dayName = dayNameFromDate(booking.date);
-      if (!dayName) continue;
+      incrementCount(dayCounts, dayKey);
+      incrementCount(weekCounts, weekKey);
 
-      if (!bookedByDay.has(dayName)) bookedByDay.set(dayName, new Set());
-      bookedByDay.get(dayName).add(`${start}-${end}`);
+      if (slotKey) {
+        incrementCount(slotCounts, `${dayKey}|${slotKey}`);
+      }
     }
 
     const response = availabilityDocs.map((doc) => {
-      const bookedForDay = bookedByDay.get(doc.day) ?? new Set();
+      const targetDate = nextDateForDayName(doc.day, todayStart);
+      if (!targetDate) {
+        return { day: doc.day, slots: [] };
+      }
+
+      const dayKey = startOfUtcDay(targetDate).toISOString();
+      const weekKey = startOfUtcWeek(targetDate).toISOString();
+      const dayCount = dayCounts.get(dayKey) ?? 0;
+      const weekCount = weekCounts.get(weekKey) ?? 0;
+
+      const dayAtCapacity =
+        schedulingLimits.maxBookingsPerDay !== null &&
+        schedulingLimits.maxBookingsPerDay !== undefined &&
+        dayCount >= schedulingLimits.maxBookingsPerDay;
+
+      const weekAtCapacity =
+        schedulingLimits.maxBookingsPerWeek !== null &&
+        schedulingLimits.maxBookingsPerWeek !== undefined &&
+        weekCount >= schedulingLimits.maxBookingsPerWeek;
 
       const availableSlots = (doc.slots || [])
         .map(normalizeSlotToString)
-        .filter((slot) => slot && !bookedForDay.has(slot));
+        .filter((slot) => {
+          if (!slot) return false;
+          if (dayAtCapacity || weekAtCapacity) return false;
+          const slotKey = `${dayKey}|${slot}`;
+          const currentCount = slotCounts.get(slotKey) ?? 0;
+          return currentCount < slotCapacity;
+        });
 
       return {
         day: doc.day,
@@ -472,6 +651,23 @@ export const cancelBooking = async (req, res) => {
       return res.status(403).json({ error: "Not authorized to cancel this booking" });
     }
 
+    const schedulingLimits = await loadProfessionalLimitsOrFail(booking.professional);
+    const startDateTime = combineDateAndTime(booking.date, booking.timeSlot?.start);
+    if (!startDateTime) {
+      return res.status(400).json({ error: "Invalid booking start time" });
+    }
+
+    try {
+      validateCutoff({
+        cutoffMinutes: schedulingLimits.cancelCutoffMinutes,
+        actionLabel: "Cancellations",
+        startDateTime,
+      });
+    } catch (validationError) {
+      const statusCode = validationError.statusCode || 400;
+      return res.status(statusCode).json({ error: validationError.message });
+    }
+
     try {
       applyCancellation({
         booking,
@@ -487,7 +683,10 @@ export const cancelBooking = async (req, res) => {
     res.json(sanitizeBookingForCustomer(booking));
   } catch (err) {
     console.error("Error cancelling booking:", err);
-    res.status(500).json({ error: "Failed to cancel booking" });
+    const statusCode = err.statusCode || 500;
+    res.status(statusCode).json({
+      error: statusCode === 500 ? "Failed to cancel booking" : err.message,
+    });
   }
 };
 
@@ -539,6 +738,23 @@ export const cancelBookingByManageToken = async (req, res) => {
       return res.status(404).json({ error: "Booking not found" });
     }
 
+    const schedulingLimits = await loadProfessionalLimitsOrFail(booking.professional);
+    const startDateTime = combineDateAndTime(booking.date, booking.timeSlot?.start);
+    if (!startDateTime) {
+      return res.status(400).json({ error: "Invalid booking start time" });
+    }
+
+    try {
+      validateCutoff({
+        cutoffMinutes: schedulingLimits.cancelCutoffMinutes,
+        actionLabel: "Cancellations",
+        startDateTime,
+      });
+    } catch (validationError) {
+      const statusCode = validationError.statusCode || 400;
+      return res.status(statusCode).json({ error: validationError.message });
+    }
+
     try {
       applyCancellation({ booking, reason: req.body?.reason, cancelledBy: "customer" });
     } catch (validationError) {
@@ -550,7 +766,10 @@ export const cancelBookingByManageToken = async (req, res) => {
     res.json(sanitizeBookingForCustomer(booking));
   } catch (err) {
     console.error("Error cancelling booking by token:", err);
-    res.status(500).json({ error: "Failed to cancel booking" });
+    const statusCode = err.statusCode || 500;
+    res.status(statusCode).json({
+      error: statusCode === 500 ? "Failed to cancel booking" : err.message,
+    });
   }
 };
 
@@ -568,6 +787,26 @@ export const rescheduleBookingByManageToken = async (req, res) => {
       return res.status(statusCode).json({ error: validationError.message });
     }
 
+    const schedulingLimits = await loadProfessionalLimitsOrFail(booking.professional);
+    const currentStartDateTime = combineDateAndTime(
+      booking.date,
+      booking.timeSlot?.start,
+    );
+    if (!currentStartDateTime) {
+      return res.status(400).json({ error: "Invalid booking start time" });
+    }
+
+    try {
+      validateCutoff({
+        cutoffMinutes: schedulingLimits.rescheduleCutoffMinutes,
+        actionLabel: "Rescheduling",
+        startDateTime: currentStartDateTime,
+      });
+    } catch (validationError) {
+      const statusCode = validationError.statusCode || 400;
+      return res.status(statusCode).json({ error: validationError.message });
+    }
+
     const { date, timeSlot } = req.body || {};
 
     const normalizedDate = normalizeDateOnly(date);
@@ -580,15 +819,43 @@ export const rescheduleBookingByManageToken = async (req, res) => {
       return res.status(400).json({ error: "Invalid time slot" });
     }
 
+    const nextStartDateTime = combineDateAndTime(normalizedDate, normalizedSlot.start);
+    if (!nextStartDateTime) {
+      return res.status(400).json({ error: "Invalid booking start time" });
+    }
+
+    try {
+      validateLeadTimes({
+        limits: schedulingLimits,
+        normalizedDate,
+        startDateTime: nextStartDateTime,
+      });
+      await enforceBookingCaps({
+        professionalId: booking.professional,
+        limits: schedulingLimits,
+        normalizedDate,
+        excludeBookingId: booking._id,
+      });
+    } catch (validationError) {
+      const statusCode = validationError.statusCode || 400;
+      return res.status(statusCode).json({ error: validationError.message });
+    }
+
     const conflict = await findSlotConflicts({
       professionalId: booking.professional,
       date: normalizedDate,
       timeSlot: normalizedSlot,
       excludeBookingId: booking._id,
+      maxBookingsPerSlot: getEffectiveMaxBookingsPerSlot(schedulingLimits),
     });
 
     if (conflict) {
-      return res.status(409).json({ error: "Selected time slot is no longer available." });
+      return res.status(409).json({
+        error:
+          conflict.type === "booking"
+            ? "Selected time slot has reached its capacity."
+            : "Selected time slot is no longer available.",
+      });
     }
 
     booking.date = normalizedDate;
@@ -600,6 +867,9 @@ export const rescheduleBookingByManageToken = async (req, res) => {
     res.json(sanitizeBookingForCustomer(booking));
   } catch (err) {
     console.error("Error rescheduling booking by token:", err);
-    res.status(500).json({ error: "Failed to reschedule booking" });
+    const statusCode = err.statusCode || 500;
+    res.status(statusCode).json({
+      error: statusCode === 500 ? "Failed to reschedule booking" : err.message,
+    });
   }
 };

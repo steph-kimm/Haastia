@@ -12,8 +12,16 @@ let mongoServer;
 let professional;
 let service;
 const slot = { start: "09:00", end: "10:00" };
-const bookingDate = new Date("2025-01-01T00:00:00.000Z");
-bookingDate.setUTCHours(0, 0, 0, 0);
+const nextDateForDayIndex = (dayIndex) => {
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  const diff = (dayIndex - today.getUTCDay() + 7) % 7 || 7;
+  const target = new Date(today);
+  target.setUTCDate(target.getUTCDate() + diff);
+  return target;
+};
+
+const bookingDate = nextDateForDayIndex(3); // Wednesday
 
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
