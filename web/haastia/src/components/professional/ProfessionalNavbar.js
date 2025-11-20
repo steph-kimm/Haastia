@@ -13,6 +13,7 @@ const ProfessionalNavbar = () => {
   const userId = user?._id || user?.id || null;
   const userRole = user?.role || null;
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
 
   useEffect(() => {
     if (!auth) {
@@ -22,6 +23,12 @@ const ProfessionalNavbar = () => {
 
   useEffect(() => {
     setIsMobileNavOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (location.pathname.startsWith("/availability")) {
+      setIsAvailabilityOpen(true);
+    }
   }, [location.pathname]);
 
   const handleLogout = () => {
@@ -43,8 +50,22 @@ const ProfessionalNavbar = () => {
     setIsMobileNavOpen(false);
   };
 
+  const toggleAvailability = () => {
+    setIsAvailabilityOpen((prev) => !prev);
+  };
+
   const linkClassName = ({ isActive }) =>
     `pro-link${isActive ? " pro-link--active" : ""}`;
+  const subLinkClassName = ({ isActive }) =>
+    `pro-sublink${isActive ? " pro-sublink--active" : ""}`;
+  const showAvailabilityMenu = isAvailabilityOpen || location.pathname.startsWith("/availability");
+  const availabilityButtonClasses = [
+    "pro-link",
+    "pro-nav-group__trigger",
+    showAvailabilityMenu ? "pro-link--active" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <>
@@ -120,10 +141,36 @@ const ProfessionalNavbar = () => {
                 Add Service
               </NavLink>
             </li>
-            <li>
-              <NavLink to="/availability" className={linkClassName}>
-                Availability
-              </NavLink>
+            <li className={`pro-nav-group${showAvailabilityMenu ? " pro-nav-group--open" : ""}`}>
+              <button
+                type="button"
+                className={availabilityButtonClasses}
+                onClick={toggleAvailability}
+                aria-expanded={showAvailabilityMenu}
+                aria-controls="availability-submenu"
+              >
+                <span className="pro-nav-group__trigger-text">Availability</span>
+                <span
+                  className={`pro-nav-group__chevron${
+                    showAvailabilityMenu ? " pro-nav-group__chevron--open" : ""
+                  }`}
+                  aria-hidden="true"
+                />
+              </button>
+              {showAvailabilityMenu && (
+                <ul className="pro-sub-links" id="availability-submenu">
+                  <li>
+                    <NavLink to="/availability" className={subLinkClassName} end>
+                      Weekly hours
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/availability/limits" className={subLinkClassName}>
+                      Scheduling limits
+                    </NavLink>
+                  </li>
+                </ul>
+              )}
             </li>
             <li>
               <NavLink to="/bookings" className={linkClassName}>
