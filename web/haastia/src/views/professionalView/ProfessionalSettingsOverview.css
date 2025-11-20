@@ -1,5 +1,5 @@
 .pro-settings-overview {
-  max-width: 1100px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 2.5rem clamp(1rem, 3vw, 3rem);
   display: flex;
@@ -30,6 +30,14 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 1.5rem;
+  width: 100%;
+}
+
+.pro-settings-overview__hero,
+.pro-settings-overview__grid {
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .pro-settings-overview__hero h1 {
@@ -53,7 +61,7 @@
 .pro-settings-overview__cta button {
   border: none;
   border-radius: 16px;
-  background: linear-gradient(120deg, #111c2c, #1d4ed8);
+  background: #1d4ed8;
   color: #fff;
   font-weight: 600;
   padding: 0.9rem 1.5rem;
@@ -62,13 +70,13 @@
   align-items: center;
   gap: 0.35rem;
   cursor: pointer;
-  box-shadow: 0 18px 30px rgba(15, 23, 42, 0.16);
+  box-shadow: 0 12px 24px rgba(30, 64, 175, 0.35);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .pro-settings-overview__cta button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 22px 38px rgba(15, 23, 42, 0.22);
+  box-shadow: 0 16px 30px rgba(30, 64, 175, 0.5);
 }
 
 .pro-settings-overview__cta-icon {
@@ -178,17 +186,17 @@
   padding: 0.85rem 1.4rem;
   border-radius: 14px;
   border: none;
-  background: linear-gradient(120deg, #0f172a, #2563eb);
+  background: #0f172a;
   color: #fff;
   font-weight: 600;
   text-decoration: none;
-  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.25);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .pro-overview-card__button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.24);
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.35);
 }
 
 .pro-overview-card__fine-print {
@@ -229,10 +237,6 @@
 .pro-overview-checklist li {
   display: flex;
   align-items: center;
-}
-
-.pro-overview-card--guidelines {
-  grid-column: 1 / -1;
 }
 
 .pro-overview-empty {

@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import authorizedRequest from "../../utils/api";
 import {
   extractProfessional,
-  normalizeGuidelines,
   resolveLastUpdated,
   resolveProfileUrl,
 } from "./utils/profileHelpers";
@@ -52,19 +51,6 @@ const ProfessionalSettingsOverview = () => {
     fetchProfile();
   }, []);
 
-  const guidelinesPreview = useMemo(() => {
-    const copy = normalizeGuidelines(
-      professional?.profileGuidelines ?? professional?.houseRules
-    ).trim();
-
-    if (!copy) return "";
-    if (copy.length > 240) {
-      return `${copy.slice(0, 237)}…`;
-    }
-
-    return copy;
-  }, [professional]);
-
   const lastUpdatedCopy = useMemo(() => formatDate(lastUpdated), [lastUpdated]);
   const businessName =
     professional?.name || professional?.businessName || "Your business";
@@ -94,11 +80,11 @@ const ProfessionalSettingsOverview = () => {
     <div className="pro-settings-overview">
       <header className="pro-settings-overview__hero">
         <div>
-          <p className="pro-settings-eyebrow">Profile</p>
-          <h1>Profile & house rules overview</h1>
+          <p className="pro-settings-eyebrow">Settings</p>
+          <h1>Professional settings</h1>
           <p>
-            Keep a pulse on what clients see before you edit. Update copy,
-            expectations, and helpful links in one place.
+            Review and update the profile, policies, and billing details that
+            shape the client experience from one place.
           </p>
         </div>
         <div className="pro-settings-overview__cta">
@@ -238,22 +224,6 @@ const ProfessionalSettingsOverview = () => {
           </div>
         </article>
 
-        <article className="pro-overview-card pro-overview-card--guidelines">
-          <div className="pro-overview-card__header">
-            <div>
-              <p className="pro-settings-eyebrow">House rules preview</p>
-              <h2>What clients read before booking</h2>
-            </div>
-          </div>
-          {guidelinesPreview ? (
-            <p className="pro-overview-card__body">{guidelinesPreview}</p>
-          ) : (
-            <p className="pro-overview-empty">
-              Share parking info, prep steps, and policies so clients feel ready
-              to book.
-            </p>
-          )}
-        </article>
       </section>
     </div>
   );

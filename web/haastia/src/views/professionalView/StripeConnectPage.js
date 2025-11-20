@@ -63,6 +63,16 @@ const StripeConnectPage = () => {
     fetchStatus();
   }, [auth, navigate]);
 
+  const openStripeLinkInNewTab = (url) => {
+    if (!url) return;
+    const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+    if (newWindow) {
+      newWindow.focus?.();
+    } else {
+      window.location.assign(url);
+    }
+  };
+
   const handleAccountLink = useCallback(async () => {
     try {
       setConnectLoading(true);
@@ -72,7 +82,7 @@ const StripeConnectPage = () => {
         method: "post",
       });
       if (data?.url) {
-        window.location.assign(data.url);
+        openStripeLinkInNewTab(data.url);
       } else {
         throw new Error("Stripe did not return a link. Please try again.");
       }
@@ -92,7 +102,7 @@ const StripeConnectPage = () => {
         method: "post",
       });
       if (data?.url) {
-        window.location.assign(data.url);
+        openStripeLinkInNewTab(data.url);
       } else {
         throw new Error("Stripe did not return a dashboard link. Please try again.");
       }
@@ -227,6 +237,12 @@ const StripeConnectPage = () => {
                   disabled={connectLoading || loading}
                 >
                   {connectLoading ? "Opening Stripe..." : "Connect with Stripe"}
+                  <span
+                    className="stripe-connect-new-tab-icon"
+                    aria-hidden="true"
+                  >
+                    ↗
+                  </span>
                 </button>
               )}
               {isConnected && (
@@ -237,6 +253,12 @@ const StripeConnectPage = () => {
                   disabled={dashboardLoading || loading}
                 >
                   {dashboardLoading ? "Preparing dashboard..." : "Open Stripe Dashboard"}
+                  <span
+                    className="stripe-connect-new-tab-icon"
+                    aria-hidden="true"
+                  >
+                    ↗
+                  </span>
                 </button>
               )}
             </div>
