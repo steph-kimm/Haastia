@@ -20,6 +20,7 @@ import AddServicePage from "../views/professionalView/AddServicePage";
 import ProfessionalRequests from "../views/professionalView/ProfessionalRequests";
 import AppointmentDetails from "../views/professionalView/AppointmentDetails";
 import ProfessionalAvailability from "../views/professionalView/ProfessionalAvailability";
+import ProfessionalSchedulingLimits from "../views/professionalView/ProfessionalSchedulingLimits";
 import ProfessionalCustomers from "../views/professionalView/ProfessionalCustomers";
 import StripeConnectPage from "../views/professionalView/StripeConnectPage";
 import ProfessionalOnboarding from "../views/professionalView/ProfessionalOnboarding";
@@ -52,6 +53,7 @@ export const professionalRouteConfig = [
   { path: "/customers", component: ProfessionalCustomers },
   { path: "/customers/:customerId", component: ProfessionalCustomers },
   { path: "/Services", component: MyServices },
+  { path: "/availability/limits", component: ProfessionalSchedulingLimits },
   { path: "/availability", component: ProfessionalAvailability },
   { path: "/bookings", component: ProfessionalRequests },
   { path: "/bookings/:bookingId", component: AppointmentDetails },

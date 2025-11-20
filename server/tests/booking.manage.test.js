@@ -10,8 +10,12 @@ import Booking from "../models/booking.js";
 let mongoServer;
 let professional;
 let service;
-const baseDate = new Date("2025-05-05T00:00:00.000Z");
-baseDate.setUTCHours(0, 0, 0, 0);
+const baseDate = (() => {
+  const future = new Date();
+  future.setUTCHours(0, 0, 0, 0);
+  future.setUTCDate(future.getUTCDate() + 15);
+  return future;
+})();
 
 const defaultSlot = { start: "09:00", end: "10:00" };
 

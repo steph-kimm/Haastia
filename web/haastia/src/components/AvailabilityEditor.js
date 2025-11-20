@@ -236,6 +236,7 @@ const AvailabilityEditor = () => {
     [token]
   );
 
+
   useEffect(() => {
     if (!userId) return;
     let isActive = true;
