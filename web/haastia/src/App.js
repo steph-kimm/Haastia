@@ -2,13 +2,16 @@ import React from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import AppRoutes from './routes/AppRoutes';
 import { ViewProvider } from './context/ViewContext';
+import PreviewGate from './components/PreviewGate';
 
 function App() {
   return (
     <ViewProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
+      <PreviewGate>
+        <Router>
+          <AppRoutes />
+        </Router>
+      </PreviewGate>
     </ViewProvider>
   );
 }

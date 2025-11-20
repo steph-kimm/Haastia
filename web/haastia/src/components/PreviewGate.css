@@ -1,0 +1,95 @@
+.preview-overlay {
+  align-items: center;
+  background: linear-gradient(135deg, #0d3a4d 0%, #1f5972 40%, #0d3a4d 100%);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1.5rem;
+  position: fixed;
+  width: 100%;
+  z-index: 9999;
+}
+
+.preview-card {
+  background: #f7f9fb;
+  border: 1px solid #d7e2ea;
+  border-radius: 16px;
+  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.18);
+  max-width: 420px;
+  padding: 2rem;
+  width: 100%;
+}
+
+.preview-title {
+  color: #0d3a4d;
+  font-size: 1.8rem;
+  margin: 0 0 0.5rem;
+  text-align: center;
+}
+
+.preview-subtitle {
+  color: #3b5669;
+  font-size: 0.95rem;
+  margin: 0 0 1.5rem;
+  text-align: center;
+}
+
+.preview-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.preview-label {
+  color: #0d3a4d;
+  font-weight: 600;
+}
+
+.preview-input {
+  border: 1px solid #b7c9d6;
+  border-radius: 10px;
+  font-size: 1rem;
+  padding: 0.75rem 0.9rem;
+}
+
+.preview-input:focus {
+  border-color: #1f5972;
+  box-shadow: 0 0 0 3px rgba(31, 89, 114, 0.15);
+  outline: none;
+}
+
+.preview-error {
+  color: #c71e1e;
+  margin: 0;
+}
+
+.preview-warning {
+  background: #fff8e6;
+  border: 1px solid #ffd27f;
+  border-radius: 8px;
+  color: #6a4d1b;
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+}
+
+.preview-button {
+  background: linear-gradient(135deg, #1f5972, #0d3a4d);
+  border: none;
+  border-radius: 10px;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.9rem 1rem;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.preview-button:hover {
+  box-shadow: 0 10px 20px rgba(13, 58, 77, 0.25);
+  transform: translateY(-1px);
+}
+
+.preview-button:active {
+  transform: translateY(0);
+}
