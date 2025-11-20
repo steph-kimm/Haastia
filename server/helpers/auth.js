@@ -1,7 +1,7 @@
 // below is a helper function of hashPassword
 // it uses bcrypt to hash passwords 
 
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 export const hashPassword = (password) => {
     return new Promise((resolve,reject) => {

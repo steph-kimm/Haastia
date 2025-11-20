@@ -65,7 +65,7 @@ const Home = () => {
           <h1>Run your beauty studio from one calm dashboard.</h1>
           <p>
             Focus on clients while Haastia keeps your schedule full, your payments flowing,
-            and your brand polished â€” no spreadsheets required.
+            and your brand polished no spreadsheets required.
           </p>
 
           <div className="hero-cta">
@@ -83,7 +83,7 @@ const Home = () => {
             ))}
           </ul>
 
-          <div className="hero-stats">
+          {/* <div className="hero-stats">
             <div className="stat-card">
               <p>10K+</p>
               <span>Appointments booked</span>
@@ -96,11 +96,11 @@ const Home = () => {
               <p>4.9/5</p>
               <span>Average review</span>
             </div>
-          </div>
+          </div> */}
 
           <div className="hero-note fade-up delay-1">
-            <p>â€œHaastia lets my day feel calm but fully booked â€” itâ€™s thoughtful without being fussy.â€</p>
-            <span>â€” Mia, Brow Artist in Austin</span>
+            <p>Haastia lets my day feel calm but fully booked thoughtful without being fussy.</p>
+            <span>Mia, Brow Artist in Austin</span>
           </div>
         </div>
 
@@ -214,6 +214,7 @@ const Home = () => {
             <a href="/signup" className="btn btn-primary">
               Choose yearly
             </a>
+            <br></br>
             <span className="savings-tag">Most popular</span>
           </div>
         </div>
