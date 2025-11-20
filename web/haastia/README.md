@@ -2,6 +2,14 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Preview password for non-local environments
+
+When the site is deployed (for example, via GitHub Pages) it now requires a
+password unless you are browsing from `localhost` or `127.0.0.1`. Set the
+password before building by defining the `REACT_APP_PREVIEW_PASSWORD`
+environment variable (e.g. in an `.env` file or your CI settings). Visitors
+will be prompted for the password once per session.
+
 ## Available Scripts
 
 In the project directory, you can run:
