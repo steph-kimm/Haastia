@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/Haastia/static/css/main.2e6b43a8.css",
-    "main.js": "/Haastia/static/js/main.a5a48e74.js",
+    "main.js": "/Haastia/static/js/main.1de6bf39.js",
     "static/js/453.32b97b7c.chunk.js": "/Haastia/static/js/453.32b97b7c.chunk.js",
     "index.html": "/Haastia/index.html",
     "main.2e6b43a8.css.map": "/Haastia/static/css/main.2e6b43a8.css.map",
-    "main.a5a48e74.js.map": "/Haastia/static/js/main.a5a48e74.js.map",
+    "main.1de6bf39.js.map": "/Haastia/static/js/main.1de6bf39.js.map",
     "453.32b97b7c.chunk.js.map": "/Haastia/static/js/453.32b97b7c.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.2e6b43a8.css",
-    "static/js/main.a5a48e74.js"
+    "static/js/main.1de6bf39.js"
   ]
 }
