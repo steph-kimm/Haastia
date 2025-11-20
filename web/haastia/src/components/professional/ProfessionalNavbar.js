@@ -25,12 +25,6 @@ const ProfessionalNavbar = () => {
     setIsMobileNavOpen(false);
   }, [location.pathname]);
 
-  useEffect(() => {
-    if (location.pathname.startsWith("/availability")) {
-      setIsAvailabilityOpen(true);
-    }
-  }, [location.pathname]);
-
   const handleLogout = () => {
     clearAuthStorage();
     setCurrentView("customer");
@@ -58,11 +52,12 @@ const ProfessionalNavbar = () => {
     `pro-link${isActive ? " pro-link--active" : ""}`;
   const subLinkClassName = ({ isActive }) =>
     `pro-sublink${isActive ? " pro-sublink--active" : ""}`;
-  const showAvailabilityMenu = isAvailabilityOpen || location.pathname.startsWith("/availability");
+  const isAvailabilityRoute = location.pathname.startsWith("/availability");
+  const showAvailabilityMenu = isAvailabilityOpen;
   const availabilityButtonClasses = [
     "pro-link",
     "pro-nav-group__trigger",
-    showAvailabilityMenu ? "pro-link--active" : "",
+    showAvailabilityMenu || isAvailabilityRoute ? "pro-link--active" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -150,12 +145,6 @@ const ProfessionalNavbar = () => {
                 aria-controls="availability-submenu"
               >
                 <span className="pro-nav-group__trigger-text">Availability</span>
-                <span
-                  className={`pro-nav-group__chevron${
-                    showAvailabilityMenu ? " pro-nav-group__chevron--open" : ""
-                  }`}
-                  aria-hidden="true"
-                />
               </button>
               {showAvailabilityMenu && (
                 <ul className="pro-sub-links" id="availability-submenu">

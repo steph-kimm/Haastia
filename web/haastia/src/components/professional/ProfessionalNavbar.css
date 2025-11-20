@@ -141,15 +141,15 @@
   text-decoration: none;
   font-weight: 600;
   font-size: 0.9rem;
-  background: rgba(37, 99, 235, 0.04);
+  background: transparent;
   transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .pro-sublink:hover,
 .pro-sublink:focus {
   color: #1d4ed8;
-  background: rgba(37, 99, 235, 0.15);
-  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.18);
+  background: rgba(37, 99, 235, 0.08);
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.15);
   outline: none;
 }
 
